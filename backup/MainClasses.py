@@ -302,33 +302,47 @@ class ADF:
     
     def getInheritedFacts(self, node_name):
         """
-        Gets facts inherited from child nodes
+        Gets the inherited factual ascriptions from a node's children
         
         Parameters
         ----------
         node_name : str
-            the name of the node to get inherited facts for
+            the name of the node to get inherited facts from
             
         Returns:
             dict: dictionary of inherited facts
         """
         inherited = {}
         
-        if hasattr(self, 'facts') and node_name in self.nodes:
+        print(f"DEBUG: getInheritedFacts called for {node_name}")
+        print(f"DEBUG: self.nodes keys: {list(self.nodes.keys())}")
+        print(f"DEBUG: node_name in self.nodes: {node_name in self.nodes}")
+        
+        if node_name in self.nodes:
             node = self.nodes[node_name]
+            print(f"DEBUG: Found node {node_name}, type: {type(node)}")
+            print(f"DEBUG: node.children: {getattr(node, 'children', 'No children attribute')}")
             
             if hasattr(node, 'children') and node.children:
+                print(f"DEBUG: Processing {len(node.children)} children: {node.children}")
+                # Get facts from all children of this node
                 for child_name in node.children:
-                    if hasattr(self, 'facts') and child_name in self.facts:
-                        for fact_name, value in self.facts[child_name].items():
-                            # Don't double the prefix - just use the fact name as is
-                            inherited[fact_name] = value
+                    print(f"DEBUG: Processing child {child_name}")
+                    print(f"DEBUG: self.facts keys: {list(self.facts.keys())}")
+                    print(f"DEBUG: child_name in self.facts: {child_name in self.facts}")
+                    if child_name in self.facts:
+                        print(f"DEBUG: Found facts for {child_name}: {self.facts[child_name]}")
+                        # Inherit facts from child to parent
+                        inherited.update(self.facts[child_name])
+                    else:
+                        print(f"DEBUG: No facts found for {child_name}")
             else:
-                pass  # Node has no children
+                print(f"DEBUG: Node {node_name} has no children or empty children list")
         else:
-            pass  # Node not found or no facts attribute
+            print(f"DEBUG: Node {node_name} not found or no facts attribute")
         
-        return inherited or {}  # Ensure we never return None
+        print(f"DEBUG: Returning inherited facts: {inherited}")
+        return inherited
     
     def nonLeafGen(self):
         """
@@ -1107,17 +1121,28 @@ class DependentBLF(Node):
         # Get inherited facts from the dependency node
         inherited = adf.getInheritedFacts(self.dependency_node)
         
-        # Safety check: ensure inherited is a dictionary
-        if not isinstance(inherited, dict):
-            print(f"DEBUG: Warning: getInheritedFacts returned {type(inherited)} instead of dict for {self.dependency_node}")
+        print(f"DEBUG: Dependency node: {self.dependency_node}")
+        print(f"DEBUG: Inherited facts: {inherited}")
+        print(f"DEBUG: Question template: {question_text}")
+        
+        # Ensure inherited is always a dictionary
+        if inherited is None:
             inherited = {}
+        
+        # Merge inherited facts with this BLF's own facts
+        all_facts = inherited.copy()
+        if hasattr(self, 'factual_ascription') and self.factual_ascription:
+            all_facts.update(self.factual_ascription)
+        
+        print(f"DEBUG: All facts: {all_facts}")
         
         # Replace placeholders in the question template
         # This is now generic - any placeholder like {ICE_CREAM_flavour} will be replaced
-        for key, value in inherited.items():
+        for key, value in all_facts.items():
             placeholder = "{" + key + "}"
             if placeholder in question_text:
                 question_text = question_text.replace(placeholder, str(value))
+                print(f"DEBUG: Replaced {placeholder} with {value}")
         
         # Clean up any remaining unresolved placeholders and format the question nicely
         import re
@@ -1131,6 +1156,8 @@ class DependentBLF(Node):
         # Remove trailing comma if it exists
         if question_text.endswith(','):
             question_text = question_text[:-1]
+        
+        print(f"DEBUG: Final question: {question_text}")
         
         self.question = question_text
         return question_text
@@ -1153,7 +1180,7 @@ class DependentBLF(Node):
 
 class SubADMBLF(Node):
     """
-    A BLF that depends on evaluating a sub-ADM for each item from another BLF
+    A BLF that depends on evaluating a sub-ADM for each item from a source
     
     Attributes
     ----------
@@ -1161,15 +1188,15 @@ class SubADMBLF(Node):
         the name of the BLF
     sub_adf_creator : function
         function that creates and returns a sub-ADM instance
-    source_blf : str
-        the name of the BLF that contains the list of items to evaluate
+    source_items : list or function
+        list of items to evaluate, or function that returns the list
     statements : list
         statements to show if the BLF is accepted or rejected
     sub_questions : dict, optional
         custom questions for sub-ADM evaluation with keys 'positive' and 'negative'
     """
     
-    def __init__(self, name, sub_adf_creator, source_blf, statements, sub_questions=None):
+    def __init__(self, name, sub_adf_creator, source_items, statements, sub_questions=None):
         """
         Parameters
         ----------
@@ -1177,8 +1204,8 @@ class SubADMBLF(Node):
             the name of the BLF
         sub_adf_creator : function
             function that creates and returns a sub-ADM instance
-        source_blf : str
-            the name of the BLF that contains the list of items to evaluate
+        source_items : list or function
+            list of items to evaluate, or function that returns the list
         statements : list
             statements to show if the BLF is accepted or rejected
         sub_questions : dict, optional
@@ -1196,43 +1223,18 @@ class SubADMBLF(Node):
         self.statement = statements
         
         self.sub_adf_creator = sub_adf_creator
-        self.source_blf = source_blf
+        self.source_items = source_items
         self.sub_adf_results = {}
         
         # Set default questions if none provided
         self.sub_questions = sub_questions or {
-            'positive': 'Is {item} positive data?',
-            'negative': 'Is {item} negative data?'
+            'positive': 'Is {item} positive?',
+            'negative': 'Is {item} negative?'
         }
         
         # Override the question to indicate this is a sub-ADM question
         self.question = f"Sub-ADM evaluation: {name}"
     
-    def _get_source_items(self, ui_instance):
-        """
-        Gets the list of items to evaluate from the source
-        
-        Parameters
-        ----------
-        ui_instance : UI
-            the UI instance to access the main ADF
-            
-        Returns:
-            list: list of items to evaluate
-        """
-        # Check if source_blf is a function (callable)
-        if callable(self.source_blf):
-            # If source_blf is a function, call it
-            return self.source_blf(ui_instance)
-        elif isinstance(self.source_blf, list):
-            # If source_blf is already a list, return it
-            return self.source_blf
-        else:
-            # Try to get items from facts if source_blf is a string (BLF name)
-            if hasattr(ui_instance.adf, 'getFact'):
-                return ui_instance.adf.getFact(self.source_blf, 'items') or []
-            return []
-
     def evaluateSubADMs(self, ui_instance):
         """
         Evaluates sub-ADMs for each item to determine BLF acceptance
@@ -1268,7 +1270,6 @@ class SubADMBLF(Node):
                     
                     # Evaluate the sub-ADM
                     sub_result, sub_case = self._evaluateSubADM(sub_adf, item)
-                    
                     self.sub_adf_results[item] = sub_result
                     item_results.append(sub_case)
                     
@@ -1296,6 +1297,30 @@ class SubADMBLF(Node):
         except Exception as e:
             return False
     
+    def _get_source_items(self, ui_instance):
+        """
+        Gets the list of items to evaluate from the source
+        
+        Parameters
+        ----------
+        ui_instance : UI
+            the UI instance to access the main ADF
+            
+        Returns:
+            list: list of items to evaluate
+        """
+        if callable(self.source_items):
+            # If source_items is a function, call it
+            return self.source_items(ui_instance)
+        elif isinstance(self.source_items, list):
+            # If source_items is already a list, return it
+            return self.source_items
+        else:
+            # Try to get items from facts if source_items is a string (BLF name)
+            if hasattr(ui_instance.adf, 'getFact'):
+                return ui_instance.adf.getFact(self.source_items, 'items') or []
+            return []
+    
     def _evaluateSubADM(self, sub_adf, item):
         """
         Evaluates a single sub-ADM for an item
@@ -1308,11 +1333,9 @@ class SubADMBLF(Node):
             the item name being evaluated
             
         Returns:
-            str: 'POSITIVE', 'NEGATIVE', or 'UNKNOWN'
+            tuple: (result, case) where result is 'POSITIVE', 'NEGATIVE', or 'UNKNOWN'
         """
         try:
-            # print(f"Evaluating sub-ADM for item: {item}")
-            
             # Set the item name in the sub-ADM
             if hasattr(sub_adf, 'setFact'):
                 sub_adf.setFact('ITEM', 'name', item)
@@ -1320,39 +1343,32 @@ class SubADMBLF(Node):
             # Ask the user the questions for this item
             case = []
             
-            # Ask POSITIVE_DATA question
+            # Ask positive question
             positive_question = self.sub_questions['positive'].format(item=item)
             print(f"\nQuestion: {positive_question}")
             positive_answer = input("Answer (y/n): ").strip().lower()
             if positive_answer in ['y', 'yes']:
                 case.append('POSITIVE_DATA')
-                print(f"Added POSITIVE_DATA to case for {item}")
             
-            # Ask NEGATIVE_DATA question
+            # Ask negative question
             negative_question = self.sub_questions['negative'].format(item=item)
             print(f"Question: {negative_question}")
             negative_answer = input("Answer (y/n): ").strip().lower()
             if negative_answer in ['y', 'yes']:
                 case.append('NEGATIVE_DATA')
-                print(f"Added NEGATIVE_DATA to case for {item}")
             
-            print(f"Case for {item}: {case}")
-            
-            # Evaluate the abstract factors
+            # Evaluate the abstract factors based on the sub-ADM structure
+            # This is generic - the sub-ADM should define what constitutes positive/negative
             if 'POSITIVE_DATA' in case and 'NEGATIVE_DATA' not in case:
                 case.append('POSITIVE_RESOURCE')
-                print(f"{item} is POSITIVE (POSITIVE_DATA and not NEGATIVE_DATA)")
                 return 'POSITIVE', case
             elif 'NEGATIVE_DATA' in case and 'POSITIVE_DATA' not in case:
                 case.append('NEGATIVE_RESOURCE')
-                print(f"{item} is NEGATIVE (NEGATIVE_DATA and not POSITIVE_DATA)")
                 return 'NEGATIVE', case
             else:
-                print(f"{item} is neither clearly POSITIVE nor NEGATIVE")
                 return 'UNKNOWN', case
             
         except Exception as e:
-            # print(f"Error in sub-ADM evaluation: {e}")
             return 'UNKNOWN', []
 
 class AlgorithmicBLF(Node):
@@ -1446,8 +1462,18 @@ class AlgorithmicBLF(Node):
                     else:
                         print(f"\n{self.statement[1] if len(self.statement) > 1 else self.statement[0]}")
                 else:
-                    # print(f"DEBUG: Cannot display statement - self.statement is {self.statement}")
-                    pass
+                    # Check if we can display a statement
+                    if hasattr(self, 'statement') and self.statement and len(self.statement) > 0:
+                        if self.acceptance is not None:
+                            # Display the appropriate statement based on acceptance
+                            if self.acceptance:
+                                return self.statement[0]  # First statement for acceptance
+                            else:
+                                return self.statement[-1]  # Last statement for rejection
+                        else:
+                            return self.statement[0]  # Default to first statement if no acceptance set
+                    else:
+                        return f"{self.name}: No statement available"
                 
                 # Store the algorithm result as a fact for other BLFs to access
                 if hasattr(ui_instance, 'adf') and hasattr(ui_instance.adf, 'setFact'):

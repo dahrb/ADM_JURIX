@@ -445,6 +445,21 @@ class CLI:
         
         print(f"DEBUG: Final case after abstract factor evaluation: {self.case}")
     
+    def _setup_abstract_factor_relationships(self):
+        """
+        Set up parent-child relationships for abstract factors
+        This ensures that abstract factors can properly identify their children
+        """
+        for node_name, node in self.adf.nodes.items():
+            if hasattr(node, 'children') and node.children:
+                # This is an abstract factor, ensure its children know about it
+                for child_name in node.children:
+                    if child_name in self.adf.nodes:
+                        child_node = self.adf.nodes[child_name]
+                        # Ensure the child has a parent reference
+                        if not hasattr(child_node, 'parent'):
+                            child_node.parent = node_name
+    
     def _ask_factual_ascription_questions(self, blf_name, instantiator):
         """
         Ask factual ascription questions for a BLF

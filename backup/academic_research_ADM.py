@@ -106,14 +106,3 @@ def adf():
     
     return adf
 
-def cases():
-    """
-    Returns predefined cases for the Academic Research Project domain
-    """
-    return {
-        "Quantitative Research": ["QUANTITATIVE", "QUANTITATIVE_method", "DATA_ANALYSIS", "PRIMARY_SOURCES"],
-        "Qualitative Research": ["QUALITATIVE", "QUALITATIVE_method", "DATA_ANALYSIS", "PRIMARY_SOURCES"],
-        "Mixed Methods Research": ["QUANTITATIVE", "QUALITATIVE", "MIXED_METHODS", "DATA_ANALYSIS", "PRIMARY_SOURCES"],
-        "Secondary Sources Only": ["QUANTITATIVE", "QUALITATIVE", "MIXED_METHODS", "DATA_ANALYSIS", "PRIMARY_SOURCES", "SECONDARY_SOURCES_EVALUATION"]
-    }
-
