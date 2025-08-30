@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADM Tool - Argumentation Decision Framework</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-bg: #ecf0f1;
+            --dark-bg: #34495e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .hero-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .start-btn {
+            background: linear-gradient(45deg, var(--success-color), var(--secondary-color));
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+        
+        .features-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid var(--secondary-color);
+        }
+        
+        .info-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .info-text {
+            color: #555;
+            line-height: 1.7;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .info-highlights {
+            margin: 2rem 0;
+        }
+        
+        .highlight-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: rgba(39, 174, 96, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .highlight-item i {
+            font-size: 1.2rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .highlight-item span {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .paper-reference {
+            background: rgba(52, 152, 219, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+        
+        .paper-reference h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .paper-reference p {
+            color: #555;
+            margin-bottom: 1rem;
+        }
+        
+        .paper-link .btn {
+            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .paper-link .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+        }
+        
+        .footer {
+            background: rgba(0, 0, 0, 0.1);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .start-btn {
+                padding: 0.8rem 2rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1 class="hero-title">
+                <i class="fas fa-project-diagram me-3"></i>
+                ADM Tool
+            </h1>
+            <p class="hero-subtitle">
+                A web-based interface for Argumentation Decision Frameworks.<br>
+                Evaluate complex decision scenarios through structured logical argumentation.
+            </p>
+            <button class="start-btn btn" onclick="startSession()">
+                <i class="fas fa-play me-2"></i>
+                Start New Session
+            </button>
+        </div>
+        
+        <!-- ADM Information Section -->
+        <div class="features-section">
+            <div class="row">
+                <div class="col-md-8 mx-auto">
+                    <div class="info-card">
+                        <h3 class="info-title">
+                            <i class="fas fa-info-circle me-3"></i>
+                            About Argumentation Decision Frameworks (ADMs)
+                        </h3>
+                        <p class="info-text">
+                            Argumentation Decision Frameworks (ADMs) are formal structures that enable systematic decision-making 
+                            through logical argumentation. They provide a structured approach to evaluating complex scenarios by 
+                            breaking down decisions into logical components and relationships.
+                        </p>
+                        
+                        <div class="info-highlights">
+                            <div class="highlight-item">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span>Structured decision analysis through logical argumentation</span>
+                            </div>
+                            <div class="highlight-item">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span>Support for complex dependencies and sub-decision models</span>
+                            </div>
+                            <div class="highlight-item">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span>Visual representation of decision networks</span>
+                            </div>
+                            <div class="highlight-item">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <span>Algorithmic processing of decision criteria</span>
+                            </div>
+                        </div>
+                        
+                        <div class="paper-reference mt-4">
+                            <h4 class="h5 text-primary">
+                                <i class="fas fa-book me-2"></i>
+                                Further Reading
+                            </h4>
+                            <p>
+                                For a comprehensive understanding of ADMs and their theoretical foundations, 
+                                see the ANGELIC II paper:
+                            </p>
+                            <div class="paper-link">
+                                <a href="https://doi.org/10.1145/3594536.3595137" target="_blank" class="btn btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-2"></i>
+                                    ANGELIC II: Argumentation with Decision Making
+                                </a>
+                                <small class="d-block text-muted mt-2">
+                                    Atkinson, K., & Bench-Capon, T. (2020). ANGELIC II: Argumentation with Decision Making. 
+                                    In Computational Models of Argument (pp. 1-14). Springer.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>&copy; 2024 ADM Tool - Argumentation Decision Framework</p>
+            <p>Built with modern web technologies for enhanced user experience</p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function startSession() {
+            fetch('/start_session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
+            })
+            .catch(error => {
+                console.error('Error starting session:', error);
+                alert('Error starting session. Please try again.');
+            });
+        }
+        
+        // Simple page load animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const heroSection = document.querySelector('.hero-section');
+            const infoSection = document.querySelector('.features-section');
+            
+            // Fade in hero section
+            heroSection.style.opacity = '0';
+            heroSection.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                heroSection.style.transition = 'all 0.8s ease';
+                heroSection.style.opacity = '1';
+                heroSection.style.transform = 'translateY(0)';
+            }, 100);
+            
+            // Fade in info section
+            infoSection.style.opacity = '0';
+            infoSection.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                infoSection.style.transition = 'all 0.8s ease';
+                infoSection.style.opacity = '1';
+                infoSection.style.transform = 'translateY(0)';
+            }, 300);
+        });
+    </script>
+</body>
+</html>

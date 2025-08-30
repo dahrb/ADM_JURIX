@@ -45,6 +45,11 @@ def adf():
     # We need to manually set up the children after the question instantiator creates them
     adf.addNodes("MIXED_METHODS", ["QUANTITATIVE and QUALITATIVE"], ["MIXED_METHODS is accepted", "MIXED_METHODS is rejected"])
     
+    adf.addNodes("NOVELTY", None, None, "Is your research novel?")
+    
+    # Manually add NOVELTY to question order since it has no acceptance condition
+    if "NOVELTY" not in adf.questionOrder:
+        adf.questionOrder.append("NOVELTY")
     # After the question instantiator runs, we'll need to set up the parent-child relationships
     # This will be done in the UI when the question instantiator creates the nodes
    
@@ -93,7 +98,7 @@ def adf():
                           "SECONDARY_SOURCES is rejected - no secondary sources"])
     
     # Set the question order to include all questions (SOURCES removed)
-    adf.questionOrder = ["question_1", "MIXED_METHODS", "DATA_ANALYSIS", "PRIMARY_SOURCES", "SECONDARY_SOURCES_EVALUATION"]
+    adf.questionOrder = ["question_1", "MIXED_METHODS", "DATA_ANALYSIS", "NOVELTY", "PRIMARY_SOURCES", "SECONDARY_SOURCES_EVALUATION"]
     
     # Add root node RESEARCH_QUALITY with acceptance condition that includes all research types
     # Now includes MIXED_METHODS as a valid research approach

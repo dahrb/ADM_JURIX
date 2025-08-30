@@ -334,11 +334,19 @@ class CLI:
                         if answer in ['y', 'yes']:
                             self.case.append(current_node.name)
                             # print(f"DEBUG: {current_node.name} accepted, added to case")
-                            print(f"\n{current_node.statement[0]}")
+                            if hasattr(current_node, 'statement') and current_node.statement and len(current_node.statement) > 0:
+                                print(f"\n{current_node.statement[0]}")
+                            else:
+                                print(f"\n{current_node.name} is accepted")
                             break
                         elif answer in ['n', 'no']:
                             # print(f"DEBUG: {current_node.name} rejected")
-                            print(f"\n{current_node.statement[1]}")
+                            if hasattr(current_node, 'statement') and current_node.statement and len(current_node.statement) > 1:
+                                print(f"\n{current_node.statement[1]}")
+                            elif hasattr(current_node, 'statement') and current_node.statement and len(current_node.statement) > 0:
+                                print(f"\n{current_node.statement[0]}")
+                            else:
+                                print(f"\n{current_node.name} is rejected")
                             break
                         else:
                             print("Please answer 'y' or 'n'.")

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADM Results - Evaluation Complete</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --light-bg: #ecf0f1;
+            --dark-bg: #34495e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .results-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--light-bg);
+        }
+        
+        .header-title {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .header-subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .success-badge {
+            background: linear-gradient(45deg, var(--success-color), var(--secondary-color));
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .results-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .case-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .case-item {
+            background: var(--light-bg);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            border-left: 4px solid var(--success-color);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .results-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .result-item {
+            background: white;
+            border: 2px solid var(--light-bg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .result-item:hover {
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(52, 152, 219, 0.2);
+        }
+        
+        .result-item.accepted {
+            border-color: var(--success-color);
+            background: rgba(39, 174, 96, 0.05);
+        }
+        
+        .result-item.rejected {
+            border-color: var(--accent-color);
+            background: rgba(231, 76, 60, 0.05);
+        }
+        
+        .result-status {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .result-status.accepted {
+            background: var(--success-color);
+        }
+        
+        .result-status.rejected {
+            background: var(--accent-color);
+        }
+        
+        .graph-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .graph-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .graph-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .graph-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .graph-info {
+            background: var(--light-bg);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, var(--success-color), var(--secondary-color));
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: var(--light-bg);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--dark-bg);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--secondary-color);
+            color: var(--secondary-color);
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline:hover {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .modal-image {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .algorithm-results {
+            margin-top: 1rem;
+        }
+        
+        .algorithm-results .alert {
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+        }
+        
+        .algorithm-results .alert small {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .results-container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+            
+            .header-title {
+                font-size: 2rem;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="results-container">
+            <!-- Header Section -->
+            <div class="header-section">
+                <h1 class="header-title">
+                    <i class="fas fa-check-circle me-3"></i>
+                    Evaluation Complete
+                </h1>
+                <p class="header-subtitle">
+                    Your ADM case has been successfully evaluated
+                </p>
+                <div class="success-badge">
+                    <i class="fas fa-trophy me-2"></i>
+                    Analysis Complete
+                </div>
+            </div>
+            
+            <!-- Results Grid -->
+            <div class="results-grid">
+                <!-- Case Summary -->
+                <div class="results-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-list-ul"></i>
+                        Case Summary
+                    </h3>
+                    <ul class="case-list">
+                        {% for item in case %}
+                        <li class="case-item">
+                            <i class="fas fa-check me-2"></i>
+                            {{ item }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <!-- Evaluation Results -->
+                <div class="results-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-chart-line"></i>
+                        Evaluation Results
+                    </h3>
+                    <ul class="results-list">
+                        {% for result in results %}
+                        <li class="result-item {% if 'accepted' in result.lower() %}accepted{% elif 'rejected' in result.lower() %}rejected{% endif %}">
+                            <div class="result-status {% if 'accepted' in result.lower() %}accepted{% elif 'rejected' in result.lower() %}rejected{% endif %}"></div>
+                            {{ result }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <!-- Algorithmic Question Results -->
+                    {% if session.algorithm_results %}
+                    <div class="mt-4">
+                        <h4 class="h5 text-primary">
+                            <i class="fas fa-cogs me-2"></i>
+                            Algorithmic Processing Results
+                        </h4>
+                        <div class="algorithm-results">
+                            {% for question_name, result_data in session.algorithm_results.items() %}
+                            <div class="alert {% if result_data.accepted %}alert-success{% else %}alert-warning{% endif %}">
+                                <strong>{{ question_name }}:</strong> 
+                                {% if result_data.accepted %}
+                                    <i class="fas fa-check-circle me-1"></i>Accepted
+                                {% else %}
+                                    <i class="fas fa-times-circle me-1"></i>Rejected
+                                {% endif %}
+                                <br>
+                                <small class="text-muted">Result: {{ result_data.result }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Graph Visualization -->
+            <div class="graph-section">
+                <h3 class="section-title">
+                    <i class="fas fa-project-diagram"></i>
+                    Decision Network Visualization
+                </h3>
+                <div class="graph-container">
+                    {% if graph_data %}
+                    <img src="data:image/png;base64,{{ graph_data }}" 
+                         alt="ADM Decision Network" 
+                         class="graph-image"
+                         onclick="openGraphModal(this.src)"
+                         title="Click to view full size">
+                    <div class="graph-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Visualization:</strong> This graph shows the complete decision network including main ADM nodes, 
+                        sub-ADMs, and their relationships. Green nodes indicate accepted factors, red nodes indicate rejected factors.
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Visualization Unavailable:</strong> The decision network graph could not be generated for this case.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-outline" onclick="downloadGraph()" {% if not graph_data %}disabled{% endif %}>
+                    <i class="fas fa-download me-2"></i>
+                    Download Graph
+                </button>
+                <button class="btn btn-secondary" onclick="startNewSession()">
+                    <i class="fas fa-plus me-2"></i>
+                    New Session
+                </button>
+                <button class="btn btn-primary" onclick="goHome()">
+                    <i class="fas fa-home me-2"></i>
+                    Back to Home
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Graph Modal -->
+    <div class="modal fade" id="graphModal" tabindex="-1" aria-labelledby="graphModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="graphModalLabel">
+                        <i class="fas fa-project-diagram me-2"></i>
+                        ADM Decision Network - Full View
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalGraphImage" class="modal-image" alt="ADM Decision Network">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="downloadGraphFromModal()">Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function openGraphModal(imageSrc) {
+            document.getElementById('modalGraphImage').src = imageSrc;
+            const modal = new bootstrap.Modal(document.getElementById('graphModal'));
+            modal.show();
+        }
+        
+        function downloadGraph() {
+            {% if graph_data %}
+            const link = document.createElement('a');
+            link.href = 'data:image/png;base64,{{ graph_data }}';
+            link.download = 'adm_decision_network.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            {% endif %}
+        }
+        
+        function downloadGraphFromModal() {
+            {% if graph_data %}
+            const link = document.createElement('a');
+            link.href = 'data:image/png;base64,{{ graph_data }}';
+            link.download = 'adm_decision_network.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Close modal after download
+            const modal = bootstrap.Modal.getInstance(document.getElementById('graphModal'));
+            modal.hide();
+            {% endif %}
+        }
+        
+        function startNewSession() {
+            fetch('/api/restart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
+            })
+            .catch(error => {
+                console.error('Error starting new session:', error);
+                alert('Error starting new session. Please try again.');
+            });
+        }
+        
+        function goHome() {
+            window.location.href = '/';
+        }
+        
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const resultItems = document.querySelectorAll('.result-item');
+            
+            resultItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    item.style.transition = 'all 0.6s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

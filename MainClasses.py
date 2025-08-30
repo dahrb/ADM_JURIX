@@ -381,15 +381,21 @@ class ADF:
                             self.case.append(name)
                         #deletes node from nonLeaf nodes
                         self.nonLeaf.pop(name)
-                        self.statements.append(node.statement[self.counter])
+                        if hasattr(node, 'statement') and node.statement and len(node.statement) > self.counter:
+                            self.statements.append(node.statement[self.counter])
+                        else:
+                            self.statements.append(f"{node.name} is accepted")
                         self.reject = False
                         break
                     #if node's acceptance conditions are false                       
                     else:
                         #deletes node from nonLeaf nodes but doesn't add to case
                         self.nonLeaf.pop(name)
-                        #the last statement is always the rejection statemenr
-                        self.statements.append(node.statement[-1])
+                        #the last statement is always the rejection statement
+                        if hasattr(node, 'statement') and node.statement and len(node.statement) > 0:
+                            self.statements.append(node.statement[-1])
+                        else:
+                            self.statements.append(f"{node.name} is rejected")
                         self.reject = False
                         break
         
