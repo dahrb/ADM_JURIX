@@ -11,8 +11,8 @@ def create_source_sub_adm():
     sub_adf = ADF("SourceEvaluation")
     
     # Add BLFs for the sub-ADM
-    sub_adf.addNodes("POSITIVE_DATA", [], ["POSITIVE_DATA is accepted", "POSITIVE_DATA is rejected"], "Is {item} primary data (collected directly)?")
-    sub_adf.addNodes("NEGATIVE_DATA", [], ["NEGATIVE_DATA is accepted", "NEGATIVE_DATA is rejected"], "Is {item} secondary data (from existing sources)?")
+    sub_adf.addNodes("POSITIVE_DATA", None, None, "Is {item} primary data (collected directly)?")
+    sub_adf.addNodes("NEGATIVE_DATA", None, None, "Is {item} secondary data (from existing sources)?")
     
     # Add abstract factors
     sub_adf.addNodes("POSITIVE_RESOURCE", ["POSITIVE_DATA and not NEGATIVE_DATA"], ["POSITIVE_RESOURCE is accepted - primary source", "POSITIVE_RESOURCE is rejected - not primary"])
@@ -87,7 +87,11 @@ def adf():
         "PRIMARY_SOURCES is rejected - no primary sources available"
     ], {
         'positive': 'Is {item} primary data (collected directly)?',
-        'negative': 'Is {item} secondary data (from existing sources)?'
+        'negative': 'Is {item} secondary data (from existing sources)?',
+        'positive_factor_name': 'POSITIVE_DATA',
+        'negative_factor_name': 'NEGATIVE_DATA',
+        'accepted_factor_name': 'POSITIVE_RESOURCE',
+        'rejected_factor_name': 'NEGATIVE_RESOURCE'
     })
     
     # Add SECONDARY_SOURCES as an EvaluationBLF that evaluates sub-ADM results

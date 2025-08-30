@@ -175,7 +175,13 @@ class ADF:
         statements : list, optional
             statements to show if the BLF is accepted or rejected
         sub_questions : dict, optional
-            custom questions for sub-ADM evaluation with keys 'positive' and 'negative'
+            custom questions for sub-ADM evaluation with keys:
+            - 'positive': question for positive criterion
+            - 'negative': question for negative criterion
+            - 'positive_factor_name': actual factor name to add to case (e.g., 'POSITIVE_DATA')
+            - 'negative_factor_name': actual factor name to add to case (e.g., 'NEGATIVE_DATA')
+            - 'accepted_factor_name': abstract factor name for accepted items (e.g., 'POSITIVE_RESOURCE')
+            - 'rejected_factor_name': abstract factor name for rejected items (e.g., 'NEGATIVE_RESOURCE')
         """
         
         # Create a special node that handles sub-ADM evaluation
@@ -248,7 +254,7 @@ class ADF:
         source_blf : str
             the name of the BLF that contains the sub-ADM results to evaluate
         evaluation_condition : str
-            the condition to check in the sub-ADM results (e.g., 'NEGATIVE_RESOURCE', 'POSITIVE_RESOURCE')
+            the condition to check in the sub-ADM results (e.g., 'ACCEPTED_FACTOR', 'REJECTED_FACTOR')
         statements : list, optional
             statements to show if the BLF is accepted or rejected
         """
@@ -1171,8 +1177,14 @@ class SubADMBLF(Node):
         the name of the BLF that contains the list of items to evaluate
     statements : list
         statements to show if the BLF is accepted or rejected
-    sub_questions : dict, optional
-        custom questions for sub-ADM evaluation with keys 'positive' and 'negative'
+            sub_questions : dict, optional
+            custom questions for sub-ADM evaluation with keys:
+            - 'positive': question for positive criterion
+            - 'negative': question for negative criterion
+            - 'positive_factor_name': actual factor name to add to case (e.g., 'POSITIVE_DATA')
+            - 'negative_factor_name': actual factor name to add to case (e.g., 'NEGATIVE_DATA')
+            - 'accepted_factor_name': abstract factor name for accepted items (e.g., 'POSITIVE_RESOURCE')
+            - 'rejected_factor_name': abstract factor name for rejected items (e.g., 'NEGATIVE_RESOURCE')
     """
     
     def __init__(self, name, sub_adf_creator, source_blf, statements, sub_questions=None):
@@ -1188,7 +1200,13 @@ class SubADMBLF(Node):
         statements : list
             statements to show if the BLF is accepted or rejected
         sub_questions : dict, optional
-            custom questions for sub-ADM evaluation with keys 'positive' and 'negative'
+            custom questions for sub-ADM evaluation with keys:
+            - 'positive': question for positive criterion
+            - 'negative': question for negative criterion
+            - 'positive_factor_name': actual factor name to add to case (e.g., 'POSITIVE_DATA')
+            - 'negative_factor_name': actual factor name to add to case (e.g., 'NEGATIVE_DATA')
+            - 'accepted_factor_name': abstract factor name for accepted items (e.g., 'POSITIVE_RESOURCE')
+            - 'rejected_factor_name': abstract factor name for rejected items (e.g., 'NEGATIVE_RESOURCE')
         """
         
         # Ensure statements is a list
@@ -1207,8 +1225,12 @@ class SubADMBLF(Node):
         
         # Set default questions if none provided
         self.sub_questions = sub_questions or {
-            'positive': 'Is {item} positive data?',
-            'negative': 'Is {item} negative data?'
+            'positive': 'Does {item} meet the first criterion?',
+            'negative': 'Does {item} meet the second criterion?',
+            'positive_factor_name': 'POSITIVE_DATA',
+            'negative_factor_name': 'NEGATIVE_DATA',
+            'accepted_factor_name': 'POSITIVE_RESOURCE',
+            'rejected_factor_name': 'NEGATIVE_RESOURCE'
         }
         
         # Override the question to indicate this is a sub-ADM question
@@ -1256,14 +1278,19 @@ class SubADMBLF(Node):
             items = self._get_source_items(ui_instance)
             
             if not items:
+                print(f"\nNo items found to evaluate for {self.name}")
                 return False
             
-            positive_count = 0
-            negative_count = 0
+            accepted_count = 0
+            rejected_count = 0
             item_results = []
+            sub_adf_instances = []  # Store sub-ADM instances for later access to statements
+            
+            print(f"\n=== Evaluating {self.name} for {len(items)} item(s) ===")
             
             # Evaluate sub-ADM for each item
-            for item in items:
+            for i, item in enumerate(items, 1):
+                print(f"\n--- Item {i}/{len(items)}: {item} ---")
                 try:
                     # Create a new sub-ADM instance
                     sub_adf = self.sub_adf_creator()
@@ -1272,34 +1299,54 @@ class SubADMBLF(Node):
                     if hasattr(sub_adf, 'setFact'):
                         sub_adf.setFact('ITEM', 'name', item)
                     
+                    # Store the sub-ADM instance for later access to statements
+                    sub_adf_instances.append(sub_adf)
+                    
                     # Evaluate the sub-ADM
                     sub_result, sub_case = self._evaluateSubADM(sub_adf, item)
                     
                     self.sub_adf_results[item] = sub_result
                     item_results.append(sub_case)
                     
-                    if sub_result == 'POSITIVE':
-                        positive_count += 1
-                    elif sub_result == 'NEGATIVE':
-                        negative_count += 1
+                    if sub_result == 'ACCEPTED':
+                        accepted_count += 1
+                        print(f"✓ {item}: ACCEPTED")
+                    elif sub_result == 'REJECTED':
+                        rejected_count += 1
+                        print(f"✗ {item}: REJECTED")
+                    else:
+                        print(f"? {item}: UNKNOWN")
                         
                 except Exception as e:
                     self.sub_adf_results[item] = 'ERROR'
                     item_results.append(['ERROR'])
+                    print(f"✗ {item}: ERROR - {e}")
+            
+            # Display summary
+            print(f"\n=== {self.name} Evaluation Summary ===")
+            print(f"Total items: {len(items)}")
+            print(f"Accepted: {accepted_count}")
+            print(f"Rejected: {rejected_count}")
+            print(f"Unknown: {len(items) - accepted_count - rejected_count}")
             
             # Store the detailed results in the main ADF for other BLFs to access
             if hasattr(ui_instance.adf, 'setFact'):
                 ui_instance.adf.setFact(self.name, 'results', item_results)
-                ui_instance.adf.setFact(self.name, 'positive_count', positive_count)
-                ui_instance.adf.setFact(self.name, 'negative_count', negative_count)
+                ui_instance.adf.setFact(self.name, 'accepted_count', accepted_count)
+                ui_instance.adf.setFact(self.name, 'rejected_count', rejected_count)
+                ui_instance.adf.setFact(self.name, 'items', items)  # Store the item names for display
+                ui_instance.adf.setFact(self.name, 'sub_adf_instances', sub_adf_instances)  # Store sub-ADM instances for statements
             
             # Determine final acceptance based on results
-            if positive_count >= 1:
+            if accepted_count >= 1:
+                print(f"\n✓ {self.name} is ACCEPTED (found {accepted_count} accepted item(s))")
                 return True
             else:
+                print(f"\n✗ {self.name} is REJECTED (no accepted items found)")
                 return False
                 
         except Exception as e:
+            print(f"\n✗ Error evaluating {self.name}: {e}")
             return False
     
     def _evaluateSubADM(self, sub_adf, item):
@@ -1314,11 +1361,9 @@ class SubADMBLF(Node):
             the item name being evaluated
             
         Returns:
-            str: 'POSITIVE', 'NEGATIVE', or 'UNKNOWN'
+            str: 'ACCEPTED', 'REJECTED', or 'UNKNOWN' (or domain-specific classification values)
         """
         try:
-            # print(f"Evaluating sub-ADM for item: {item}")
-            
             # Set the item name in the sub-ADM
             if hasattr(sub_adf, 'setFact'):
                 sub_adf.setFact('ITEM', 'name', item)
@@ -1326,39 +1371,81 @@ class SubADMBLF(Node):
             # Ask the user the questions for this item
             case = []
             
-            # Ask POSITIVE_DATA question
-            positive_question = self.sub_questions['positive'].format(item=item)
-            print(f"\nQuestion: {positive_question}")
-            positive_answer = input("Answer (y/n): ").strip().lower()
-            if positive_answer in ['y', 'yes']:
-                case.append('POSITIVE_DATA')
-                print(f"Added POSITIVE_DATA to case for {item}")
+            # Ask first question
+            first_question = self.sub_questions['positive'].format(item=item)
+            print(f"Question: {first_question}")
+            first_answer = input("Answer (y/n): ").strip().lower()
+            if first_answer in ['y', 'yes']:
+                # Get the actual factor name from the sub-questions key
+                first_factor_name = self.sub_questions.get('positive_factor_name', 'POSITIVE_DATA')
+                case.append(first_factor_name)
+                print(f"  → Added {first_factor_name} to case")
             
-            # Ask NEGATIVE_DATA question
-            negative_question = self.sub_questions['negative'].format(item=item)
-            print(f"Question: {negative_question}")
-            negative_answer = input("Answer (y/n): ").strip().lower()
-            if negative_answer in ['y', 'yes']:
-                case.append('NEGATIVE_DATA')
-                print(f"Added NEGATIVE_DATA to case for {item}")
+            # Ask second question
+            second_question = self.sub_questions['negative'].format(item=item)
+            print(f"Question: {second_question}")
+            second_answer = input("Answer (y/n): ").strip().lower()
+            if second_answer in ['y', 'yes']:
+                # Get the actual factor name from the sub-questions key
+                second_factor_name = self.sub_questions.get('negative_factor_name', 'NEGATIVE_DATA')
+                case.append(second_factor_name)
+                print(f"  → Added {second_factor_name} to case")
             
-            print(f"Case for {item}: {case}")
+            print(f"  Final case for {item}: {case}")
             
-            # Evaluate the abstract factors
-            if 'POSITIVE_DATA' in case and 'NEGATIVE_DATA' not in case:
-                case.append('POSITIVE_RESOURCE')
-                print(f"{item} is POSITIVE (POSITIVE_DATA and not NEGATIVE_DATA)")
-                return 'POSITIVE', case
-            elif 'NEGATIVE_DATA' in case and 'POSITIVE_DATA' not in case:
-                case.append('NEGATIVE_RESOURCE')
-                print(f"{item} is NEGATIVE (NEGATIVE_DATA and not POSITIVE_DATA)")
-                return 'NEGATIVE', case
-            else:
-                print(f"{item} is neither clearly POSITIVE nor NEGATIVE")
-                return 'UNKNOWN', case
+            # Actually evaluate the sub-ADM to determine which abstract factors are accepted
+            try:
+                # Set the case in the sub-ADM
+                sub_adf.case = case
+                
+                # Evaluate the sub-ADM to see which abstract factors are accepted
+                sub_adf.evaluateTree(case)
+                
+                # Get the final case after evaluation (this will include accepted abstract factors)
+                final_case = sub_adf.case
+                print(f"  → Final case after sub-ADM evaluation: {final_case}")
+                
+                # Determine the result based on which abstract factors were accepted
+                # Look for any accepted abstract factors in the final case
+                # Get the actual factor names from sub_questions to exclude them
+                first_factor_name = self.sub_questions.get('positive_factor_name', 'POSITIVE_DATA')
+                second_factor_name = self.sub_questions.get('negative_factor_name', 'NEGATIVE_DATA')
+                accepted_factors = [factor for factor in final_case if factor not in [first_factor_name, second_factor_name]]
+                
+                if accepted_factors:
+                    # Return the first accepted abstract factor as the classification
+                    classification = accepted_factors[0]
+                    print(f"  → {item} classified as {classification}")
+                    return 'ACCEPTED', final_case
+                else:
+                    print(f"  → {item} classification: UNKNOWN (no abstract factors accepted)")
+                    return 'UNKNOWN', final_case
+                    
+            except Exception as e:
+                print(f"  → Error evaluating sub-ADM: {e}")
+                # Fallback to manual classification
+                # Get the actual factor names from sub_questions
+                first_factor_name = self.sub_questions.get('positive_factor_name', 'POSITIVE_DATA')
+                second_factor_name = self.sub_questions.get('negative_factor_name', 'NEGATIVE_DATA')
+                
+                if first_factor_name in case and second_factor_name not in case:
+                    # Get the accepted abstract factor name from sub_questions
+                    accepted_factor_name = self.sub_questions.get('accepted_factor_name', 'POSITIVE_RESOURCE')
+                    case.append(accepted_factor_name)
+                    print(f"  → {item} classified as {accepted_factor_name} (fallback)")
+                    return 'ACCEPTED', case
+                elif second_factor_name in case and first_factor_name not in case:
+                    # Get the rejected abstract factor name from sub_questions
+                    rejected_factor_name = self.sub_questions.get('rejected_factor_name', 'NEGATIVE_RESOURCE')
+                    case.append(rejected_factor_name)
+                    print(f"  → {item} classified as {rejected_factor_name} (fallback)")
+                    return 'REJECTED', case
+                else:
+                    print(f"  → {item} classification: UNKNOWN (conflicting or insufficient data)")
+                    return 'UNKNOWN', case
             
         except Exception as e:
-            # print(f"Error in sub-ADM evaluation: {e}")
+            print(f"  → Error evaluating {item}: {e}")
             return 'UNKNOWN', []
 
 class AlgorithmicBLF(Node):
@@ -1509,7 +1596,7 @@ class EvaluationBLF(Node):
     source_blf : str
         the name of the BLF that contains the sub-ADM results to evaluate
     evaluation_condition : str
-        the condition to check in the sub-ADM results (e.g., 'NEGATIVE_RESOURCE', 'POSITIVE_RESOURCE')
+                 the condition to check in the sub-ADM results (e.g., 'ACCEPTED_FACTOR', 'REJECTED_FACTOR')
     statements : list
         statements to show if the BLF is accepted or rejected
     """
@@ -1557,37 +1644,93 @@ class EvaluationBLF(Node):
             bool: True if BLF should be accepted, False otherwise
         """
         try:
-            # print(f"\nEvaluating {self.name} based on {self.source_blf} results...")
+            print(f"\n{'='*60}")
+            print(f"FINAL EVALUATION: {self.name}")
+            print(f"{'='*60}")
             
             # Get the detailed results from the source BLF
             if not hasattr(adf, 'getFact'):
-                # print(f"Warning: ADF does not have getFact method")
+                print(f"Warning: ADF does not have getFact method")
                 return False
             
             detailed_results = adf.getFact(self.source_blf, 'results')
             if not detailed_results:
-                # print(f"Warning: No results found from {self.source_blf}")
+                print(f"Warning: No results found from {self.source_blf}")
                 return False
             
-            # print(f"Found detailed results: {detailed_results}")
+            # Get the source items list for better display
+            source_items = adf.getFact(self.source_blf, 'items') or []
+            accepted_count = adf.getFact(self.source_blf, 'accepted_count') or 0
+            rejected_count = adf.getFact(self.source_blf, 'rejected_count') or 0
             
-            # Check if any item contains the evaluation condition in its detailed case
+            print(f"Source BLF: {self.source_blf}")
+            print(f"Total items evaluated: {len(detailed_results)}")
+            print(f"Accepted items: {accepted_count}")
+            print(f"Rejected items: {rejected_count}")
+            print(f"Evaluation condition: {self.evaluation_condition}")
+            print()
+            
+            # Display detailed sub-ADM results for each item
+            print(f"{'SUB-ADM DETAILED RESULTS':^60}")
+            print(f"{'-'*60}")
+            
             condition_found = False
-            for item_case in detailed_results:
-                if isinstance(item_case, list) and self.evaluation_condition in item_case:
-                    condition_found = True
-                    # print(f"Found {self.evaluation_condition} in item case: {item_case}")
-                    break
+            matching_items = []
+            
+            for i, item_case in enumerate(detailed_results):
+                if isinstance(item_case, list):
+                    # Get the item name if available
+                    item_name = source_items[i] if i < len(source_items) else f"Item {i+1}"
+                    
+                    print(f"{'─'*60}")
+                    
+                    # Display statements for abstract factors if available
+                    print(f"  Abstract factor statements:")
+                    try:
+                        # Get the sub-ADM instance to access its nodes and statements
+                        if hasattr(adf, 'getFact'):
+                            sub_adf_results = adf.getFact(self.source_blf, 'sub_adf_instances')
+                            if sub_adf_results and i < len(sub_adf_results):
+                                sub_adf = sub_adf_results[i]
+                                if hasattr(sub_adf, 'nodes'):
+                                    # Determine if this entire item matches the evaluation condition
+                                    is_item_accepted = self.evaluation_condition in item_case
+                                    
+                                    for case_item in item_case:
+                                        if case_item in sub_adf.nodes:
+                                            node = sub_adf.nodes[case_item]
+                                            if hasattr(node, 'statement') and node.statement:
+                                                # Show the statement that reflects the actual state of this abstract factor
+                                                # For POSITIVE_RESOURCE, show acceptance statement (it's a primary source)
+                                                # For NEGATIVE_RESOURCE, show acceptance statement (it's a secondary source)
+                                                # The abstract factors represent what the item IS, not whether it matches the evaluation condition
+                                                if len(node.statement) > 0:
+                                                    print(f"      {case_item}: {node.statement[0]}")
+                    except Exception as e:
+                        print(f"      Could not retrieve statements: {e}")
+                    
+                    print()
+                else:
+                    print(f"Item {i+1}: Invalid case format - {item_case}")
+                    print()
+            
+            # Display final evaluation result
+            print(f"{'FINAL EVALUATION RESULT':^60}")
+            print(f"{'='*60}")
             
             if condition_found:
-                # print(f"{self.name} is accepted (found {self.evaluation_condition} in sub-ADM results)")
-                # print(f"\n{self.statement[0]}")
-                return True
+                print(f"✓ {self.name} is ACCEPTED")
+                print(f"  Found {self.evaluation_condition} in {len(matching_items)} out of {len(detailed_results)} items")
+                print(f"  Matching items: {', '.join([source_items[i] if i < len(source_items) else f'Item {i+1}' for i in matching_items])}")
+                result = True
             else:
-                # print(f"{self.name} is rejected (no {self.evaluation_condition} found in sub-ADM results)")
-                # print(f"\n{self.statement[1]}")
-                return False
+                print(f"✗ {self.name} is REJECTED")
+                print(f"  No {self.evaluation_condition} found in any of the {len(detailed_results)} items")
+                result = False
+            
+            print(f"{'='*60}")
+            return result
                 
         except Exception as e:
-            # print(f"Error evaluating results: {e}")
+            print(f"✗ Error evaluating {self.name}: {e}")
             return False

@@ -10,6 +10,7 @@ import shlex
 from MainClasses import *
 import WildAnimals
 import inventive_step_ADM
+import academic_research_ADM
 
 class CLI:
     def __init__(self):
@@ -63,7 +64,7 @@ class CLI:
     def load_academic_research_domain(self):
         """Load the Academic Research Project domain"""
         try:
-            import academic_research_ADM
+
             self.adf = academic_research_ADM.adf()
             self.cases = academic_research_ADM.cases()
             print("Academic Research Project domain loaded successfully!")
@@ -145,7 +146,6 @@ class CLI:
         question_order = self.adf.questionOrder.copy() if self.adf.questionOrder else []
         
         print(f"DEBUG: Initial question order: {question_order}")
-        print(f"DEBUG: Available nodes: {list(nodes.keys())}")
         
         question_number = 1
         
@@ -154,9 +154,7 @@ class CLI:
             
             # Check question order first
             if question_order:
-                order_flag = True
-                print(f"DEBUG: Processing question order: {question_order}")
-                
+
                 # Process the first item in question order
                 question_name = question_order[0]
                 print(f"DEBUG: Processing question order item: {question_name}")
