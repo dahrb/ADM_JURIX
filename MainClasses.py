@@ -879,7 +879,10 @@ class ADF:
                 # Create sub-ADM instance (only if we haven't created it yet)
                 if current_sub_adm_num == sub_adm_count:  # Only create once
                     try:
-                        sub_adf = node.sub_adf_creator()
+                        # For visualization, we need to provide a dummy item name
+                        # since we don't have actual items to evaluate
+                        dummy_item = "visualization_item"
+                        sub_adf = node.sub_adf_creator(dummy_item)
                         
                         # Create sub-ADM graph
                         sub_graph = sub_adf.visualiseNetwork()

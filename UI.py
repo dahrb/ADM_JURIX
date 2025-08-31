@@ -28,7 +28,8 @@ class CLI:
             print("2. Exit")
             print("-"*50)
             
-            choice = '1' #input("Enter your choice (1-2): ").strip()
+            #HARDCODED FOR NOW
+            choice = input("Enter your choice (1-2): ").strip()
             
             if choice == "1":
                 self.load_existing_domain()
@@ -49,7 +50,8 @@ class CLI:
         print("2. Back to main menu")
         print("-"*50)
         
-        choice = '1'#input("Enter your choice (1-2): ").strip()
+        #HARDCODED FOR NOW
+        choice = input("Enter your choice (1-2): ").strip()
         
         if choice == "1":
             self.load_academic_research_domain()
@@ -80,7 +82,8 @@ class CLI:
             print("3. Back to main menu")
             print("-"*50)
             
-            choice = '1'#input("Enter your choice (1-3): ").strip()
+            #HARDCODED FOR NOW
+            choice = input("Enter your choice (1-3): ").strip()
             
             if choice == "1":
                 self.query_domain()
