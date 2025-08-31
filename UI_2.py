@@ -133,6 +133,184 @@ class CLI:
 
         self.show_outcome()
 
+    def questiongen(self, question_order, nodes):
+        """
+        Generates questions based on the question order and current nodes
+        """
+        print(f"DEBUG: questiongen called with question_order: {question_order}, nodes: {nodes}")
+        print(f"DEBUG: Current case: {self.case}")
+        
+        if not question_order:
+            print("DEBUG: No more questions, returning")
+            return question_order, nodes
+        
+        current_question = question_order[0]
+        print(f"DEBUG: Processing current question: {current_question}")
+        
+        # Check if this is a question instantiator first
+        if current_question in self.adf.question_instantiators:
+            print(f"DEBUG: {current_question} is a question instantiator")
+            x = self.questionHelper(None, current_question)
+            if x == 'Done':
+                question_order.pop(0)
+                print(f"DEBUG: Question instantiator completed, removed from order. New order: {question_order}")
+                return self.questiongen(question_order, nodes)
+            else:
+                print(f"DEBUG: Question instantiator not done yet, returning")
+                return question_order, nodes
+        
+        # Check if this is a regular node (including DependentBLF)
+        elif current_question in self.adf.nodes:
+            current_node = self.adf.nodes[current_question]
+            print(f"DEBUG: {current_question} is a regular node: {type(current_node).__name__}")
+            
+            # Check if this is a DependentBLF
+            if hasattr(current_node, 'checkDependency'):
+                return self.handleDependentBLF(current_question, current_node, question_order, nodes)
+            else:
+                #process regular blf 
+                print(f"DEBUG: {current_question} is a regular node (not DependentBLF)")
+                x = self.questionHelper(current_node, current_question)
+                if x == 'Done':
+                    question_order.pop(0)
+                    print(f"DEBUG: Regular node completed, removed from order. New order: {question_order}")
+                    return self.questiongen(question_order, nodes)
+                else:
+                    print(f"DEBUG: Regular node not done yet, returning")
+                    return question_order, nodes
+        else:
+            print(f"DEBUG: {current_question} not found in nodes or question_instantiators, skipping")
+            question_order.pop(0)
+            return self.questiongen(question_order, nodes)
+        
+    def handleSubADMBLF(self, current_question, current_node):
+        """
+        Handles the processing of a SubADMBLF node
+        
+        Parameters
+        ----------
+        current_question : str
+            the name of the current question being processed
+        current_node : SubADMBLF
+            the SubADMBLF node to process
+            
+        Returns
+        -------
+        str: 'Done' if processing completed successfully
+        """
+        print(f"DEBUG: {current_question} is a SubADMBLF, evaluating sub-ADMs")
+        
+        # Call the evaluateSubADMs method to process all sub-ADMs
+        # This will handle the evaluation of sub-ADMs for each item
+        sub_adm_result = current_node.evaluateSubADMs(self)
+        
+        if sub_adm_result:
+            # Sub-ADM evaluation was successful, add to case
+            if current_question not in self.case:
+                self.case.append(current_question)
+                print(f"DEBUG: Added {current_question} to case after sub-ADM evaluation, case now: {self.case}")
+            else:
+                print(f"DEBUG: {current_question} already in case")
+            return 'Done'
+        else:
+            # Sub-ADM evaluation failed, don't add to case
+            print(f"DEBUG: {current_question} not added to case due to sub-ADM evaluation failure")
+            return 'Done'
+
+    def questionHelper(self, current_node, current_question):
+        """
+        Helper method to handle individual questions
+        """
+        print(f"DEBUG: questionHelper called for {current_question}, current case: {self.case}")
+        
+        if current_node is None:
+            # This is a question instantiator
+            print(f"DEBUG: Processing question instantiator: {current_question}")
+            instantiator = self.adf.question_instantiators[current_question]
+            print(f"\n{instantiator['question']}")
+            
+            # Show available answers
+            answers = list(instantiator['blf_mapping'].keys())
+            for i, answer in enumerate(answers, 1):
+                print(f"{i}. {answer}")
+            
+            # Get user choice
+            while True:
+                try:
+                    choice = int(input("Choose an answer (enter number): ")) - 1
+                    if 0 <= choice < len(answers):
+                        selected_answer = answers[choice]
+                        break
+                    else:
+                        print("Invalid choice. Please try again.")
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+            
+            print(f"DEBUG: User selected: {selected_answer}")
+            
+            # Instantiate the corresponding BLF(s)
+            blf_names = instantiator['blf_mapping'][selected_answer]
+            if isinstance(blf_names, str):
+                blf_names = [blf_names]
+            
+            print(f"DEBUG: Adding BLFs to case: {blf_names}")
+            for blf_name in blf_names:
+                # Add the BLF to the case
+                if blf_name not in self.case:
+                    self.case.append(blf_name)
+                    print(f"DEBUG: Added {blf_name} to case, case now: {self.case}")
+                else:
+                    print(f"DEBUG: {blf_name} already in case")
+                
+                # Ask factual ascription questions if configured
+                if instantiator.get('factual_ascription') and blf_name in instantiator['factual_ascription']:
+                    factual_questions = instantiator['factual_ascription'][blf_name]
+                    for fact_name, question in factual_questions.items():
+                        answer = input(f"{question}: ").strip()
+                        if answer:
+                            print(f"DEBUG: Setting fact {fact_name} = {answer} for {blf_name}")
+                            self.adf.setFact(blf_name, fact_name, answer)
+            
+            return 'Done'
+        else:
+            # This is a regular node
+            print(f"DEBUG: Processing regular node: {current_question}")
+            
+            # Check if this is a SubADMBLF (sub-ADM evaluator)
+            if hasattr(current_node, 'evaluateSubADMs'):
+                return self.handleSubADMBLF(current_question, current_node)
+            
+            # Handle regular nodes with questions
+            elif hasattr(current_node, 'question') and current_node.question:
+                question_text = current_node.question
+                print(f"DEBUG: Question text: {question_text}")
+                
+                # Ask the question
+                answer = input(f"{question_text}\nAnswer (y/n): ").strip().lower()
+                print(f"DEBUG: User answered: {answer}")
+                
+                if answer in ['y', 'yes']:
+                    if current_question not in self.case:
+                        self.case.append(current_question)
+                        print(f"DEBUG: Added {current_question} to case, case now: {self.case}")
+                    else:
+                        print(f"DEBUG: {current_question} already in case")
+                    return 'Done'
+                elif answer in ['n', 'no']:
+                    print(f"DEBUG: {current_question} rejected, not added to case")
+                    return 'Done'
+                else:
+                    print(f"DEBUG: Invalid answer '{answer}', please answer y/n")
+                    return 'Invalid'
+            else:
+                print(f"DEBUG: No question for {current_question}, adding to case automatically")
+                if current_question not in self.case:
+                    self.case.append(current_question)
+                    print(f"DEBUG: Added {current_question} to case, case now: {self.case}")
+                else:
+                    print(f"DEBUG: {current_question} already in case")
+                return 'Done'
+
     def handleDependentBLF(self, current_question, current_node, question_order, nodes):
         """
         Handles the processing of a DependentBLF node
@@ -175,7 +353,11 @@ class CLI:
             print(f"DEBUG: Dependency not satisfied for {current_question}, checking if we can evaluate dependency node")
             dependency_node_name = current_node.dependency_node
             dependency_node = self.adf.nodes[dependency_node_name]
-            
+
+            print(f"DEBUG: Dependency node: {dependency_node}")
+            print(f"DEBUG: Dependency node name: {dependency_node_name}")
+            print(f"DEBUG: Dependency node children: {dependency_node.children}")
+            print(f"DEBUG: Dependency node acceptance: {dependency_node.acceptance}")            
             # Check if dependency node has acceptance conditions and can be evaluated
             if hasattr(dependency_node, 'acceptance') and dependency_node.acceptance:
                 print(f"DEBUG: Dependency node {dependency_node_name} has acceptance condition: {dependency_node.acceptance}")
@@ -240,144 +422,6 @@ class CLI:
                 print(f"DEBUG: Dependency node {dependency_node_name} has no acceptance condition, cannot evaluate")
                 question_order.pop(0)
                 return question_order, nodes
-
-    def questiongen(self, question_order, nodes):
-        """
-        Generates questions based on the question order and current nodes
-        """
-        print(f"DEBUG: questiongen called with question_order: {question_order}, nodes: {nodes}")
-        print(f"DEBUG: Current case: {self.case}")
-        
-        if not question_order:
-            print("DEBUG: No more questions, returning")
-            return question_order, nodes
-        
-        current_question = question_order[0]
-        print(f"DEBUG: Processing current question: {current_question}")
-        
-        # Check if this is a question instantiator first
-        if current_question in self.adf.question_instantiators:
-            print(f"DEBUG: {current_question} is a question instantiator")
-            x = self.questionHelper(None, current_question)
-            if x == 'Done':
-                question_order.pop(0)
-                print(f"DEBUG: Question instantiator completed, removed from order. New order: {question_order}")
-                return self.questiongen(question_order, nodes)
-            else:
-                print(f"DEBUG: Question instantiator not done yet, returning")
-                return question_order, nodes
-        
-        # Check if this is a regular node (including DependentBLF)
-        elif current_question in self.adf.nodes:
-            current_node = self.adf.nodes[current_question]
-            print(f"DEBUG: {current_question} is a regular node: {type(current_node).__name__}")
-            
-            # Check if this is a DependentBLF
-            if hasattr(current_node, 'checkDependency'):
-                return self.handleDependentBLF(current_question, current_node, question_order, nodes)
-            else:
-                #process regular blf 
-                print(f"DEBUG: {current_question} is a regular node (not DependentBLF)")
-                x = self.questionHelper(current_node, current_question)
-                if x == 'Done':
-                    question_order.pop(0)
-                    print(f"DEBUG: Regular node completed, removed from order. New order: {question_order}")
-                    return self.questiongen(question_order, nodes)
-                else:
-                    print(f"DEBUG: Regular node not done yet, returning")
-                    return question_order, nodes
-        else:
-            print(f"DEBUG: {current_question} not found in nodes or question_instantiators, skipping")
-            question_order.pop(0)
-            return self.questiongen(question_order, nodes)
-        
-    def questionHelper(self, current_node, current_question):
-        """
-        Helper method to handle individual questions
-        """
-        print(f"DEBUG: questionHelper called for {current_question}, current case: {self.case}")
-        
-        if current_node is None:
-            # This is a question instantiator
-            print(f"DEBUG: Processing question instantiator: {current_question}")
-            instantiator = self.adf.question_instantiators[current_question]
-            print(f"\n{instantiator['question']}")
-            
-            # Show available answers
-            answers = list(instantiator['blf_mapping'].keys())
-            for i, answer in enumerate(answers, 1):
-                print(f"{i}. {answer}")
-            
-            # Get user choice
-            while True:
-                try:
-                    choice = int(input("Choose an answer (enter number): ")) - 1
-                    if 0 <= choice < len(answers):
-                        selected_answer = answers[choice]
-                        break
-                    else:
-                        print("Invalid choice. Please try again.")
-                except ValueError:
-                    print("Invalid input. Please enter a number.")
-            
-            print(f"DEBUG: User selected: {selected_answer}")
-            
-            # Instantiate the corresponding BLF(s)
-            blf_names = instantiator['blf_mapping'][selected_answer]
-            if isinstance(blf_names, str):
-                blf_names = [blf_names]
-            
-            print(f"DEBUG: Adding BLFs to case: {blf_names}")
-            for blf_name in blf_names:
-                # Add the BLF to the case
-                if blf_name not in self.case:
-                    self.case.append(blf_name)
-                    print(f"DEBUG: Added {blf_name} to case, case now: {self.case}")
-                else:
-                    print(f"DEBUG: {blf_name} already in case")
-                
-                # Ask factual ascription questions if configured
-                if instantiator.get('factual_ascription') and blf_name in instantiator['factual_ascription']:
-                    factual_questions = instantiator['factual_ascription'][blf_name]
-                    for fact_name, question in factual_questions.items():
-                        answer = input(f"{question}: ").strip()
-                        if answer:
-                            print(f"DEBUG: Setting fact {fact_name} = {answer} for {blf_name}")
-                            self.adf.setFact(blf_name, fact_name, answer)
-            
-            return 'Done'
-        else:
-            # This is a regular node
-            print(f"DEBUG: Processing regular node: {current_question}")
-            if hasattr(current_node, 'question') and current_node.question:
-                question_text = current_node.question
-                print(f"DEBUG: Question text: {question_text}")
-                
-                # Ask the question
-                answer = input(f"{question_text}\nAnswer (y/n): ").strip().lower()
-                print(f"DEBUG: User answered: {answer}")
-                
-                if answer in ['y', 'yes']:
-                    if current_question not in self.case:
-                        self.case.append(current_question)
-                        print(f"DEBUG: Added {current_question} to case, case now: {self.case}")
-                    else:
-                        print(f"DEBUG: {current_question} already in case")
-                    return 'Done'
-                elif answer in ['n', 'no']:
-                    print(f"DEBUG: {current_question} rejected, not added to case")
-                    return 'Done'
-                else:
-                    print(f"DEBUG: Invalid answer '{answer}', please answer y/n")
-                    return 'Invalid'
-            else:
-                print(f"DEBUG: No question for {current_question}, adding to case automatically")
-                if current_question not in self.case:
-                    self.case.append(current_question)
-                    print(f"DEBUG: Added {current_question} to case, case now: {self.case}")
-                else:
-                    print(f"DEBUG: {current_question} already in case")
-                return 'Done'
 
     def show_outcome(self):
         """Show the evaluation outcome"""

@@ -1,6 +1,7 @@
 
-from pythonds import Stack
 import pydot
+from pythonds import Stack
+
 
 class ADF:
     """
@@ -74,6 +75,9 @@ class ADF:
         self.nonLeaf = {}
         
         self.questionOrder = []
+
+        # Initialize question_instantiators attribute
+        self.question_instantiators = {}
         
     def addNodes(self, name, acceptance = None, statement=None, question=None):
         """
@@ -134,6 +138,28 @@ class ADF:
         # Add the question to the question order
         if question_order_name not in self.questionOrder:
             self.questionOrder.append(question_order_name)
+
+    def addSubADMBLF(self, name, sub_adf_creator, function):
+        """
+        Adds a BLF that depends on evaluating a sub-ADM for each item
+        
+        Parameters
+        ----------
+        name : str
+            the name of the BLF to be instantiated
+        sub_adf_creator : function
+            function that creates and returns a sub-ADM instance
+        function : str or function
+            the function that returns the list of items to evaluate, or a list of items
+        """
+        
+        # Create a special node that handles sub-ADM evaluation
+        node = SubADMBLF(name, sub_adf_creator, function)
+        self.nodes[name] = node
+        
+        # Add to question order
+        if name not in self.questionOrder:
+            self.questionOrder.append(name)
 
     def nonLeafGen(self):
         """
@@ -1066,6 +1092,212 @@ class Node:
         #returns the post fix expression as a string  
         return " ".join(postfixList)
 
+class SubADMBLF(Node):
+    """
+    A BLF that depends on evaluating a sub-ADM for each item from another BLF
+    
+    Attributes
+    ----------
+    name : str
+        the name of the BLF
+    sub_adf_creator : function
+        function that creates and returns a sub-ADM instance
+    source_blf : str
+        the name of the BLF that contains the list of items to evaluate
+    """
+    
+    def __init__(self, name, sub_adf_creator, function):
+        """
+        Parameters
+        ----------
+        name : str
+            the name of the BLF
+        sub_adf_creator : function
+            function that creates and returns a sub-ADM instance
+        function : str
+            the function that returns the list of items to evaluate the sub-adm over
+        """
+        
+        # Initialize as a regular Node - no statements needed since sub-ADM handles them
+        super().__init__(name, None, [f"{name} evaluation completed"], None)
+        
+        self.sub_adf_creator = sub_adf_creator
+        self.function = function
+        self.sub_adf_results = {}
+        
+        # Override the question to indicate this is a sub-ADM question
+        self.question = f"Sub-ADM evaluation: {name}"
+    
+    def _get_source_items(self, ui_instance):
+        """
+        Gets the list of items to evaluate from the source
+        
+        Parameters
+        ----------
+        ui_instance : UI
+            the UI instance to access the main ADF
+            
+        Returns:
+            list: list of items to evaluate
+        """
+        # Check if source_blf is a function (callable)
+        if callable(self.function):
+            # If source_blf is a function, call it
+            return self.function(ui_instance)
+        elif isinstance(self.function, list):
+            # If source_blf is already a list, return it
+            return self.function
+        else:
+            print(f"ERROR: {self.function} is not a function or a list of items")
+            return 
+
+    def evaluateSubADMs(self, ui_instance):
+        """
+        Evaluates sub-ADMs for each item using the existing ADM infrastructure
+        
+        Parameters
+        ----------
+        ui_instance : UI
+            the UI instance to access the main ADF and case
+            
+        Returns:
+            bool: True if BLF should be accepted, False otherwise
+        """
+        try:
+            # Get the list of items to evaluate
+            items = self._get_source_items(ui_instance)
+            
+            if not items:
+                print(f"\nNo items found to evaluate for {self.name}")
+                return False
+            
+            accepted_count = 0
+            rejected_count = 0
+            item_results = []
+            sub_adf_instances = []  # Store sub-ADM instances for later access to statements
+            
+            print(f"\n=== Evaluating {self.name} for {len(items)} item(s) ===")
+            
+            # Evaluate sub-ADM for each item using the existing UI infrastructure
+            for i, item in enumerate(items, 1):
+                print(f"\n--- Item {i}/{len(items)}: {item} ---")
+                try:
+                    # Create a new sub-ADM instance
+                    sub_adf = self.sub_adf_creator(item)
+                    
+                    # Set the item name in the sub-ADM
+                    if hasattr(sub_adf, 'setFact'):
+                        sub_adf.setFact('ITEM', 'name', item)
+                    
+                    # Store the sub-ADM instance for later access to statements
+                    sub_adf_instances.append(sub_adf)
+                    
+                    # Use the existing UI infrastructure to evaluate the sub-ADM
+                    # This will handle all node types generically (DependentBLF, QuestionInstantiator, etc.)
+                    sub_result, sub_case = self._evaluateSubADMWithUI(sub_adf, item, ui_instance)
+                    
+                    self.sub_adf_results[item] = sub_result
+                    item_results.append(sub_case)
+                    
+                    if sub_result == 'ACCEPTED':
+                        accepted_count += 1
+                        print(f"✓ {item}: ACCEPTED")
+                    elif sub_result == 'REJECTED':
+                        rejected_count += 1
+                        print(f"✗ {item}: REJECTED")
+                    else:
+                        print(f"? {item}: UNKNOWN")
+                        
+                except Exception as e:
+                    self.sub_adf_results[item] = 'ERROR'
+                    item_results.append(['ERROR'])
+                    print(f"✗ {item}: ERROR - {e}")
+            
+            # Display summary
+            print(f"\n=== {self.name} Evaluation Summary ===")
+            print(f"Total items: {len(items)}")
+            print(f"Accepted: {accepted_count}")
+            print(f"Rejected: {rejected_count}")
+            print(f"Unknown: {len(items) - accepted_count - rejected_count}")
+            
+            # Store the detailed results in the main ADF for other BLFs to access
+            if hasattr(ui_instance.adf, 'setFact'):
+                ui_instance.adf.setFact(self.name, 'results', item_results)
+                ui_instance.adf.setFact(self.name, 'accepted_count', accepted_count)
+                ui_instance.adf.setFact(self.name, 'rejected_count', rejected_count)
+                ui_instance.adf.setFact(self.name, 'items', items)  # Store the item names for display
+                ui_instance.adf.setFact(self.name, 'sub_adf_instances', sub_adf_instances)  # Store sub-ADM instances for statements
+            
+            # Determine final acceptance based on results
+            if accepted_count >= 1:
+                print(f"\n✓ {self.name} is ACCEPTED (found {accepted_count} accepted item(s))")
+                return True
+            else:
+                print(f"\n✗ {self.name} is REJECTED (no accepted items found)")
+                return False
+                
+        except Exception as e:
+            print(f"\n✗ Error evaluating {self.name}: {e}")
+            return False
+    
+    def _evaluateSubADMWithUI(self, sub_adf, item, ui_instance):
+        """
+        Evaluates a single sub-ADM using the existing UI infrastructure
+        
+        Parameters
+        ----------
+        sub_adf : ADF
+            the sub-ADM instance to evaluate
+        item : str
+            the item name being evaluated
+        ui_instance : UI
+            the UI instance to reuse question generation logic
+            
+        Returns:
+            str: 'ACCEPTED', 'REJECTED', or 'UNKNOWN'
+            list: the final case after evaluation
+        """
+        try:
+            print(f"  Evaluating sub-ADM for {item}...")
+            
+            # Create a temporary UI instance for this sub-ADM evaluation
+            # This allows us to reuse all the existing question generation logic
+            temp_ui = type(ui_instance)()  # Create instance of same class
+            temp_ui.adf = sub_adf
+            temp_ui.case = []
+            temp_ui.caseName = item
+            
+            # Use the existing UI infrastructure to ask questions and build the case
+            # This will handle all node types generically
+            temp_ui.ask_questions()
+            
+            # Get the final case after evaluation
+            final_case = temp_ui.case
+            print(f"  → Final case for {item}: {final_case}")
+            
+            # Determine the result based on which abstract factors were accepted
+            # Look for any accepted abstract factors in the final case
+            # Exclude BLF nodes (nodes without children) as they are not abstract factors
+            abstract_factors = []
+            for factor in final_case:
+                if (factor in sub_adf.nodes and 
+                    hasattr(sub_adf.nodes[factor], 'children') and 
+                    sub_adf.nodes[factor].children):
+                    abstract_factors.append(factor)
+            
+            if abstract_factors:
+                # Return the first accepted abstract factor as the classification
+                classification = abstract_factors[0]
+                print(f"  → {item} classified as {classification}")
+                return 'ACCEPTED', final_case
+            else:
+                print(f"  → {item} classification: UNKNOWN (no abstract factors accepted)")
+                return 'UNKNOWN', final_case
+                
+        except Exception as e:
+            print(f"  → Error evaluating sub-ADM for {item}: {e}")
+            return 'UNKNOWN', []
+
 class DependentBLF(Node):
     """
     A BLF that depends on another node and inherits its factual ascriptions
@@ -1170,3 +1402,48 @@ class DependentBLF(Node):
             bool: True if dependency is satisfied, False otherwise
         """
         return self.dependency_node in case
+
+class SubADM(ADF):
+    """
+    A specialized ADF class for sub-ADMs that automatically resolves {item} placeholders
+    with the actual item name being evaluated.
+    
+    This class inherits everything from ADF but overrides addNodes to automatically
+    replace {item} placeholders in questions with the item_name.
+    """
+    
+    def __init__(self, name, item_name):
+        """
+        Parameters
+        ----------
+        name : str
+            the name of the sub-ADM
+        item_name : str
+            the name of the item being evaluated (e.g., "d", "e", etc.)
+        """
+        super().__init__(name)
+        self.item_name = item_name
+    
+    def addNodes(self, name, acceptance=None, statement=None, question=None):
+        """
+        Override addNodes to automatically resolve {item} placeholders in questions
+        
+        Parameters
+        ----------
+        name : str
+            the name of the node
+        acceptance : list
+            a list of the acceptance conditions each of which should be a string
+        statement : list
+            a list of the statements which will be shown if a condition is accepted or rejected
+        question : str
+            the question to determine whether a node is absent or present
+        """
+        # Resolve {item} placeholder in question if present
+        if question and '{item}' in question:
+            resolved_question = question.replace('{item}', self.item_name)
+            print(f"DEBUG: Resolved question for {name}: '{question}' -> '{resolved_question}'")
+            question = resolved_question
+        
+        # Call the parent class method
+        super().addNodes(name, acceptance, statement, question)
