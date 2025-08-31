@@ -218,7 +218,7 @@ class ADF:
         #list of non-leaf nodes which have been evaluated
         self.nodeDone = []
         self.case = case
-        print(f"DEBUG: evaluateTree started with case: {self.case}")
+
         
         #generates the non-leaf nodes
         self.nonLeafGen()
@@ -231,7 +231,6 @@ class ADF:
                 elif self.checkNonLeaf(node):
                     #adds to list of evaluated nodes
                     self.nodeDone.append(name) 
-                    print(f"DEBUG: Evaluating node: {name}, current case: {self.case}")
                     #checks candidate node's acceptance conditions
                     if self.evaluateNode(node):
                         #enables rejection clauses - handy for automobile
@@ -239,9 +238,8 @@ class ADF:
                             #adds factor to case if present (only if not already there)
                             if name not in self.case:
                                 self.case.append(name)
-                                print(f"DEBUG: Added {name} to case, case now: {self.case}")
                             else:
-                                print(f"DEBUG: {name} already in case, skipping duplicate")
+                                pass
                             
                             # NEW: Automatically inherit facts when abstract factors are added to case
                             if hasattr(self, 'facts'):
@@ -249,8 +247,6 @@ class ADF:
                                 # Check if this is an abstract factor (has children)
                                 if (hasattr(self.nodes[name], 'children') and 
                                     self.nodes[name].children):
-                                    
-                                    print(f"DEBUG: {name} is an abstract factor added to case, automatically inheriting facts...")
                                     # Get inherited facts and store them for this abstract factor
                                     inherited_facts = self.getInheritedFacts(name, self.case)
                                     if inherited_facts:
@@ -259,7 +255,6 @@ class ADF:
                                             self.facts[name] = {}
                                         for fact_name, value in inherited_facts.items():
                                             self.facts[name][fact_name] = value
-                                            print(f"DEBUG: Stored inherited fact {fact_name}: {value} on {name}")
                                 
                         #deletes node from nonLeaf nodes
                         self.nonLeaf.pop(name)
@@ -270,13 +265,11 @@ class ADF:
                     else:
                         #deletes node from nonLeaf nodes but doesn't add to case
                         self.nonLeaf.pop(name)
-                        print(f"DEBUG: {name} rejected, not added to case, case remains: {self.case}")
                         #the last statement is always the rejection statemenr
                         self.statements.append(node.statement[-1])
                         self.reject = False
                         break
         
-        print(f"DEBUG: evaluateTree finished, final case: {self.case}")
         
         # Clean up any duplicates that might have slipped through
         if hasattr(self, 'case') and self.case:
@@ -289,10 +282,7 @@ class ADF:
                     unique_case.append(item)
             
             if len(unique_case) != len(self.case):
-                print(f"DEBUG: Removed {len(self.case) - len(unique_case)} duplicate(s) from case")
-                print(f"DEBUG: Case before cleanup: {self.case}")
                 self.case = unique_case
-                print(f"DEBUG: Case after cleanup: {self.case}")
         
         return self.statements
                                   
@@ -485,13 +475,11 @@ class ADF:
                 hasattr(self.nodes[node_name], 'children') and 
                 self.nodes[node_name].children):
                 
-                print(f"DEBUG: {node_name} is an abstract factor in case, inheriting facts from related BLFs...")
                 # Inherit facts from BLFs that are in the case
                 for blf_name, blf_facts in self.facts.items():
                     if blf_name in case:  # Only get facts from BLFs that are in the case
                         for fact_name, value in blf_facts.items():
                             inherited[fact_name] = value
-                            print(f"DEBUG: Inherited {fact_name}: {value} from {blf_name}")
         
         return inherited or {}  # Ensure we never return None
     
@@ -1396,8 +1384,7 @@ class DependentBLF(Node):
         
         # Safety check: ensure inherited is a dictionary
         if not isinstance(inherited, dict):
-            print(f"DEBUG: Warning: getInheritedFacts returned {type(inherited)} instead of dict for {self.dependency_node}")
-            inherited = {}
+                    inherited = {}
         
         # Replace placeholders in the question template
         # This is now generic - any placeholder like {ICE_CREAM_flavour} will be replaced
@@ -1478,7 +1465,6 @@ class SubADM(ADF):
         # Resolve {item} placeholder in question if present
         if question and '{item}' in question:
             resolved_question = question.replace('{item}', self.item_name)
-            print(f"DEBUG: Resolved question for {name}: '{question}' -> '{resolved_question}'")
             question = resolved_question
         
         # Call the parent class method
