@@ -29,7 +29,7 @@ class CLI:
             print("-"*50)
             
             #HARDCODED FOR NOW
-            choice = input("Enter your choice (1-2): ").strip()
+            choice = '1'#input("Enter your choice (1-2): ").strip()
             
             if choice == "1":
                 self.load_existing_domain()
@@ -47,15 +47,18 @@ class CLI:
         print("Load Existing Domain")
         print("="*50)
         print("1. Academic Research Project")
-        print("2. Back to main menu")
+        print("2. Inventive Step")
+        print("3. Back to main menu")
         print("-"*50)
         
         #HARDCODED FOR NOW
-        choice = input("Enter your choice (1-2): ").strip()
+        choice = '2'#input("Enter your choice (1-3): ").strip()
         
         if choice == "1":
             self.load_academic_research_domain()
         elif choice == "2":
+            self.load_inventive_step_domain()
+        elif choice == "3":
             return
         else:
             print("Invalid choice. Please try again.")
@@ -71,6 +74,17 @@ class CLI:
         except Exception as e:
             print(f"Error loading Academic Research Project domain: {e}")
     
+    def load_inventive_step_domain(self):
+        """Load the Inventive Step domain"""
+        try:
+            # Fix: Call the function to get the ADF instance
+            self.adf = inventive_step_ADM.adf()
+            self.cases = inventive_step_ADM.cases()
+            print("Inventive Step domain loaded successfully!")
+            self.domain_menu()
+        except Exception as e:
+            print(f"Error loading Inventive Step domain: {e}")
+    
     def domain_menu(self):
         """Domain operations menu"""
         while True:
@@ -83,7 +97,7 @@ class CLI:
             print("-"*50)
             
             #HARDCODED FOR NOW
-            choice = input("Enter your choice (1-3): ").strip()
+            choice = '1'#input("Enter your choice (1-3): ").strip()
             
             if choice == "1":
                 self.query_domain()
@@ -172,6 +186,18 @@ class CLI:
                     return self.questiongen(question_order, nodes)
                 else:
                     return question_order, nodes
+        elif current_question in self.adf.information_questions:
+            # This is an information question
+            question_text = self.adf.information_questions[current_question]
+            answer = input(f"{question_text}: ").strip()
+            
+            # Store the answer as a fact without adding to case
+            if hasattr(self.adf, 'setFact'):
+                self.adf.setFact('INFORMATION', current_question, answer)
+            
+            # Remove from question order and continue
+            question_order.pop(0)
+            return self.questiongen(question_order, nodes)
         else:
             question_order.pop(0)
             return self.questiongen(question_order, nodes)
@@ -208,6 +234,10 @@ class CLI:
             if isinstance(blf_names, str):
                 blf_names = [blf_names]
             for blf_name in blf_names:
+                # Skip empty string BLFs - they're just placeholders
+                if blf_name == "":
+                    continue
+                
                 # Add the BLF to the case
                 if blf_name not in self.case:
                     self.case.append(blf_name)
@@ -232,8 +262,8 @@ class CLI:
             
             # Handle regular nodes with questions
             elif hasattr(current_node, 'question') and current_node.question:
-                question_text = current_node.question
-                
+                question_text = self.resolve_question_template(current_node.question)
+                            
                 # Ask the question
                 answer = input(f"{question_text}\nAnswer (y/n): ").strip().lower()
                 
@@ -404,6 +434,30 @@ class CLI:
         else:
             # Sub-ADM evaluation failed, don't add to case
             return 'Done'
+
+    
+    def resolve_question_template(self, question_text):
+        """
+        Resolves template variables in question text using collected facts
+        """
+        if not hasattr(self.adf, 'getFact'):
+            return question_text
+        
+        # Look for template variables like {VARIABLE_NAME}
+        import re
+        template_pattern = r'\{([^}]+)\}'
+        
+        def replace_template(match):
+            variable_name = match.group(1)
+            # Try to get the fact from the INFORMATION category
+            value = self.adf.getFact('INFORMATION', variable_name)
+            if value:
+                return str(value)
+            else:
+                return f"[{variable_name}]"  # Show placeholder if not found
+        
+        resolved_text = re.sub(template_pattern, replace_template, question_text)
+        return resolved_text
 
     def show_outcome(self):
         """Show the evaluation outcome"""

@@ -94,3 +94,6 @@ def cases():
     return {
         "test_case": ["QUANTITATIVE", "QUALITATIVE", "MIXED_METHODS", "DATA_ANALYSIS"]
     }
+
+# Create an instance for direct import
+adf = adf()

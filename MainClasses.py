@@ -2,7 +2,6 @@
 import pydot
 from pythonds import Stack
 
-
 class ADF:
     """
     A class used to represent the ADF graph
@@ -108,6 +107,11 @@ class ADF:
                 if childName not in self.nodes:
                     node = Node(childName)
                     self.nodes[childName] = node
+        
+         # Add to question order
+        if name not in self.questionOrder:
+            print(f"DEBUG {name}")
+            self.questionOrder.append(name)
 
     def addQuestionInstantiator(self, question, blf_mapping, factual_ascription=None, question_order_name=None):
         """
@@ -968,6 +972,27 @@ class ADF:
             G.add_subgraph(rank_0)
         if rank_1.get_node_list():
             G.add_subgraph(rank_1)
+
+    def addInformationQuestion(self, name, question):
+        """
+        Adds a simple information question that collects a string answer without creating a BLF
+        
+        Parameters
+        ----------
+        name : str
+            the name/key to store the information under
+        question : str
+            the question text to ask the user
+        """
+        
+        if not hasattr(self, 'information_questions'):
+            self.information_questions = {}
+        
+        self.information_questions[name] = question
+        
+        # Add to question order so it gets processed
+        if name not in self.questionOrder:
+            self.questionOrder.append(name)
 
 class Node:
     """

@@ -1,0 +1,261 @@
+ADM COMPREHENSIVE TEST REPORT
+==================================================
+
+Generated: 2025-08-31T21:02:51.821764
+ADM Name: Inventive Step
+
+TEST: Edge_Empty_Case
+Timestamp: 2025-08-31T21:02:51.817940
+Test Case: []
+Success: True
+
+  Step 1: Initial case setup
+    Case: []
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: []
+    Statements: ['PRIOR_ART_EVALUATION is rejected - analysis incomplete', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Edge_Single_BLF
+Timestamp: 2025-08-31T21:02:51.818151
+Test Case: ['PRIOR_ART_ANALYSIS']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['PRIOR_ART_ANALYSIS']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['PRIOR_ART_ANALYSIS']
+    Statements: ['PRIOR_ART_EVALUATION is rejected - analysis incomplete', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Edge_All_BLFs
+Timestamp: 2025-08-31T21:02:51.818346
+Test Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_EVALUATION']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_EVALUATION']
+    Statements: ['PRIOR_ART_EVALUATION is accepted - comprehensive analysis completed', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Edge_NonExistent_BLFs
+Timestamp: 2025-08-31T21:02:51.818537
+Test Case: ['NON_EXISTENT_1', 'NON_EXISTENT_2']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['NON_EXISTENT_1', 'NON_EXISTENT_2']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['NON_EXISTENT_1', 'NON_EXISTENT_2']
+    Statements: ['PRIOR_ART_EVALUATION is rejected - analysis incomplete', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Edge_Mixed_Valid_Invalid
+Timestamp: 2025-08-31T21:02:51.818734
+Test Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'NON_EXISTENT_1', 'PRIOR_ART_EVALUATION']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'NON_EXISTENT_1']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'NON_EXISTENT_1', 'PRIOR_ART_EVALUATION']
+    Statements: ['PRIOR_ART_EVALUATION is accepted - comprehensive analysis completed', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Random_Test_1_Complexity_2
+Timestamp: 2025-08-31T21:02:51.818971
+Test Case: ['SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_ANALYSIS', 'PRIOR_ART_EVALUATION']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_ANALYSIS']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_ANALYSIS', 'PRIOR_ART_EVALUATION']
+    Statements: ['PRIOR_ART_EVALUATION is accepted - comprehensive analysis completed', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Random_Test_2_Complexity_4
+Timestamp: 2025-08-31T21:02:51.819167
+Test Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_EVALUATION']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_EVALUATION']
+    Statements: ['PRIOR_ART_EVALUATION is accepted - comprehensive analysis completed', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Random_Test_3_Complexity_4
+Timestamp: 2025-08-31T21:02:51.819431
+Test Case: ['SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS', 'PRIOR_ART_EVALUATION']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS', 'PRIOR_ART_EVALUATION']
+    Statements: ['PRIOR_ART_EVALUATION is accepted - comprehensive analysis completed', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Random_Test_4_Complexity_2
+Timestamp: 2025-08-31T21:02:51.819619
+Test Case: ['PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS']
+    Statements: ['PRIOR_ART_EVALUATION is rejected - analysis incomplete', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Random_Test_5_Complexity_2
+Timestamp: 2025-08-31T21:02:51.819809
+Test Case: ['SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_ANALYSIS', 'PRIOR_ART_EVALUATION']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_ANALYSIS']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_ANALYSIS', 'PRIOR_ART_EVALUATION']
+    Statements: ['PRIOR_ART_EVALUATION is accepted - comprehensive analysis completed', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Random_Test_6_Complexity_4
+Timestamp: 2025-08-31T21:02:51.819998
+Test Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_EVALUATION']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_EVALUATION']
+    Statements: ['PRIOR_ART_EVALUATION is accepted - comprehensive analysis completed', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Random_Test_7_Complexity_3
+Timestamp: 2025-08-31T21:02:51.820183
+Test Case: ['PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_EVALUATION']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_EVALUATION']
+    Statements: ['PRIOR_ART_EVALUATION is accepted - comprehensive analysis completed', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Random_Test_8_Complexity_4
+Timestamp: 2025-08-31T21:02:51.820367
+Test Case: ['PROBLEM_SOLUTION_APPROACH', 'SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_ANALYSIS', 'PRIOR_ART_EVALUATION']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['PROBLEM_SOLUTION_APPROACH', 'SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_ANALYSIS']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['PROBLEM_SOLUTION_APPROACH', 'SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_ANALYSIS', 'PRIOR_ART_EVALUATION']
+    Statements: ['PRIOR_ART_EVALUATION is accepted - comprehensive analysis completed', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Random_Test_9_Complexity_2
+Timestamp: 2025-08-31T21:02:51.820547
+Test Case: ['PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['PROBLEM_SOLUTION_APPROACH', 'PRIOR_ART_ANALYSIS']
+    Statements: ['PRIOR_ART_EVALUATION is rejected - analysis incomplete', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
+TEST: Random_Test_10_Complexity_2
+Timestamp: 2025-08-31T21:02:51.820735
+Test Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_EVALUATION']
+Success: True
+
+  Step 1: Initial case setup
+    Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS']
+    Statements: []
+
+  Step 2: Tree evaluation completed
+    Case: ['PRIOR_ART_ANALYSIS', 'SKILLED_PERSON_ANALYSIS', 'PRIOR_ART_EVALUATION']
+    Statements: ['PRIOR_ART_EVALUATION is accepted - comprehensive analysis completed', 'INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete']
+
+  Step 3: Result analysis
+
+--------------------------------------------------
+
