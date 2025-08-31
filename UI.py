@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
 """
 ADM Command Line Interface
-Replaces the tkinter-based UI with a comprehensive command-line interface
 """
 
 import os
@@ -11,6 +9,7 @@ from MainClasses import *
 import WildAnimals
 import inventive_step_ADM
 import academic_research_ADM
+
 
 class CLI:
     def __init__(self):
@@ -29,7 +28,7 @@ class CLI:
             print("2. Exit")
             print("-"*50)
             
-            choice = input("Enter your choice (1-2): ").strip()
+            choice = '1' #input("Enter your choice (1-2): ").strip()
             
             if choice == "1":
                 self.load_existing_domain()
@@ -38,6 +37,8 @@ class CLI:
                 sys.exit(0)
             else:
                 print("Invalid choice. Please try again.")
+            
+            break
     
     def load_existing_domain(self):
         """Load one of the predefined domains"""
@@ -48,7 +49,7 @@ class CLI:
         print("2. Back to main menu")
         print("-"*50)
         
-        choice = input("Enter your choice (1-2): ").strip()
+        choice = '1'#input("Enter your choice (1-2): ").strip()
         
         if choice == "1":
             self.load_academic_research_domain()
@@ -67,7 +68,6 @@ class CLI:
             self.domain_menu()
         except Exception as e:
             print(f"Error loading Academic Research Project domain: {e}")
-            self.load_existing_domain()
     
     def domain_menu(self):
         """Domain operations menu"""
@@ -80,15 +80,16 @@ class CLI:
             print("3. Back to main menu")
             print("-"*50)
             
-            choice = input("Enter your choice (1-3): ").strip()
+            choice = '1'#input("Enter your choice (1-3): ").strip()
             
             if choice == "1":
                 self.query_domain()
+                return
             elif choice == "2":
                 self.visualize_domain()
             elif choice == "3":
                 return
-        else:
+            else:
                 print("Invalid choice. Please try again.")
     
     def query_domain(self):
@@ -97,34 +98,7 @@ class CLI:
         print("Query Domain")
         print("="*50)
         
-        # Ask for case name or select predefined case
-        if self.cases:
-            print("Predefined cases:")
-            for i, case_name in enumerate(self.cases.keys(), 1):
-                print(f"{i}. {case_name}")
-            print(f"{len(self.cases) + 1}. Enter custom case name")
-            
-            choice = input(f"Select case (1-{len(self.cases) + 1}): ").strip()
-            try:
-                choice = int(choice)
-                if 1 <= choice <= len(self.cases):
-                    case_names = list(self.cases.keys())
-                    self.caseName = case_names[choice - 1]
-                    self.case = self.cases[self.caseName]
-                    print(f"Using predefined case: {self.caseName}")
-                    self.show_outcome()
-                    return
-                elif choice == len(self.cases) + 1:
-                    pass
-                else:
-                    print("Invalid choice.")
-                    return
-            except ValueError:
-                print("Invalid input.")
-                return
-        
-        # Custom case name
-        self.caseName = input("Enter case name: ").strip()
+        self.caseName = 'test'#input("Enter case name: ").strip()
         if not self.caseName:
             print("No case name provided.")
             return
@@ -132,7 +106,11 @@ class CLI:
         # Reset case and start questioning
         self.case = []
         self.ask_questions()
-    
+        
+        print(f"DEBUG: Case: {self.case}")
+
+        return
+
     def ask_questions(self):
         """Ask questions to build the case"""
         print("\nAnswer questions to build your case...")
@@ -140,352 +118,357 @@ class CLI:
         # Get a copy of nodes and question order
         nodes = self.adf.nodes.copy()
         question_order = self.adf.questionOrder.copy() if self.adf.questionOrder else []
-        
+        print(f"DEBUG: nodes: {nodes}")
         print(f"DEBUG: Initial question order: {question_order}")
         
-        question_number = 1
+        if question_order != []:
+            while question_order:
+                print(f"DEBUG: Loop iteration - question_order: {question_order}")
+                question_order, nodes = self.questiongen(question_order, nodes)
+                print(f"DEBUG: After questiongen - question_order: {question_order}, nodes: {list(nodes.keys())}")
         
-        while question_order or nodes:
-            current_node = None
-            
-            # Check question order first
-            if question_order:
+        #NO OPTION IF QUESTION ORDER NOT SPECIFIED
+        else:
+            print("No question order specified")
 
-                # Process the first item in question order
-                question_name = question_order[0]
-                print(f"DEBUG: Processing question order item: {question_name}")
-                
-                # Check if this is a question instantiator
-                if question_name in self.adf.question_instantiators:
-                    instantiator = self.adf.question_instantiators[question_name]
-                    
-                    # Ask the question
-                    print(f"\n{instantiator['question']}")
-                    
-                    # Show available answers
-                    answers = list(instantiator['blf_mapping'].keys())
-                    for i, answer in enumerate(answers, 1):
-                        print(f"{i}. {answer}")
-                    
-                    # Get user choice
-                    while True:
-                        try:
-                            choice = int(input("Choose an answer (enter number): ")) - 1
-                            if 0 <= choice < len(answers):
-                                selected_answer = answers[choice]
-                                break
-                            else:
-                                print("Invalid choice. Please try again.")
-                        except ValueError:
-                            print("Invalid input. Please enter a number.")
-                    
-                    # Instantiate the corresponding BLF(s)
-                    blf_names = instantiator['blf_mapping'][selected_answer]
-                    if isinstance(blf_names, str):
-                        blf_names = [blf_names]
-                    
-                    for blf_name in blf_names:
-                        # Add the BLF to the case
-                        self.case.append(blf_name)
-                        print(f"DEBUG: Added {blf_name} to case")
-                        
-                        # Ask factual ascription questions if configured
-                        if instantiator.get('factual_ascription') and blf_name in instantiator['factual_ascription']:
-                            factual_questions = instantiator['factual_ascription'][blf_name]
-                            for fact_name, question in factual_questions.items():
-                                answer = input(f"{question}: ").strip()
-                                if answer:
-                                    self.adf.setFact(blf_name, fact_name, answer)
-                                    # print(f"DEBUG: Stored fact {blf_name}.{fact_name} = {answer}")
-                    
-                    # Force evaluation of abstract factors after BLF instantiation
-                    self._force_evaluate_abstract_factors()
-                    
-                    # Set up parent-child relationships for abstract factors
-                    self._setup_abstract_factor_relationships()
-                    
-                    # Remove from question order to prevent duplicate processing
-                    question_order.pop(0)  # Remove from local copy only
-                    
-                    # Also remove from question_instantiators to prevent reprocessing
-                    if question_name in self.adf.question_instantiators:
-                        del self.adf.question_instantiators[question_name]
-                    
-                    continue
-                
-                # Check if it's a regular node
-                elif question_name in nodes:
-                    print(f"DEBUG: Found regular node: {question_name}")
-                    current_node = nodes[question_name]
-                    question_order.pop(0)  # Remove from local copy only
-                    # Also remove from nodes to prevent duplicate processing
-                    nodes.pop(question_name, None)
-                
-                # Check if it's a DependentBLF or other node type that should be processed
-                elif question_name in self.adf.nodes:
-                    print(f"DEBUG: Found node in ADF: {question_name}")
-                    current_node = self.adf.nodes[question_name]
-                    question_order.pop(0)  # Remove from local copy only
-                    # Also remove from nodes to prevent duplicate processing
-                    nodes.pop(question_name, None)
-        
-                else:
-                    print(f"DEBUG: Could not find {question_name} in any category")
-                    # Remove unknown items from question order
-                    question_order.pop(0)  # Remove from local copy only
-                    continue
-            
-            # If no question order, process remaining nodes
-            if not current_node and not question_order:
-                for node_name, node in list(nodes.items()):
-                    if node.children is None or not node.children:
-                        current_node = node
-                        nodes.pop(node_name)
-                        break
-            
-            if not current_node:
-                break
-            
-            # Ask the question
-            if current_node.question or hasattr(current_node, 'question_template'):
-                print(f"DEBUG: Processing question for node: {current_node.name}")
-                print(f"DEBUG: Node type: {type(current_node)}")
-                print(f"DEBUG: Has resolveQuestion: {hasattr(current_node, 'resolveQuestion')}")
-                print(f"DEBUG: Has checkDependency: {hasattr(current_node, 'checkDependency')}")
-                print(f"DEBUG: Has runAlgorithm: {hasattr(current_node, 'runAlgorithm')}")
-                
-                # Check if this is an AlgorithmicBLF
-                if hasattr(current_node, 'runAlgorithm'):
-                    print(f"DEBUG: Processing AlgorithmicBLF: {current_node.name}")
-                    should_accept = current_node.runAlgorithm(self)
-                    
-                    if should_accept:
-                        self.case.append(current_node.name)
-                        print(f"DEBUG: Algorithm accepted {current_node.name}, added to case")
-                        
-                        # Force evaluate abstract factors after adding algorithmic BLF
-                        print("DEBUG: Forcing evaluation of abstract factors after algorithmic BLF addition...")
-                        self._force_evaluate_abstract_factors()
-                    else:
-                        print(f"DEBUG: Algorithm rejected {current_node.name}")
-                    
-                    question_number += 1
-                    continue
-                
-                # Check if this is a SubADMBLF
-                elif hasattr(current_node, 'evaluateSubADMs'):
-                    print(f"DEBUG: Processing SubADMBLF: {current_node.name}")
-                    should_accept = current_node.evaluateSubADMs(self)
-                    
-                    if should_accept:
-                        self.case.append(current_node.name)
-                        print(f"DEBUG: SubADMBLF accepted {current_node.name}, added to case")
-                        
-                        # Force evaluate abstract factors after adding sub-ADM BLF
-                        print("DEBUG: Forcing evaluation of abstract factors after sub-ADM BLF addition...")
-                        self._force_evaluate_abstract_factors()
-                    else:
-                        print(f"DEBUG: SubADMBLF rejected {current_node.name}")
-                    
-                    # Remove from nodes to prevent duplicate processing
-                    nodes.pop(current_node.name, None)
-                    continue
-                
-                # Check if this is an EvaluationBLF that needs to evaluate sub-ADM results
-                elif hasattr(current_node, 'evaluateResults'):
-                    # print(f"DEBUG: Processing EvaluationBLF: {current_node.name}...")
-                    
-                    # Call the evaluation method
-                    should_accept = current_node.evaluateResults(self.adf)
-                    
-                    if should_accept:
-                        self.case.append(current_node.name)
-                        # print(f"DEBUG: {current_node.name} accepted, added to case")
-                    else:
-                        # print(f"DEBUG: {current_node.name} rejected")
-                        pass
-                    
-                    # Remove from nodes to prevent duplicate processing
-                    nodes.pop(current_node.name, None)
-                    continue
-                
-                # Process regular nodes with questions
-                elif current_node.question:
-                    # print(f"DEBUG: Processing regular node: {current_node.name}")
-                    
-                    # Resolve question if it's a DependentBLF
-                    if hasattr(current_node, 'resolveQuestion'):
-                        current_node.resolveQuestion(self.adf)
-                    
-                    # Ask the question
-                    print(f"\n{current_node.question}")
-                    
-                    while True:
-                        answer = input("Answer (y/n): ").strip().lower()
-                        if answer in ['y', 'yes']:
-                            self.case.append(current_node.name)
-                            # print(f"DEBUG: {current_node.name} accepted, added to case")
-                            if hasattr(current_node, 'statement') and current_node.statement and len(current_node.statement) > 0:
-                                print(f"\n{current_node.statement[0]}")
-                            else:
-                                print(f"\n{current_node.name} is accepted")
-                            break
-                        elif answer in ['n', 'no']:
-                            # print(f"DEBUG: {current_node.name} rejected")
-                            if hasattr(current_node, 'statement') and current_node.statement and len(current_node.statement) > 1:
-                                print(f"\n{current_node.statement[1]}")
-                            elif hasattr(current_node, 'statement') and current_node.statement and len(current_node.statement) > 0:
-                                print(f"\n{current_node.statement[0]}")
-                            else:
-                                print(f"\n{current_node.name} is rejected")
-                            break
-                        else:
-                            print("Please answer 'y' or 'n'.")
-                    
-                    # Force evaluation of abstract factors after BLF instantiation
-                    self._force_evaluate_abstract_factors()
-                    
-                    # Remove from nodes to prevent duplicate processing
-                    nodes.pop(current_node.name, None)
-                    continue
-            else:
-                # No question, evaluate automatically
-                pass
-            
-            question_number += 1
-            
-            # Ensure the processed node is completely removed from consideration
-            if current_node and current_node.name in nodes:
-                nodes.pop(current_node.name, None)
-                print(f"DEBUG: Removed {current_node.name} from nodes to prevent duplicate processing")
-        
-        print(f"\nCase completed: {self.caseName}")
         self.show_outcome()
-    
-    def _force_evaluate_abstract_factors(self):
+
+    def questiongen(self, question_order, nodes):
         """
-        Force evaluation of abstract factors immediately after BLFs are processed
-        This ensures dependencies are resolved before checking them
+        Generates questions based on the question order and current nodes
         """
-        print("DEBUG: Force evaluating abstract factors...")
+        print(f"DEBUG: questiongen called with question_order: {question_order}, nodes: {nodes}")
+        print(f"DEBUG: Current case: {self.case}")
         
-        # Find abstract factors (nodes with children that aren't in case yet)
-        abstract_factors = []
-        for node_name, node in self.adf.nodes.items():
-            if node.children and node_name not in self.case:
-                # Check if all children are in the case
-                if all(child in self.case for child in node.children):
-                    abstract_factors.append(node_name)
+        if not question_order:
+            print("DEBUG: No more questions, returning")
+            return question_order, nodes
         
-        print(f"DEBUG: Found abstract factors ready for evaluation: {abstract_factors}")
+        current_question = question_order[0]
+        print(f"DEBUG: Processing current question: {current_question}")
         
-        # Evaluate each abstract factor
-        for factor_name in abstract_factors:
-            try:
-                print(f"DEBUG: Evaluating {factor_name}...")
-                
-                # Create a temporary case with just the children to evaluate this factor
-                temp_case = [child for child in self.adf.nodes[factor_name].children if child in self.case]
-                
-                # Use the ADF's evaluation logic for this specific factor
-                # We need to temporarily set the case and evaluate
-                original_case = getattr(self.adf, 'case', None)
-                self.adf.case = temp_case
-                
-                # Force evaluation of this specific node
-                if self.adf.evaluateNode(self.adf.nodes[factor_name]):
-                    self.case.append(factor_name)
-                    print(f"DEBUG: {factor_name} was accepted and added to case")
+        # Check if this is a question instantiator first
+        if current_question in self.adf.question_instantiators:
+            print(f"DEBUG: {current_question} is a question instantiator")
+            x = self.questionHelper(None, current_question)
+            if x == 'Done':
+                question_order.pop(0)
+                print(f"DEBUG: Question instantiator completed, removed from order. New order: {question_order}")
+                return self.questiongen(question_order, nodes)
+            else:
+                print(f"DEBUG: Question instantiator not done yet, returning")
+                return question_order, nodes
+        
+        # Check if this is a regular node (including DependentBLF and EvaluationBLF)
+        elif current_question in self.adf.nodes:
+            current_node = self.adf.nodes[current_question]
+            print(f"DEBUG: {current_question} is a regular node: {type(current_node).__name__}")
+            
+            # Check if this is a DependentBLF
+            if hasattr(current_node, 'checkDependency'):
+                return self.handleDependentBLF(current_question, current_node, question_order, nodes)
+            
+            # Check if this is an EvaluationBLF
+            elif hasattr(current_node, 'evaluateResults'):
+                return self.handleEvaluationBLF(current_question, current_node, question_order, nodes)
+            
+            else:
+                #process regular blf 
+                print(f"DEBUG: {current_question} is a regular node (not DependentBLF or EvaluationBLF)")
+                x = self.questionHelper(current_node, current_question)
+                if x == 'Done':
+                    question_order.pop(0)
+                    print(f"DEBUG: Regular node completed, removed from order. New order: {question_order}")
+                    return self.questiongen(question_order, nodes)
                 else:
-                    print(f"DEBUG: {factor_name} was not accepted")
-                
-                # Restore original case
-                if original_case is not None:
-                    self.adf.case = original_case
+                    print(f"DEBUG: Regular node not done yet, returning")
+                    return question_order, nodes
+        else:
+            print(f"DEBUG: {current_question} not found in nodes or question_instantiators, skipping")
+            question_order.pop(0)
+            return self.questiongen(question_order, nodes)
+        
+  
+    def questionHelper(self, current_node, current_question):
+        """
+        Helper method to handle individual questions
+        """
+        print(f"DEBUG: questionHelper called for {current_question}, current case: {self.case}")
+        
+        if current_node is None:
+            # This is a question instantiator
+            print(f"DEBUG: Processing question instantiator: {current_question}")
+            instantiator = self.adf.question_instantiators[current_question]
+            print(f"\n{instantiator['question']}")
+            
+            # Show available answers
+            answers = list(instantiator['blf_mapping'].keys())
+            for i, answer in enumerate(answers, 1):
+                print(f"{i}. {answer}")
+            
+            # Get user choice
+            while True:
+                try:
+                    choice = int(input("Choose an answer (enter number): ")) - 1
+                    if 0 <= choice < len(answers):
+                        selected_answer = answers[choice]
+                        break
+                    else:
+                        print("Invalid choice. Please try again.")
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+            
+            print(f"DEBUG: User selected: {selected_answer}")
+            
+            # Instantiate the corresponding BLF(s)
+            blf_names = instantiator['blf_mapping'][selected_answer]
+            if isinstance(blf_names, str):
+                blf_names = [blf_names]
+            
+            print(f"DEBUG: Adding BLFs to case: {blf_names}")
+            for blf_name in blf_names:
+                # Add the BLF to the case
+                if blf_name not in self.case:
+                    self.case.append(blf_name)
+                    print(f"DEBUG: Added {blf_name} to case, case now: {self.case}")
                 else:
-                    delattr(self.adf, 'case')
-                    
-            except Exception as e:
-                print(f"DEBUG: Error evaluating {factor_name}: {e}")
-        
-        print(f"DEBUG: Case after force evaluation: {self.case}")
-    
-    def _evaluate_abstract_factors(self):
-        """
-        Evaluate abstract factors after all BLFs have been processed
-        """
-        print("DEBUG: Starting abstract factor evaluation...")
-        
-        # Find abstract factors (nodes with children that aren't in case yet)
-        abstract_factors = []
-        for node_name, node in self.adf.nodes.items():
-            if node.children and node_name not in self.case:
-                # Check if all children are in the case
-                if all(child in self.case for child in node.children):
-                    abstract_factors.append(node_name)
-        
-        print(f"DEBUG: Found abstract factors to evaluate: {abstract_factors}")
-        
-        # Evaluate each abstract factor
-        for factor_name in abstract_factors:
-            try:
-                # Use the ADF's evaluation logic
-                statements = self.adf.evaluateTree(self.case)
-                print(f"DEBUG: Evaluated {factor_name}, statements: {statements}")
+                    print(f"DEBUG: {blf_name} already in case")
                 
-                # Check if the factor was accepted (should be in case now)
-                if factor_name in self.case:
-                    print(f"DEBUG: {factor_name} was accepted and added to case")
+                # Ask factual ascription questions if configured
+                if instantiator.get('factual_ascription') and blf_name in instantiator['factual_ascription']:
+                    factual_questions = instantiator['factual_ascription'][blf_name]
+                    for fact_name, question in factual_questions.items():
+                        answer = input(f"{question}: ").strip()
+                        if answer:
+                            print(f"DEBUG: Setting fact {fact_name} = {answer} for {blf_name}")
+                            self.adf.setFact(blf_name, fact_name, answer)
+            
+            return 'Done'
+        else:
+            # This is a regular node
+            print(f"DEBUG: Processing regular node: {current_question}")
+            
+            # Check if this is a SubADMBLF (sub-ADM evaluator)
+            if hasattr(current_node, 'evaluateSubADMs'):
+                return self.handleSubADMBLF(current_question, current_node)
+            
+            # Handle regular nodes with questions
+            elif hasattr(current_node, 'question') and current_node.question:
+                question_text = current_node.question
+                print(f"DEBUG: Question text: {question_text}")
+                
+                # Ask the question
+                answer = input(f"{question_text}\nAnswer (y/n): ").strip().lower()
+                print(f"DEBUG: User answered: {answer}")
+                
+                if answer in ['y', 'yes']:
+                    if current_question not in self.case:
+                        self.case.append(current_question)
+                        print(f"DEBUG: Added {current_question} to case, case now: {self.case}")
+                    else:
+                        print(f"DEBUG: {current_question} already in case")
+                    return 'Done'
+                elif answer in ['n', 'no']:
+                    print(f"DEBUG: {current_question} rejected, not added to case")
+                    return 'Done'
                 else:
-                    print(f"DEBUG: {factor_name} was not accepted")
-                    
-            except Exception as e:
-                print(f"DEBUG: Error evaluating {factor_name}: {e}")
-        
-        print(f"DEBUG: Final case after abstract factor evaluation: {self.case}")
-    
-    def _setup_abstract_factor_relationships(self):
+                    print(f"DEBUG: Invalid answer '{answer}', please answer y/n")
+                    return 'Invalid'
+            else:
+                print(f"DEBUG: No question for {current_question}, adding to case automatically")
+                if current_question not in self.case:
+                    self.case.append(current_question)
+                    print(f"DEBUG: Added {current_question} to case, case now: {self.case}")
+                else:
+                    print(f"DEBUG: {current_question} already in case")
+                return 'Done'
+
+    def handleDependentBLF(self, current_question, current_node, question_order, nodes):
         """
-        Set up parent-child relationships for abstract factors
-        This ensures that abstract factors can properly identify their children
-        """
-        for node_name, node in self.adf.nodes.items():
-            if hasattr(node, 'children') and node.children:
-                # This is an abstract factor, ensure its children know about it
-                for child_name in node.children:
-                    if child_name in self.adf.nodes:
-                        child_node = self.adf.nodes[child_name]
-                        # Ensure the child has a parent reference
-                        if not hasattr(child_node, 'parent'):
-                            child_node.parent = node_name
-    
-    def _ask_factual_ascription_questions(self, blf_name, instantiator):
-        """
-        Ask factual ascription questions for a BLF
+        Handles the processing of a DependentBLF node
         
         Parameters
         ----------
-        blf_name : str
-            the name of the BLF
-        instantiator : dict
-            the question instantiator configuration
-        """
-        if 'factual_ascription' in instantiator and instantiator['factual_ascription']:
-            factual_config = instantiator['factual_ascription']
+        current_question : str
+            the name of the current question being processed
+        current_node : DependentBLF
+            the DependentBLF node to process
+        question_order : list
+            the current question order
+        nodes : dict
+            the current nodes dictionary
             
-            if blf_name in factual_config:
-                ascription_config = factual_config[blf_name]
+        Returns
+        -------
+        tuple: (question_order, nodes) - the updated question order and nodes
+        """
+        print(f"DEBUG: {current_question} is a DependentBLF, checking dependency on {current_node.dependency_node}")
+        print(f"DEBUG: Current case before dependency check: {self.case}")
+        
+        if current_node.checkDependency(self.adf, self.case):
+            print(f"DEBUG: Dependency now satisfied for {current_question}, processing it")
+            
+            # Process the DependentBLF using questionHelper
+            # First resolve the question template with inherited facts
+            resolved_question = current_node.resolveQuestion(self.adf, self.case)
+            print(f"DEBUG: Resolved question for DependentBLF: {resolved_question}")
+            
+            x = self.questionHelper(current_node, current_question)
+            if x == 'Done':
+                question_order.pop(0)
+                print(f"DEBUG: DependentBLF completed, removed from order. New order: {question_order}")
+                return self.questiongen(question_order, nodes)
+            else:
+                print(f"DEBUG: DependentBLF not done yet, returning")
+                return question_order, nodes
+        else:
+            print(f"DEBUG: Dependency not satisfied for {current_question}, checking if we can evaluate dependency node")
+            dependency_node_name = current_node.dependency_node
+            dependency_node = self.adf.nodes[dependency_node_name]
+
+            print(f"DEBUG: Dependency node: {dependency_node}")
+            print(f"DEBUG: Dependency node name: {dependency_node_name}")
+            print(f"DEBUG: Dependency node children: {dependency_node.children}")
+            print(f"DEBUG: Dependency node acceptance: {dependency_node.acceptance}")            
+            # Check if dependency node has acceptance conditions and can be evaluated
+            if hasattr(dependency_node, 'acceptance') and dependency_node.acceptance:
+                print(f"DEBUG: Dependency node {dependency_node_name} has acceptance condition: {dependency_node.acceptance}")
                 
-                if isinstance(ascription_config, dict):
-                    for ascription_name, question_text in ascription_config.items():
-                        print(f"\nFactual question for {blf_name}: {question_text}")
-                        answer = input("Answer: ").strip()
+                # Try to evaluate the dependency node's acceptance condition
+                # This is a simplified evaluation - just check if all children are in case
+                if hasattr(dependency_node, 'children') and dependency_node.children:
+                    all_children_in_case = all(child in self.case for child in dependency_node.children)
+                    if all_children_in_case:
+                        print(f"DEBUG: All children of {dependency_node_name} are in case, adding to case")
+                        if dependency_node_name not in self.case:
+                            self.case.append(dependency_node_name)
+                            print(f"DEBUG: Added {dependency_node_name} to case, case now: {self.case}")
+                        else:
+                            print(f"DEBUG: {dependency_node_name} already in case")
                         
-                        # Store the fact in the ADF
-                        if answer:
-                            self.adf.setFact(blf_name, ascription_name, answer)
-                            print(f"Stored {ascription_name}: {answer} for {blf_name}")
-    
+                        # NEW: General automatic fact inheritance for abstract factors
+                        if hasattr(self.adf, 'facts') and hasattr(self.adf, 'nodes'):
+                            if (dependency_node_name in self.adf.nodes and 
+                                hasattr(self.adf.nodes[dependency_node_name], 'children') and 
+                                self.adf.nodes[dependency_node_name].children):
+                                
+                                print(f"DEBUG: {dependency_node_name} is an abstract factor, triggering automatic fact inheritance...")
+                                inherited_facts = self.adf.getInheritedFacts(dependency_node_name, self.case)
+                                if inherited_facts:
+                                    if dependency_node_name not in self.adf.facts:
+                                        self.adf.facts[dependency_node_name] = {}
+                                    for fact_name, value in inherited_facts.items():
+                                        self.adf.facts[dependency_node_name][fact_name] = value
+                                        print(f"DEBUG: Stored inherited fact {fact_name}: {value} on {dependency_node_name}")
+                        
+                        # Now re-check if dependency is satisfied
+                        if current_node.checkDependency(self.adf, self.case):
+                            print(f"DEBUG: Dependency now satisfied for {current_question}, processing it")
+                            
+                            # Process the DependentBLF using questionHelper
+                            # First resolve the question template with inherited facts
+                            resolved_question = current_node.resolveQuestion(self.adf, self.case)
+                            print(f"DEBUG: Resolved question for DependentBLF: {resolved_question}")
+                            
+                            x = self.questionHelper(current_node, current_question)
+                            if x == 'Done':
+                                question_order.pop(0)
+                                print(f"DEBUG: DependentBLF completed, removed from order. New order: {question_order}")
+                                return self.questiongen(question_order, nodes)
+                            else:
+                                print(f"DEBUG: DependentBLF not done yet, returning")
+                                return question_order, nodes
+                        else:
+                            print(f"DEBUG: Dependency still not satisfied after adding {dependency_node_name}, skipping for now")
+                            question_order.pop(0)
+                            return question_order, nodes
+                    else:
+                        print(f"DEBUG: Not all children of {dependency_node_name} are in case yet, skipping {current_question}")
+                        question_order.pop(0)
+                        return question_order, nodes
+                else:
+                    print(f"DEBUG: Dependency node {dependency_node_name} has no children, cannot evaluate")
+                    question_order.pop(0)
+                    return question_order, nodes
+            else:
+                print(f"DEBUG: Dependency node {dependency_node_name} has no acceptance condition, cannot evaluate")
+                question_order.pop(0)
+                return question_order, nodes
+
+    def handleEvaluationBLF(self, current_question, current_node, question_order, nodes):
+        """
+        Handles the processing of an EvaluationBLF node
+        
+        Parameters
+        ----------
+        current_question : str
+            the name of the current question being processed
+        current_node : EvaluationBLF
+            the EvaluationBLF node to process
+        question_order : list
+            the current question order
+        nodes : dict
+            the current nodes dictionary
+            
+        Returns
+        -------
+        tuple: (question_order, nodes) - the updated question order and nodes
+        """
+        print(f"DEBUG: {current_question} is an EvaluationBLF, evaluating results from {current_node.source_blf}")
+        
+        # Call the evaluateResults method to process the evaluation
+        evaluation_result = current_node.evaluateResults(self.adf)
+        
+        if evaluation_result:
+            # Evaluation was successful, add to case
+            if current_question not in self.case:
+                self.case.append(current_question)
+                print(f"DEBUG: Added {current_question} to case after evaluation, case now: {self.case}")
+            else:
+                print(f"DEBUG: {current_question} already in case")
+        else:
+            # Evaluation failed, don't add to case
+            print(f"DEBUG: {current_question} not added to case due to evaluation failure")
+        
+        # Remove from question order and continue
+        question_order.pop(0)
+        print(f"DEBUG: EvaluationBLF completed, removed from order. New order: {question_order}")
+        return self.questiongen(question_order, nodes)
+
+    def handleSubADMBLF(self, current_question, current_node):
+        """
+        Handles the processing of a SubADMBLF node
+        
+        Parameters
+        ----------
+        current_question : str
+            the name of the current question being processed
+        current_node : SubADMBLF
+            the SubADMBLF node to process
+            
+        Returns
+        -------
+        str: 'Done' if processing completed successfully
+        """
+        print(f"DEBUG: {current_question} is a SubADMBLF, evaluating sub-ADMs")
+        
+        # Call the evaluateSubADMs method to process all sub-ADMs
+        # This will handle the evaluation of sub-ADMs for each item
+        sub_adm_result = current_node.evaluateSubADMs(self)
+        
+        if sub_adm_result:
+            # Sub-ADM evaluation was successful, add to case
+            if current_question not in self.case:
+                self.case.append(current_question)
+                print(f"DEBUG: Added {current_question} to case after sub-ADM evaluation, case now: {self.case}")
+            else:
+                print(f"DEBUG: {current_question} already in case")
+            return 'Done'
+        else:
+            # Sub-ADM evaluation failed, don't add to case
+            print(f"DEBUG: {current_question} not added to case due to sub-ADM evaluation failure")
+            return 'Done'
+
     def show_outcome(self):
         """Show the evaluation outcome"""
         print("\n" + "="*50)
@@ -499,8 +482,6 @@ class CLI:
                 print(f"{i}. {statement}")
         except Exception as e:
             print(f"Error evaluating case: {e}")
-        
-        input("\nPress Enter to continue...")
     
     def visualize_domain(self):
         """Visualize the domain as a graph"""
