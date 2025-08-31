@@ -142,10 +142,6 @@ class ADF:
             name to use in question order (if None, will be auto-generated)
         """
         
-        # Create a unique name for this question if not provided
-        if question_order_name is None:
-            question_order_name = f"question_{len(self.questionOrder) + 1}"
-        
         # Store the question and mapping in the ADF for later use
         if not hasattr(self, 'question_instantiators'):
             self.question_instantiators = {}
@@ -175,17 +171,11 @@ class ADF:
         statements : list, optional
             statements to show if the BLF is accepted or rejected
         sub_questions : dict, optional
-            custom questions for sub-ADM evaluation with keys:
-            - 'positive': question for positive criterion
-            - 'negative': question for negative criterion
-            - 'positive_factor_name': actual factor name to add to case (e.g., 'POSITIVE_DATA')
-            - 'negative_factor_name': actual factor name to add to case (e.g., 'NEGATIVE_DATA')
-            - 'accepted_factor_name': abstract factor name for accepted items (e.g., 'POSITIVE_RESOURCE')
-            - 'rejected_factor_name': abstract factor name for rejected items (e.g., 'NEGATIVE_RESOURCE')
+            custom questions for sub-ADM evaluation with keys 'positive', 'negative', 'positive_factor_name', 'negative_factor_name', 'accepted_factor_name', 'rejected_factor_name'
         """
         
         # Create a special node that handles sub-ADM evaluation
-        node = SubADMBLF(name, sub_adf_creator, source_blf, statements or [f"{name} is accepted", f"{name} is rejected"], sub_questions)
+        node = SubADMBLF(name, sub_adf_creator, source_blf, statements, sub_questions)
         self.nodes[name] = node
         
         # Add to question order
@@ -994,73 +984,7 @@ class Node:
         
         #returns the post fix expression as a string  
         return " ".join(postfixList)
-
-class MultiChoice(Node):
-    """
-    for the creation of multiple choice base level factors, especially to 
-    facilitate the exception to the 4th amendment and NIHL domains
-    
-    Methods inherited from Node()
-    
-    Attributes
-    ----------
-    name : str
-        the name of the node
-    question : str, optional
-        the question which will instantiate the blf
-    answers : list
-        the multiple choice answers to be selected from
-    acceptanceOriginal : str
-        the original acceptance condition before being converted to postfix notation
-    statement : list
-        the statements which will be output depending on whether the node is accepted or rejected
-    acceptance : list
-        the acceptance condition in postfix form
-    children : list
-        a list of the node's children nodes
-        
-    Methods
-    -------
-    attributes(acceptance)
-        sets the acceptance conditions and determines the children nodes  
-    
-    logicConverter(expression)
-        converts the acceptance conditions into postfix notation
-    
-    """
-    def __init__(self, name, acceptance, statement, question=None):
-        """
-        Parameters
-        ----------
-        name : str
-            the name of the node
-        statement : list, optional
-            the statements which will be output depending on whether the node is accepted or rejected
-        acceptance : list, optional
-            the acceptance condition in postfix form
-        question : str, optional
-            the question which will instantiate the blf
-        """
-        
-        #name of the node
-        self.name = name
-        
-        #quetion for base level factor
-        self.question = question
-        
-        self.acceptanceOriginal = acceptance
-
-        #sets postfix acceptance conditions and children nodes
-        try:
-            self.attributes(acceptance)
-            self.statement = statement
-        except:
-            self.acceptance = None
-            self.children = None
-            self.statement = None
-                
-        self.answers = self.children
-  
+ 
 class DependentBLF(Node):
     """
     A BLF that depends on another node and inherits its factual ascriptions

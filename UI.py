@@ -16,7 +16,7 @@ class CLI:
     def __init__(self):
         self.adf = None
         self.case = []
-        self.caseList = {}
+        self.cases = {}
         self.caseName = None
         
     def main_menu(self):
@@ -44,18 +44,15 @@ class CLI:
         print("\n" + "="*50)
         print("Load Existing Domain")
         print("="*50)
-        print("1. Wild Animals")
-        print("2. Academic Research Project")
-        print("3. Back to main menu")
+        print("1. Academic Research Project")
+        print("2. Back to main menu")
         print("-"*50)
         
-        choice = input("Enter your choice (1-3): ").strip()
+        choice = input("Enter your choice (1-2): ").strip()
         
         if choice == "1":
-            self.load_wild_animals_domain()
-        elif choice == "2":
             self.load_academic_research_domain()
-        elif choice == "3":
+        elif choice == "2":
             return
         else:
             print("Invalid choice. Please try again.")
@@ -64,7 +61,6 @@ class CLI:
     def load_academic_research_domain(self):
         """Load the Academic Research Project domain"""
         try:
-
             self.adf = academic_research_ADM.adf()
             self.cases = academic_research_ADM.cases()
             print("Academic Research Project domain loaded successfully!")
@@ -102,23 +98,23 @@ class CLI:
         print("="*50)
         
         # Ask for case name or select predefined case
-        if self.caseList:
+        if self.cases:
             print("Predefined cases:")
-            for i, case_name in enumerate(self.caseList.keys(), 1):
+            for i, case_name in enumerate(self.cases.keys(), 1):
                 print(f"{i}. {case_name}")
-            print(f"{len(self.caseList) + 1}. Enter custom case name")
+            print(f"{len(self.cases) + 1}. Enter custom case name")
             
-            choice = input(f"Select case (1-{len(self.caseList) + 1}): ").strip()
+            choice = input(f"Select case (1-{len(self.cases) + 1}): ").strip()
             try:
                 choice = int(choice)
-                if 1 <= choice <= len(self.caseList):
-                    case_names = list(self.caseList.keys())
+                if 1 <= choice <= len(self.cases):
+                    case_names = list(self.cases.keys())
                     self.caseName = case_names[choice - 1]
-                    self.case = self.caseList[self.caseName]
+                    self.case = self.cases[self.caseName]
                     print(f"Using predefined case: {self.caseName}")
                     self.show_outcome()
                     return
-                elif choice == len(self.caseList) + 1:
+                elif choice == len(self.cases) + 1:
                     pass
                 else:
                     print("Invalid choice.")
@@ -161,7 +157,6 @@ class CLI:
                 
                 # Check if this is a question instantiator
                 if question_name in self.adf.question_instantiators:
-                    # print(f"DEBUG: Processing question instantiator: {question_name}")
                     instantiator = self.adf.question_instantiators[question_name]
                     
                     # Ask the question
@@ -189,12 +184,10 @@ class CLI:
                     if isinstance(blf_names, str):
                         blf_names = [blf_names]
                     
-                    # print(f"DEBUG: Instantiating BLFs: {blf_names}")
-                    
                     for blf_name in blf_names:
                         # Add the BLF to the case
                         self.case.append(blf_name)
-                        # print(f"DEBUG: Added {blf_name} to case")
+                        print(f"DEBUG: Added {blf_name} to case")
                         
                         # Ask factual ascription questions if configured
                         if instantiator.get('factual_ascription') and blf_name in instantiator['factual_ascription']:

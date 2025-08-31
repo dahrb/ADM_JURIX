@@ -1,0 +1,1172 @@
+
+from pythonds import Stack
+import pydot
+
+class ADF:
+    """
+    A class used to represent the ADF graph
+
+    Attributes
+    ----------
+    name : str
+        the name of the ADF
+    nodes : dict
+        the nodes which constitute the ADF
+    reject : bool, default False
+        is set to true when the reject keyword is used which lets the software know to reject the node rather than accep it when the condition is true
+    nonLeaf : dict
+        the nodes which are non-leaf that have children
+    questionOrder : list
+        an ordered list which determines which order the questions are asked in
+    question : str, optional
+        if the node is a base-level factor this stores the question
+    statements : list
+        the statements to be shown if the node is accepted or rejected
+    nodeDone : list
+        nodes which have been evaluated
+    case : list
+        the list of factors forming the case    
+    
+    Methods
+    -------
+    addNodes(name, acceptance = None, statement=None, question=None)
+        allows nodes to be added to the ADF from the Node() class
+    addMulti(name, acceptance, statement, question)
+        allows nodes to be added to the ADF from the MultiChoice() class
+    nonLeafGen()
+        determines what is a non-leaf factor
+    evaluateTree(case)
+        evaluates the ADF for a specified case
+    evaluateNode(node)
+        evaluates the acceptance conditions of the node
+    postfixEvaluation(acceptance)
+        evaluates the individual acceptance conditions which are in postfix notation
+    checkCondition(operator, op1, op2 = None):
+        checks the logical conditions for the acceptance condition, returning a boolean
+    checkNonLeaf(node)
+        checks if a node has children which need to be evaluated before it is evaluated
+    questionAssignment()
+        checks if any node requires a question to be assigned
+    visualiseNetwork(case=None)
+        allows visualisation of the ADF
+    saveNew(name)
+        allows the ADF to be saved as a .xlsx file
+    saveHelper(wb,name)
+        helper class for saveNew which provides core functionality
+    """
+    
+    def __init__(self, name):
+        """
+        Parameters
+        ----------
+        name : str
+            the name of the ADF
+        """
+      
+        self.name = name
+        
+        #dictionary of nodes --> 'name': 'node object
+        self.nodes = {}
+        
+        self.reject = False
+        
+        #dictionary of nodes which have children
+        self.nonLeaf = {}
+        
+        self.questionOrder = []
+        
+    def addNodes(self, name, acceptance = None, statement=None, question=None):
+        """
+        adds nodes to ADF
+        
+        Parameters
+        ----------
+        name : str
+            the name of the node
+        acceptance : list
+            a list of the acceptance conditions each of which should be a string
+        statement : list
+            a list of the statements which will be shown if a condition is accepted or rejected
+        question : str
+            the question to determine whether a node is absent or present
+        
+        """
+        
+        node = Node(name, acceptance, statement, question)
+        
+        self.nodes[name] = node
+        
+        self.question = question
+        
+        #creates children nodes
+        if node.children != None:
+            for childName in node.children:
+                if childName not in self.nodes:
+                    node = Node(childName)
+                    self.nodes[childName] = node
+
+    def addQuestionInstantiator(self, question, blf_mapping, factual_ascription=None, question_order_name=None):
+        """
+        Adds a question that can instantiate BLFs without creating additional nodes in the model
+        
+        Parameters
+        ----------
+        question : str
+            the question text to ask the user
+        blf_mapping : dict
+            dictionary mapping answer choices to BLF names (or lists of BLF names) to instantiate
+        factual_ascription : dict, optional
+            dictionary mapping BLF names to additional factual questions to ask
+        question_order_name : str, optional
+            name to use in question order (if None, will be auto-generated)
+        """
+        
+        # Store the question and mapping in the ADF for later use
+        if not hasattr(self, 'question_instantiators'):
+            self.question_instantiators = {}
+        
+        self.question_instantiators[question_order_name] = {
+            'question': question,
+            'blf_mapping': blf_mapping,
+            'factual_ascription': factual_ascription
+        }
+        
+        # Add the question to the question order
+        if question_order_name not in self.questionOrder:
+            self.questionOrder.append(question_order_name)
+
+    def nonLeafGen(self):
+        """
+        determines which of the nodes is non-leaf        
+        """
+        
+        #sets it back to an empty dictionary
+        self.nonLeaf = {}
+        
+        #checks each node and determines if it is a non-leaf node (one with children)
+        for name,node in zip(self.nodes,self.nodes.values()):
+            
+            #adds node to dict of nodes with children
+            if node.children != None and node.children != []:
+                self.nonLeaf[name] = node
+            else:
+                pass
+                   
+    def evaluateTree(self, case):
+        """
+        evaluates the ADF for a given case
+        
+        Parameters
+        ----------
+        case : list
+            the list of factors forming the case 
+        
+        """
+        #keep track of print statements
+        self.statements = []
+        #list of non-leaf nodes which have been evaluated
+        self.nodeDone = []
+        self.case = case
+        print(f"DEBUG: evaluateTree started with case: {self.case}")
+        
+        #generates the non-leaf nodes
+        self.nonLeafGen()
+        #while there are nonLeaf nodes which have not been evaluated, evaluate a node in this list in ascending order  
+        while self.nonLeaf != {}:
+            for name,node in zip(self.nonLeaf,self.nonLeaf.values()):
+                #checks if the node's children are non-leaf nodes
+                if name == 'Decide' and len(self.nonLeaf) != 1:
+                    pass     
+                elif self.checkNonLeaf(node):
+                    #adds to list of evaluated nodes
+                    self.nodeDone.append(name) 
+                    print(f"DEBUG: Evaluating node: {name}, current case: {self.case}")
+                    #checks candidate node's acceptance conditions
+                    if self.evaluateNode(node):
+                        #enables rejection clauses - handy for automobile
+                        if self.reject != True:
+                            #adds factor to case if present (only if not already there)
+                            if name not in self.case:
+                                self.case.append(name)
+                                print(f"DEBUG: Added {name} to case, case now: {self.case}")
+                            else:
+                                print(f"DEBUG: {name} already in case, skipping duplicate")
+                            
+                            # NEW: Automatically inherit facts when abstract factors are added to case
+                            if hasattr(self, 'facts'):
+                                
+                                # Check if this is an abstract factor (has children)
+                                if (hasattr(self.nodes[name], 'children') and 
+                                    self.nodes[name].children):
+                                    
+                                    print(f"DEBUG: {name} is an abstract factor added to case, automatically inheriting facts...")
+                                    # Get inherited facts and store them for this abstract factor
+                                    inherited_facts = self.getInheritedFacts(name, self.case)
+                                    if inherited_facts:
+                                        # Store inherited facts on the abstract factor itself
+                                        if name not in self.facts:
+                                            self.facts[name] = {}
+                                        for fact_name, value in inherited_facts.items():
+                                            self.facts[name][fact_name] = value
+                                            print(f"DEBUG: Stored inherited fact {fact_name}: {value} on {name}")
+                                
+                        #deletes node from nonLeaf nodes
+                        self.nonLeaf.pop(name)
+                        self.statements.append(node.statement[self.counter])
+                        self.reject = False
+                        break
+                    #if node's acceptance conditions are false                       
+                    else:
+                        #deletes node from nonLeaf nodes but doesn't add to case
+                        self.nonLeaf.pop(name)
+                        print(f"DEBUG: {name} rejected, not added to case, case remains: {self.case}")
+                        #the last statement is always the rejection statemenr
+                        self.statements.append(node.statement[-1])
+                        self.reject = False
+                        break
+        
+        print(f"DEBUG: evaluateTree finished, final case: {self.case}")
+        
+        # Clean up any duplicates that might have slipped through
+        if hasattr(self, 'case') and self.case:
+            # Remove duplicates while preserving order
+            seen = set()
+            unique_case = []
+            for item in self.case:
+                if item not in seen:
+                    seen.add(item)
+                    unique_case.append(item)
+            
+            if len(unique_case) != len(self.case):
+                print(f"DEBUG: Removed {len(self.case) - len(unique_case)} duplicate(s) from case")
+                print(f"DEBUG: Case before cleanup: {self.case}")
+                self.case = unique_case
+                print(f"DEBUG: Case after cleanup: {self.case}")
+        
+        return self.statements
+                                  
+    def evaluateNode(self, node):
+        """
+        evaluates a node in respect to its acceptance conditions
+        
+        x will be always be a boolean value
+        
+        Parameters
+        ----------
+        node : class
+            the node class to be evaluated
+        
+        """
+        
+        #for visualisation purposes - this tracks the attacking nodes
+        self.vis = []
+        
+        #counter to index the statements to be shown to the user
+        self.counter = -1
+        
+        #checks each acceptance condition seperately
+        for i in node.acceptance:
+            self.reject = False
+            self.counter+=1
+            x = self.postfixEvaluation(i)
+            if x == True:
+                return x  
+
+        return x
+    
+    def postfixEvaluation(self,acceptance):
+        """
+        evaluates the given acceptance condition 
+        
+        Parameters
+        ----------
+        acceptance : str
+            a string with the names of nodes seperated by logical operators            
+        
+        """
+        #initialises stack of operands
+        operandStack = Stack()
+        #list of tokens from acceptance conditions
+        tokenList = acceptance.split()
+        #checks each token's acceptance conditions
+        for token in tokenList:
+            #checks if something is a rejection condition
+            if token == 'reject':
+                self.reject = True
+                try:
+                    if x in self.case:
+                        return True
+                    else:
+                        return False
+                except:
+                    pass          
+            elif token == 'not':
+                operand1 = operandStack.pop()
+                result = self.checkCondition(token,operand1)
+                operandStack.push(result)
+                self.vis.append(operand1)
+                
+            elif token == 'and' or token == 'or':
+                operand2 = operandStack.pop()
+                operand1 = operandStack.pop()
+                result = self.checkCondition(token,operand1,operand2)
+                operandStack.push(result)    
+                                
+            #for an acceptance condition with no operator 
+            elif len(tokenList) == 1 or (len(tokenList) ==2 and 'reject' in tokenList):
+                if 'reject' in tokenList and 'reject' != token:
+                    x = token   
+                else:
+                    if token in self.case:
+                        return True
+                    else:
+                        return False
+            else:
+                #adds the operand to the stack
+                operandStack.push(token)
+        
+        return operandStack.pop()
+
+    def checkCondition(self, operator, op1, op2 = None):
+        """
+        checks the logical condition and returns a boolean
+        
+        Parameters
+        ----------
+        operator : str
+            the logical operator such as or, and, not  
+        op1 : str
+            the first operand
+        op2 : str, optional
+            the second operand
+        """
+        
+        if operator == "or":
+            if op1 in self.case or op2 in self.case or op1 == True or op2 == True:
+                return True
+            else:
+                return False
+            
+        elif operator == "and":
+            if op1 == True or op1 in self.case:
+                if op2 in self.case or op2 == True:
+                    return True 
+                else: 
+                    return False
+            elif op2 == True or op2 in self.case:
+                if op1 in self.case or op1 == True:
+                    return True
+                else:
+                    return False   
+            else:
+                return False
+            
+        elif operator == "not":
+            if op1 == True:
+                return False
+            if op1 == False:
+                return True
+            elif op1 not in self.case:
+                return True
+            else:
+                return False
+        
+    def checkNonLeaf(self, node):
+        """
+        checks if a given node has children which need to be evaluated 
+        before it can be evaluated
+        
+        Parameters
+        ----------
+        node : class
+            the node class to be evaluated
+        
+        """
+        for j in node.children:
+    
+            if j in self.nonLeaf:
+                
+                if j in self.nodeDone:
+                    pass
+                
+                else:
+                    return False
+
+            else:
+                pass
+
+        return True
+    
+    def getInheritedFacts(self, node_name, case):
+        """
+        Gets facts inherited from child nodes
+        
+        Parameters
+        ----------
+        node_name : str
+            the name of the node to get inherited facts for
+            
+        Returns:
+            dict: dictionary of inherited facts
+        """
+        inherited = {}
+        
+        if hasattr(self, 'facts') and node_name in self.nodes:
+            node = self.nodes[node_name]
+            
+            if hasattr(node, 'children') and node.children:
+                for child_name in node.children:
+                    if hasattr(self, 'facts') and child_name in self.facts:
+                        for fact_name, value in self.facts[child_name].items():
+                            # Don't double the prefix - just use the fact name as is
+                            inherited[fact_name] = value
+            else:
+                pass  # Node has no children
+        else:
+            pass  # Node not found or no facts attribute
+        
+        # SPECIAL CASE: If the dependency node is an abstract factor (has children)
+        # and it's in the case, automatically inherit facts from related BLFs
+        if case and node_name in case:
+            # Check if this is an abstract factor (has children)
+            if (hasattr(self, 'facts') and hasattr(self, 'nodes') and 
+                node_name in self.nodes and 
+                hasattr(self.nodes[node_name], 'children') and 
+                self.nodes[node_name].children):
+                
+                print(f"DEBUG: {node_name} is an abstract factor in case, inheriting facts from related BLFs...")
+                # Inherit facts from BLFs that are in the case
+                for blf_name, blf_facts in self.facts.items():
+                    if blf_name in case:  # Only get facts from BLFs that are in the case
+                        for fact_name, value in blf_facts.items():
+                            inherited[fact_name] = value
+                            print(f"DEBUG: Inherited {fact_name}: {value} from {blf_name}")
+        
+        return inherited or {}  # Ensure we never return None
+    
+    def setFact(self, blf_name, fact_name, value):
+        """
+        Sets a fact for a BLF
+        
+        Parameters
+        ----------
+        blf_name : str
+            the name of the BLF
+        fact_name : str
+            the name of the fact
+        value : any
+            the value of the fact
+        """
+        if not hasattr(self, 'facts'):
+            self.facts = {}
+        
+        if blf_name not in self.facts:
+            self.facts[blf_name] = {}
+        
+        self.facts[blf_name][fact_name] = value
+
+    def getFact(self, blf_name, fact_name):
+        """
+        Gets a fact for a BLF
+        
+        Parameters
+        ----------
+        blf_name : str
+            the name of the BLF
+        fact_name : str
+            the name of the fact
+            
+        Returns:
+            the value of the fact, or None if not found
+        """
+        if hasattr(self, 'facts') and blf_name in self.facts:
+            return self.facts[blf_name].get(fact_name)
+        return None
+    
+    def addDependentBLF(self, name, dependency_node, question_template, statements, factual_ascription=None):
+        """
+        Adds a BLF that depends on another node and inherits its factual ascriptions
+        
+        Parameters
+        ----------
+        name : str
+            the name of the BLF
+        dependency_node : str
+            the name of the node this BLF depends on
+        question_template : str
+            the question template that can reference inherited factual ascriptions
+        statements : list
+            the statements to show if the BLF is accepted or rejected
+        factual_ascription : dict, optional
+            additional factual ascriptions for this BLF
+        """
+        
+        # Create a special node that tracks dependencies
+        node = DependentBLF(name, dependency_node, question_template, statements, factual_ascription)
+        self.nodes[name] = node
+        
+        # Add to question order
+        if name not in self.questionOrder:
+            self.questionOrder.append(name)
+
+    def visualiseNetwork(self,case=None):    
+        """
+        allows the ADF to be visualised as a graph
+        
+        can be for the domain with or without a case
+        
+        if there is a case it will highlight the nodes green which have been
+        accepted and red the ones which have been rejected        
+        
+        Parameters
+        ----------
+        case : list, optional
+            the list of factors constituting the case
+        """
+        
+        #initialises the graph
+        G = pydot.Dot('{}'.format(self.name), graph_type='graph')
+        
+        # Set graph direction to top-to-bottom for better hierarchical layout
+        G.set_rankdir('TB')
+
+        if case != None:
+            # Temporarily set the case for evaluation
+            original_case = getattr(self, 'case', None)
+            self.case = case
+            
+            #checks each node
+            for i in self.nodes.values():
+                
+                #checks if node is already in the graph
+                if i not in G.get_node_list():
+                    
+                    #checks if the node was accepted in the case
+                    if i.name in case:
+                        a = pydot.Node(i.name,label=i.name,color='green')
+                    else:
+                        a = pydot.Node(i.name,label=i.name,color='red')
+                                        
+                    G.add_node(a)
+                
+                #creates edges between a node and its children
+                if i.children != None and i.children != []:
+                    
+                    self.evaluateNode(i)
+
+                    for j in i.children:
+                        
+                                                
+                        if j not in G.get_node_list():
+                            
+                            if j in case:
+                                a = pydot.Node(j,label=j,color='green')
+                            else:
+                                a = pydot.Node(j,label=j,color='red')
+                            
+                            G.add_node(a)
+                        
+                        #self.vis is a list which tracks whether a node is an attacking or defending node
+                        if j in self.vis:
+                            if j in case:
+                                my_edge = pydot.Edge(i.name, j, color='green',label='-')
+                            else:
+                                my_edge = pydot.Edge(i.name, j, color='red',label='-')
+                        else:
+                            if j in case:
+                                my_edge = pydot.Edge(i.name, j, color='green',label='+')
+                            else:
+                                my_edge = pydot.Edge(i.name, j, color='red',label='+')
+
+                        G.add_edge(my_edge)
+            
+            # Restore original case if it existed
+            if original_case is not None:
+                self.case = original_case
+            else:
+                delattr(self, 'case')
+            
+            # Add dependency relationships for DependentBLF nodes
+            for node_name, node in self.nodes.items():
+                if hasattr(node, 'dependency_node') and node.dependency_node:
+                    # Create a dotted black line from dependent node to dependency node
+                    dependency_edge = pydot.Edge(node_name, node.dependency_node, 
+                                               color='black', style='dotted')
+                    G.add_edge(dependency_edge)
+            
+            # Assign ranks to ensure proper hierarchical layout
+            self._assign_node_ranks(G)
+        
+        else:
+            
+            #creates self.vis if not already created
+            self.evaluateTree([])
+            
+            #checks each node
+            for i in self.nodes.values():
+                
+                #checks if node is already in the graph
+                if i not in G.get_node_list():
+                    
+                    a = pydot.Node(i.name,label=i.name,color='black')
+
+                    G.add_node(a)
+                
+                #creates edges between a node and its children
+                if i.children != None and i.children != []:
+                    
+                    self.evaluateNode(i)
+
+                    for j in i.children:
+                        
+                        if j not in G.get_node_list():
+                            
+                            a = pydot.Node(j,label=j,color='black')
+                           
+                            G.add_node(a)
+                        
+                        #self.vis is a list which tracks whether a node is an attacking or defending node
+                        if j in self.vis:
+                            my_edge = pydot.Edge(i.name, j, color='black',label='-')
+
+                        else:
+                            my_edge = pydot.Edge(i.name, j, color='black',label='+')
+
+                        G.add_edge(my_edge)
+            
+            # Add dependency relationships for DependentBLF nodes (without case)
+            for node_name, node in self.nodes.items():
+                if hasattr(node, 'dependency_node') and node.dependency_node:
+                    # Create a dotted black line from dependent node to dependency node
+                    dependency_edge = pydot.Edge(node_name, node.dependency_node, 
+                                               color='black', style='dotted')
+                    G.add_edge(dependency_edge)
+            
+            # Assign ranks to ensure proper hierarchical layout
+            self._assign_node_ranks(G)
+        
+        return G
+ 
+    def visualiseNetwork(self,case=None):    
+        """
+        allows the ADF to be visualised as a graph
+        
+        can be for the domain with or without a case
+        
+        if there is a case it will highlight the nodes green which have been
+        accepted and red the ones which have been rejected        
+        
+        Parameters
+        ----------
+        case : list, optional
+            the list of factors constituting the case
+        """
+        
+        #initialises the graph
+        G = pydot.Dot('{}'.format(self.name), graph_type='graph')
+        
+        # Set graph direction to top-to-bottom for better hierarchical layout
+        G.set_rankdir('TB')
+
+        if case != None:
+            # Temporarily set the case for evaluation
+            original_case = getattr(self, 'case', None)
+            self.case = case
+            
+            #checks each node
+            for i in self.nodes.values():
+                
+                #checks if node is already in the graph
+                if i not in G.get_node_list():
+                    
+                    #checks if the node was accepted in the case
+                    if i.name in case:
+                        a = pydot.Node(i.name,label=i.name,color='green')
+                    else:
+                        a = pydot.Node(i.name,label=i.name,color='red')
+                                        
+                    G.add_node(a)
+                
+                #creates edges between a node and its children
+                if i.children != None and i.children != []:
+                    
+                    self.evaluateNode(i)
+
+                    for j in i.children:
+                        
+                                                
+                        if j not in G.get_node_list():
+                            
+                            if j in case:
+                                a = pydot.Node(j,label=j,color='green')
+                            else:
+                                a = pydot.Node(j,label=j,color='red')
+                            
+                            G.add_node(a)
+                        
+                        #self.vis is a list which tracks whether a node is an attacking or defending node
+                        if j in self.vis:
+                            if j in case:
+                                my_edge = pydot.Edge(i.name, j, color='green',label='-')
+                            else:
+                                my_edge = pydot.Edge(i.name, j, color='red',label='-')
+                        else:
+                            if j in case:
+                                my_edge = pydot.Edge(i.name, j, color='green',label='+')
+                            else:
+                                my_edge = pydot.Edge(i.name, j, color='red',label='+')
+
+                        G.add_edge(my_edge)
+            
+            # Restore original case if it existed
+            if original_case is not None:
+                self.case = original_case
+            else:
+                delattr(self, 'case')
+            
+            # Add dependency relationships for DependentBLF nodes
+            for node_name, node in self.nodes.items():
+                if hasattr(node, 'dependency_node') and node.dependency_node:
+                    # Create a dotted black line from dependent node to dependency node
+                    dependency_edge = pydot.Edge(node_name, node.dependency_node, 
+                                               color='black', style='dotted')
+                    G.add_edge(dependency_edge)
+            
+            # Assign ranks to ensure proper hierarchical layout
+            self._assign_node_ranks(G)
+        
+        else:
+            
+            #creates self.vis if not already created
+            self.evaluateTree([])
+            
+            #checks each node
+            for i in self.nodes.values():
+                
+                #checks if node is already in the graph
+                if i not in G.get_node_list():
+                    
+                    a = pydot.Node(i.name,label=i.name,color='black')
+
+                    G.add_node(a)
+                
+                #creates edges between a node and its children
+                if i.children != None and i.children != []:
+                    
+                    self.evaluateNode(i)
+
+                    for j in i.children:
+                        
+                        if j not in G.get_node_list():
+                            
+                            a = pydot.Node(j,label=j,color='black')
+                           
+                            G.add_node(a)
+                        
+                        #self.vis is a list which tracks whether a node is an attacking or defending node
+                        if j in self.vis:
+                            my_edge = pydot.Edge(i.name, j, color='black',label='-')
+
+                        else:
+                            my_edge = pydot.Edge(i.name, j, color='black',label='+')
+
+                        G.add_edge(my_edge)
+            
+            # Add dependency relationships for DependentBLF nodes (without case)
+            for node_name, node in self.nodes.items():
+                if hasattr(node, 'dependency_node') and node.dependency_node:
+                    # Create a dotted black line from dependent node to dependency node
+                    dependency_edge = pydot.Edge(node_name, node.dependency_node, 
+                                               color='black', style='dotted')
+                    G.add_edge(dependency_edge)
+            
+            # Assign ranks to ensure proper hierarchical layout
+            self._assign_node_ranks(G)
+        
+        return G
+    
+    def visualiseNetworkWithSubADMs(self, case=None):
+        """
+        Creates a comprehensive visualization including main ADM and sub-ADMs side by side
+        
+        Parameters
+        ----------
+        case : list, optional
+            the list of factors constituting the case
+            
+        Returns:
+            pydot.Dot: combined graph with main ADM and sub-ADMs
+        """
+        # Create main graph
+        main_graph = self.visualiseNetwork(case)
+        
+        # Create a new combined graph
+        combined_graph = pydot.Dot(f'{self.name}_with_subADMs', graph_type='graph')
+        combined_graph.set_rankdir('TB')  # Top to bottom for vertical layout
+        
+        # Add main ADM as a subgraph at the top
+        main_subgraph = pydot.Subgraph('cluster_main')
+        main_subgraph.set_label(f'Main ADM: {self.name}')
+        
+        # Copy all nodes and edges from main graph to main subgraph
+        for node in main_graph.get_node_list():
+            main_subgraph.add_node(node)
+        for edge in main_graph.get_edge_list():
+            main_subgraph.add_edge(edge)
+        
+        combined_graph.add_subgraph(main_subgraph)
+        
+        # Find and create sub-ADMs
+        sub_adm_count = 0
+        
+        # Track which nodes use the same sub-ADM
+        sub_adm_mapping = {}
+        # Track which nodes should link to which sub-models
+        node_to_sub_model = {}
+        
+        # First pass: identify all sub-ADM creators and create sub-models
+        for node_name, node in self.nodes.items():
+            if hasattr(node, 'sub_adf_creator'):
+                # Check if this sub-ADM creator is already mapped
+                sub_adm_key = str(node.sub_adf_creator)
+                if sub_adm_key not in sub_adm_mapping:
+                    sub_adm_count += 1
+                    sub_adm_mapping[sub_adm_key] = sub_adm_count
+                
+                # Map this node to its sub-model
+                current_sub_adm_num = sub_adm_mapping[sub_adm_key]
+                node_to_sub_model[node_name] = current_sub_adm_num
+                
+                # Create sub-ADM instance (only if we haven't created it yet)
+                if current_sub_adm_num == sub_adm_count:  # Only create once
+                    try:
+                        sub_adf = node.sub_adf_creator()
+                        
+                        # Create sub-ADM graph
+                        sub_graph = sub_adf.visualiseNetwork()
+                        
+                        # Create a subgraph to position the sub-model to the right
+                        sub_subgraph = pydot.Subgraph(f'cluster_sub_{current_sub_adm_num}')
+                        sub_subgraph.set_label(f'Sub-Model {current_sub_adm_num}')
+                        
+                        # Create a small label node that the red lines will point to
+                        # Position it closer to the main ADM
+                        label_node = pydot.Node(f"sub_model_label_{current_sub_adm_num}", 
+                                               label=f"SUB-MODEL {current_sub_adm_num}",
+                                               shape="box",
+                                               style="filled",
+                                               fillcolor="lightgreen",
+                                               width="1.5",
+                                               height="0.5")
+                        
+                        # Add the label node to the main subgraph (not the combined graph)
+                        # This positions it within the main ADM area, closer to the nodes
+                        main_subgraph.add_node(label_node)
+                        
+                        # Add all nodes and edges from the sub-ADM to the subgraph
+                        for sub_node in sub_graph.get_node_list():
+                            sub_subgraph.add_node(sub_node)
+                        for sub_edge in sub_graph.get_edge_list():
+                            sub_subgraph.add_edge(sub_edge)
+                        
+                        combined_graph.add_subgraph(sub_subgraph)
+                        
+                    except Exception as e:
+                        print(f"ERROR: Could not create sub-ADM for {node_name}: {e}")
+                        import traceback
+                        traceback.print_exc()
+        
+        # Second pass: identify EvaluationBLF nodes that should link to the same sub-models
+        for node_name, node in self.nodes.items():
+            if hasattr(node, 'source_blf') and node.source_blf in node_to_sub_model:
+                # This is an EvaluationBLF that should link to the same sub-model as its source
+                source_sub_model = node_to_sub_model[node.source_blf]
+                node_to_sub_model[node_name] = source_sub_model
+        
+        # Third pass: create all connection edges
+        for node_name, sub_model_num in node_to_sub_model.items():
+            # Add connection edge from main BLF to the label node
+            connection_edge = pydot.Edge(
+                node_name,
+                f"sub_model_label_{sub_model_num}",
+                style='dashed',
+                color='red',
+                label=f'→ sub-model'
+            )
+            combined_graph.add_edge(connection_edge)
+        
+        if len(sub_adm_mapping) == 0:
+            print("No sub-ADMs found in this ADM")
+            return main_graph
+        
+        return combined_graph
+    
+    def _assign_node_ranks(self, G):
+        """
+        Assign ranks to nodes to ensure proper hierarchical layout
+        DependentBLF nodes are positioned at the same level as other BLFs (bottom level)
+        """
+        # Create subgraphs for different ranks
+        rank_0 = pydot.Subgraph(rank='same')
+        rank_1 = pydot.Subgraph(rank='same')
+        
+        # Rank 0: Abstract factors (nodes with children) - top level
+        # Rank 1: Base level factors (BLFs) and DependentBLFs - bottom level
+        
+        for node_name, node in self.nodes.items():
+            if node.children and node.children != []:
+                # Abstract factors go to rank 0 (top level)
+                rank_0.add_node(pydot.Node(node_name))
+            else:
+                # Base level factors and DependentBLFs go to rank 1 (bottom level)
+                rank_1.add_node(pydot.Node(node_name))
+        
+        # Add subgraphs to the main graph
+        if rank_0.get_node_list():
+            G.add_subgraph(rank_0)
+        if rank_1.get_node_list():
+            G.add_subgraph(rank_1)
+
+class Node:
+    """
+    A class used to represent an individual node, whose acceptance conditions
+    are instantiated by 'yes' or 'no' questions
+
+    Attributes
+    ----------
+    name : str
+        the name of the node
+    question : str, optional
+        the question which will instantiate the blf
+    answers : 
+        set to None type to indicate to other methods the Node is not from MultiChoice()
+    acceptanceOriginal : str
+        the original acceptance condition before being converted to postfix notation
+    statement : list
+        the statements which will be output depending on whether the node is accepted or rejected
+    acceptance : list
+        the acceptance condition in postfix form
+    children : list
+        a list of the node's children nodes
+    
+    Methods
+    -------
+    attributes(acceptance)
+        sets the acceptance conditions and determines the children nodes  
+    
+    logicConverter(expression)
+        converts the acceptance conditions into postfix notation
+        
+    """
+    def __init__(self, name, acceptance=None, statement=None, question=None):
+        """
+        Parameters
+        ----------
+        name : str
+            the name of the node
+        statement : list, optional
+            the statements which will be output depending on whether the node is accepted or rejected
+        acceptance : list, optional
+            the acceptance condition in postfix form
+        question : str, optional
+            the question which will instantiate the blf
+        """
+        #name of the node
+        self.name = name
+        
+        #question for base leve factor
+        self.question = question
+        
+        self.answers = None
+        
+        self.acceptanceOriginal = acceptance
+    
+        #sets postfix acceptance conditions and children nodes
+        try:
+            self.attributes(acceptance)
+            self.statement = statement
+        except:
+            self.acceptance = None
+            self.children = None
+            self.statement = None
+    
+    def attributes(self, acceptance):
+        """
+        sets the acceptance condition and children for the node
+        
+        Parameters
+        ----------
+        acceptance : list
+            the acceptance condition in postfix form
+        """
+        
+        #sets acceptance condition to postfix if acceptance condition specified
+        self.acceptance = []
+        self.children = []
+        
+        for i in acceptance:
+            self.acceptance.append(self.logicConverter(i))
+        
+        for i in self.acceptance:
+            splitAcceptance = i.split()
+            
+            #sets the children nodes
+            for token in splitAcceptance:
+                
+                if token not in ['and','or','not','reject'] and token not in self.children:
+                    
+                    self.children.append(token)   
+
+    def logicConverter(self, expression):
+        """
+        converts a logical expression from infix to postfix notation
+        
+        Parameters
+        ----------
+        expression : list
+            the acceptance condition to be converted into postfix form
+        """
+        
+        #precedent dictionary of logical operators and reject keyword
+        precedent = {'(':1,'or':2,'and':3,'not':4,'reject':5}
+        
+        #creates the stack
+        operatorStack = Stack()
+        
+        #splits the tokens in the logical expression
+        tokenList = expression.split()
+        
+        #stores the postfix expression
+        postfixList = []
+
+        #checks each token in the expression and pushes or pops on the stack accordingly
+        for token in tokenList:
+            
+            if token == '(':
+                operatorStack.push(token)
+            elif token == ')':
+                topToken = operatorStack.pop()
+                while topToken != '(':
+                    postfixList.append(topToken)
+                    topToken = operatorStack.pop()
+
+                                
+            elif token == 'and' or token == 'or' or token == 'not' or token == 'reject':
+                while (not operatorStack.isEmpty()) and (precedent[operatorStack.peek()] >= precedent[token]):
+                    postfixList.append(operatorStack.pop())
+                operatorStack.push(token)
+                
+            else:
+                postfixList.append(token)
+
+        #while operator stack not empty pop the operators to the postfix list
+        while not operatorStack.isEmpty():
+            postfixList.append(operatorStack.pop())
+        
+        #returns the post fix expression as a string  
+        return " ".join(postfixList)
+
+class DependentBLF(Node):
+    """
+    A BLF that depends on another node and inherits its factual ascriptions
+    
+    Attributes
+    ----------
+    name : str
+        the name of the BLF
+    dependency_node : str
+        the name of the node this BLF depends on
+    question_template : str
+        the question template that can reference inherited factual ascriptions
+    statements : list
+        the statements to show if the BLF is accepted or rejected
+    factual_ascription : dict
+        additional factual ascriptions for this BLF
+    """
+    
+    def __init__(self, name, dependency_node, question_template, statements, factual_ascription=None):
+        """
+        Parameters
+        ----------
+        name : str
+            the name of the BLF
+        dependency_node : str
+            the name of the node this BLF depends on
+        question_template : str
+            the question template that can reference inherited factual ascriptions
+        statements : list
+            the statements to show if the BLF is accepted or rejected
+        factual_ascription : dict, optional
+            additional factual ascriptions for this BLF
+        """
+        
+        # Initialize as a regular Node but with special dependency handling
+        super().__init__(name, None, statements, question_template)
+        
+        self.dependency_node = dependency_node
+        self.factual_ascription = factual_ascription or {}
+        
+        # Override the question to be dynamic
+        self.question_template = question_template
+        self.question = question_template  # Will be resolved dynamically
+    
+    def resolveQuestion(self, adf, case=None):
+        """
+        Resolves the question template by replacing placeholders with inherited facts
+        
+        Parameters
+        ----------
+        adf : ADF
+            the ADF instance to get facts from
+        case : list, optional
+            the current case to get facts from
+        """
+        question_text = self.question_template
+        
+        # Get inherited facts from the dependency node
+        inherited = adf.getInheritedFacts(self.dependency_node, case)
+        
+        # Safety check: ensure inherited is a dictionary
+        if not isinstance(inherited, dict):
+            print(f"DEBUG: Warning: getInheritedFacts returned {type(inherited)} instead of dict for {self.dependency_node}")
+            inherited = {}
+        
+        # Replace placeholders in the question template
+        # This is now generic - any placeholder like {ICE_CREAM_flavour} will be replaced
+        for key, value in inherited.items():
+            placeholder = "{" + key + "}"
+            if placeholder in question_text:
+                question_text = question_text.replace(placeholder, str(value))
+        
+        # Clean up any remaining unresolved placeholders and format the question nicely
+        import re
+        # Remove any remaining {placeholder} patterns
+        question_text = re.sub(r'\{[^}]+\}', '', question_text)
+        # Clean up extra commas and spaces
+        question_text = question_text.replace(', ,', ',')
+        question_text = question_text.replace(', ,', ',')  # Handle double commas
+        question_text = question_text.replace('  ', ' ')  # Handle double spaces
+        question_text = question_text.strip()
+        # Remove trailing comma if it exists
+        if question_text.endswith(','):
+            question_text = question_text[:-1]
+        
+        self.question = question_text
+
+        return question_text
+    
+    def checkDependency(self, adf, case):
+        """
+        Checks if the dependency node is satisfied
+        
+        Parameters
+        ----------
+        adf : ADF
+            the ADF instance
+        case : list
+            the current case
+            
+        Returns:
+            bool: True if dependency is satisfied, False otherwise
+        """
+        return self.dependency_node in case

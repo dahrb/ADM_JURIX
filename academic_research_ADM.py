@@ -38,7 +38,7 @@ def adf():
             "QUANTITATIVE": {"QUANTITATIVE_method": "What specific quantitative method will you use?"},
             "QUALITATIVE": {"QUALITATIVE_method": "What specific qualitative method will you use?"}
         },
-        "question_1"
+        "research_type"
     )
 
     # Create MIXED_METHODS as an abstract factor with proper parent-child relationships
@@ -102,7 +102,7 @@ def adf():
                           "SECONDARY_SOURCES is rejected - no secondary sources"])
     
     # Set the question order to include all questions (SOURCES removed)
-    adf.questionOrder = ["question_1", "MIXED_METHODS", "DATA_ANALYSIS", "NOVELTY", "PRIMARY_SOURCES", "SECONDARY_SOURCES_EVALUATION"]
+    adf.questionOrder = ["research_type", "MIXED_METHODS", "DATA_ANALYSIS", "NOVELTY", "PRIMARY_SOURCES", "SECONDARY_SOURCES_EVALUATION"]
     
     # Add root node RESEARCH_QUALITY with acceptance condition that includes all research types
     # Now includes MIXED_METHODS as a valid research approach
