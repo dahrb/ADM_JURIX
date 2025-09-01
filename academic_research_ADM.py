@@ -6,9 +6,14 @@ Toy ADM - Argumentation Decision Framework
 from MainClasses import *
 
 # Add PRIMARY_SOURCES BLF that evaluates sub-ADMs for each source
-def create_sub_adm_1(item_name):
+def create_sub_adm_1(item_name, key_facts=None):
     """Creates a sub-ADM for evaluating individual sources"""
     sub_adf = SubADM("Sub-ADM 1", item_name)
+    
+    # Store key facts in the sub-ADM if provided
+    if key_facts:
+        sub_adf.facts = key_facts.copy()
+        print(f"Sub-ADM for {item_name} initialized with {len(key_facts)} key facts")
     
     # Add BLFs for the sub-ADM - {item} will be automatically resolved
     sub_adf.addNodes("POSITIVE_DATA", question="Is {item} primary data (collected directly)?")
@@ -19,6 +24,7 @@ def create_sub_adm_1(item_name):
     sub_adf.addNodes("NEGATIVE_RESOURCE", ["NEGATIVE_DATA and not POSITIVE_DATA"], ["NEGATIVE_RESOURCE is accepted - secondary source", "NEGATIVE_RESOURCE is rejected - not secondary"])
     
     sub_adf.questionOrder = ["POSITIVE_DATA", "NEGATIVE_DATA"]
+    sub_adf.case = []
     return sub_adf
 
 def adf():
@@ -52,7 +58,7 @@ def adf():
                         ["DATA_ANALYSIS is accepted - methods are appropriate", "DATA_ANALYSIS is rejected - methods are not appropriate"])
     
     # Uses a function to collect sources dynamically
-    def collect_sources(ui_instance):
+    def collect_sources(ui_instance,key_facts=None):
         """Function to collect sources from user input"""
         # Ask the user for sources
         available_sources = input("What sources do you have access to? (comma-separated list): ").strip()

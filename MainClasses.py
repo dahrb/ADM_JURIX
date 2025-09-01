@@ -1,5 +1,6 @@
 
 from pythonds import Stack
+import pydot
 
 class ADF:
     """
@@ -144,7 +145,7 @@ class ADF:
         if question_order_name not in self.questionOrder:
             self.questionOrder.append(question_order_name)
 
-    def addSubADMBLF(self, name, sub_adf_creator, function):
+    def addSubADMBLF(self, name, sub_adf_creator, function, dependency_node=None):
         """
         Adds a BLF that depends on evaluating a sub-ADM for each item
         
@@ -156,10 +157,12 @@ class ADF:
             function that creates and returns a sub-ADM instance
         function : str or function
             the function that returns the list of items to evaluate, or a list of items
+        dependency_node : str or list, optional
+            the name(s) of the node(s) this BLF depends on
         """
         
         # Create a special node that handles sub-ADM evaluation
-        node = SubADMBLF(name, sub_adf_creator, function)
+        node = SubADMBLF(name, sub_adf_creator, function, dependency_node)
         self.nodes[name] = node
         
         # Add to question order
@@ -363,7 +366,6 @@ class ADF:
                 operand1 = operandStack.pop()
                 result = self.checkCondition(token,operand1,operand2)
                 operandStack.push(result)    
-                                
             else:
                 # This is a node name - push the node name itself, not a boolean
                 operandStack.push(token)
@@ -1207,11 +1209,13 @@ class SubADMBLF(Node):
         the name of the BLF
     sub_adf_creator : function
         function that creates and returns a sub-ADM instance
-    source_blf : str
-        the name of the BLF that contains the list of items to evaluate
+    function : str or function
+        the function that returns the list of items to evaluate the sub-adm over
+    dependency_node : list
+        the names of the nodes this BLF depends on
     """
     
-    def __init__(self, name, sub_adf_creator, function):
+    def __init__(self, name, sub_adf_creator, function, dependency_node=None):
         """
         Parameters
         ----------
@@ -1219,8 +1223,10 @@ class SubADMBLF(Node):
             the name of the BLF
         sub_adf_creator : function
             function that creates and returns a sub-ADM instance
-        function : str
+        function : str or function
             the function that returns the list of items to evaluate the sub-adm over
+        dependency_node : str or list, optional
+            the name(s) of the node(s) this BLF depends on
         """
         
         # Initialize as a regular Node - no statements needed since sub-ADM handles them
@@ -1230,8 +1236,35 @@ class SubADMBLF(Node):
         self.function = function
         self.sub_adf_results = {}
         
+        # Handle both single string and list of dependencies
+        if dependency_node is None:
+            self.dependency_node = []
+        elif isinstance(dependency_node, str):
+            self.dependency_node = [dependency_node]
+        else:
+            self.dependency_node = dependency_node
+        
         # Override the question to indicate this is a sub-ADM question
         self.question = f"Sub-ADM evaluation: {name}"
+    
+    def checkDependency(self, adf, case):
+        """
+        Checks if the dependency nodes are satisfied
+        
+        Parameters
+        ----------
+        adf : ADF
+            the ADF instance
+        case : list
+            the current case
+            
+        Returns:
+            bool: True if all dependencies are satisfied, False otherwise
+        """
+        if not self.dependency_node:
+            return True  # No dependencies, always satisfied
+        
+        return all(dep_node in case for dep_node in self.dependency_node)
     
     def _get_source_items(self, ui_instance):
         """
@@ -1247,14 +1280,44 @@ class SubADMBLF(Node):
         """
         # Check if source_blf is a function (callable)
         if callable(self.function):
-            # If source_blf is a function, call it
-            return self.function(ui_instance)
+            # If source_blf is a function, call it with key facts
+            key_facts = self._collect_key_facts(ui_instance)
+            return self.function(ui_instance, key_facts)
         elif isinstance(self.function, list):
             # If source_blf is already a list, return it
             return self.function
         else:
             print(f"ERROR: {self.function} is not a function or a list of items")
-            return 
+            return
+
+    def _collect_key_facts(self, ui_instance):
+        """
+        Collects key facts from the main ADM to pass to sub-ADMs
+        
+        Parameters
+        ----------
+        ui_instance : UI
+            the UI instance that contains the case and facts
+            
+        Returns
+        -------
+        dict: dictionary of key facts
+        """
+        key_facts = {}
+        
+        # Get facts from the main ADF
+        if hasattr(ui_instance.adf, 'facts'):
+            key_facts.update(ui_instance.adf.facts)
+        
+        # Get inherited facts from dependency nodes if this SubADMBLF has dependencies
+        if hasattr(self, 'dependency_node') and self.dependency_node:
+            for dep_node in self.dependency_node:
+                if hasattr(ui_instance.adf, 'getInheritedFacts'):
+                    dep_facts = ui_instance.adf.getInheritedFacts(dep_node, ui_instance.case)
+                    if isinstance(dep_facts, dict):
+                        key_facts.update(dep_facts)
+        
+        return key_facts
 
     def evaluateSubADMs(self, ui_instance):
         """
@@ -1283,16 +1346,27 @@ class SubADMBLF(Node):
             
             print(f"\n=== Evaluating {self.name} for {len(items)} item(s) ===")
             
+            # Collect key facts from the main ADM to pass to sub-ADMs
+            key_facts = self._collect_key_facts(ui_instance)
+
             # Evaluate sub-ADM for each item using the existing UI infrastructure
             for i, item in enumerate(items, 1):
                 print(f"\n--- Item {i}/{len(items)}: {item} ---")
                 try:
-                    # Create a new sub-ADM instance
-                    sub_adf = self.sub_adf_creator(item)
+                    # Create a new sub-ADM instance with key facts
+                    sub_adf = self.sub_adf_creator(item, key_facts)
                     
                     # Set the item name in the sub-ADM
                     if hasattr(sub_adf, 'setFact'):
                         sub_adf.setFact('ITEM', 'name', item)
+                    
+                    # Pass key facts to the sub-ADM
+                    if key_facts:
+                        if hasattr(sub_adf, 'facts'):
+                            sub_adf.facts.update(key_facts)
+                        else:
+                            sub_adf.facts = key_facts.copy()
+                        print(f"Passed {len(key_facts)} key facts to sub-ADM for {item}")
                     
                     # Store the sub-ADM instance for later access to statements
                     sub_adf_instances.append(sub_adf)

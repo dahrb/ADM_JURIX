@@ -29,7 +29,7 @@ class CLI:
             print("-"*50)
             
             #HARDCODED FOR NOW
-            choice = '1'#input("Enter your choice (1-2): ").strip()
+            choice = input("Enter your choice (1-2): ").strip()
             
             if choice == "1":
                 self.load_existing_domain()
@@ -52,7 +52,7 @@ class CLI:
         print("-"*50)
         
         #HARDCODED FOR NOW
-        choice = '2'#input("Enter your choice (1-3): ").strip()
+        choice = input("Enter your choice (1-3): ").strip()
         
         if choice == "1":
             self.load_academic_research_domain()
@@ -97,7 +97,7 @@ class CLI:
             print("-"*50)
             
             #HARDCODED FOR NOW
-            choice = '1'#input("Enter your choice (1-3): ").strip()
+            choice = input("Enter your choice (1-3): ").strip()
             
             if choice == "1":
                 self.query_domain()
@@ -202,13 +202,17 @@ class CLI:
                 question_order.pop(0)
                 return self.questiongen(question_order, nodes)
         
-        # Check if this is a regular node (including DependentBLF and EvaluationBLF)
+        # Check if this is a regular node (including DependentBLF, EvaluationBLF, and SubADMBLF)
         elif current_question in self.adf.nodes:
             current_node = self.adf.nodes[current_question]
             
             # Check if this is a DependentBLF
-            if hasattr(current_node, 'checkDependency'):
+            if hasattr(current_node, 'checkDependency') and not hasattr(current_node, 'evaluateSubADMs'):
                 return self.handleDependentBLF(current_question, current_node, question_order, nodes)
+            
+            # Check if this is a SubADMBLF
+            elif hasattr(current_node, 'evaluateSubADMs'):
+                return self.handleSubADMBLF(current_question, current_node, question_order, nodes)
             
             # Check if this is an EvaluationBLF
             elif hasattr(current_node, 'evaluateResults'):
@@ -335,15 +339,10 @@ class CLI:
             
             return 'Done'
         else:
-        # ... existing code for regular nodes ...
             # This is a regular node
             
-            # Check if this is a SubADMBLF (sub-ADM evaluator)
-            if hasattr(current_node, 'evaluateSubADMs'):
-                return self.handleSubADMBLF(current_question, current_node)
-            
             # Handle regular nodes with questions
-            elif hasattr(current_node, 'question') and current_node.question:
+            if hasattr(current_node, 'question') and current_node.question:
                 question_text = self.resolve_question_template(current_node.question)
                             
                 # Ask the question with retry loop
@@ -464,9 +463,9 @@ class CLI:
         question_order.pop(0)
         return self.questiongen(question_order, nodes)
 
-    def handleSubADMBLF(self, current_question, current_node):
+    def handleSubADMBLF(self, current_question, current_node, question_order, nodes):
         """
-        Handles the processing of a SubADMBLF node
+        Handles the processing of a SubADMBLF node with dependency checking
         
         Parameters
         ----------
@@ -474,25 +473,60 @@ class CLI:
             the name of the current question being processed
         current_node : SubADMBLF
             the SubADMBLF node to process
+        question_order : list
+            the current question order
+        nodes : dict
+            the current nodes dictionary
             
         Returns
         -------
-        str: 'Done' if processing completed successfully
+        tuple: (question_order, nodes) - the updated question order and nodes
         """
-        # Call the evaluateSubADMs method to process all sub-ADMs
-        # This will handle the evaluation of sub-ADMs for each item
-        sub_adm_result = current_node.evaluateSubADMs(self)
-        
-        if sub_adm_result:
-            # Sub-ADM evaluation was successful, add to case
-            if current_question not in self.case:
-                self.case.append(current_question)
-            else:
-                pass
-            return 'Done'
+        # Check if ALL dependencies are satisfied
+        if current_node.checkDependency(self.adf, self.case):
+            # All dependencies satisfied, process the SubADMBLF
+            sub_adm_result = current_node.evaluateSubADMs(self)
+            
+            if sub_adm_result:
+                # Sub-ADM evaluation was successful, add to case
+                if current_question not in self.case:
+                    self.case.append(current_question)
+                else:
+                    pass
+            
+            # Remove from question order and continue
+            question_order.pop(0)
+            return self.questiongen(question_order, nodes)
         else:
-            # Sub-ADM evaluation failed, don't add to case
-            return 'Done'
+            # Try to evaluate missing dependencies
+            dependency_node = current_node.dependency_node
+            all_dependencies_satisfied = True
+            
+            for dependency_node_name in dependency_node:
+                if dependency_node_name not in self.case:
+                    if not self.evaluateDependency(dependency_node_name, current_question):
+                        all_dependencies_satisfied = False
+                        break
+            
+            if all_dependencies_satisfied:
+                # All dependencies now satisfied, process the SubADMBLF
+                sub_adm_result = current_node.evaluateSubADMs(self)
+                
+                if sub_adm_result:
+                    # Sub-ADM evaluation was successful, add to case
+                    if current_question not in self.case:
+                        self.case.append(current_question)
+                    else:
+                        pass
+                
+                # Remove from question order and continue
+                question_order.pop(0)
+                return self.questiongen(question_order, nodes)
+            else:
+                # Dependencies cannot be satisfied, skip
+                print(f"⚠️  Skipping {current_question} - dependencies cannot be satisfied")
+                question_order.pop(0)
+                return self.questiongen(question_order, nodes)
 
     def evaluateDependency(self, dependency_node_name, current_question):
         """Helper method to evaluate a dependency node and add it to case if satisfied"""
