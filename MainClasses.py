@@ -1,5 +1,4 @@
 
-import pydot
 from pythonds import Stack
 
 class ADF:
@@ -107,13 +106,8 @@ class ADF:
                 if childName not in self.nodes:
                     node = Node(childName)
                     self.nodes[childName] = node
-        
-         # Add to question order
-        if name not in self.questionOrder:
-            print(f"DEBUG {name}")
-            self.questionOrder.append(name)
 
-    def addQuestionInstantiator(self, question, blf_mapping, factual_ascription=None, question_order_name=None):
+    def addQuestionInstantiator(self, question, blf_mapping, factual_ascription=None, question_order_name=None, dependency_node=None):
         """
         Adds a question that can instantiate BLFs without creating additional nodes in the model
         
@@ -127,7 +121,13 @@ class ADF:
             dictionary mapping BLF names to additional factual questions to ask
         question_order_name : str, optional
             name to use in question order (if None, will be auto-generated)
+        dependency_node : str, optional
+            the name of the node this question instantiator depends on
         """
+        
+        # Create a unique name for this question if not provided
+        if question_order_name is None:
+            question_order_name = f"question_{len(self.questionOrder) + 1}"
         
         # Store the question and mapping in the ADF for later use
         if not hasattr(self, 'question_instantiators'):
@@ -136,7 +136,8 @@ class ADF:
         self.question_instantiators[question_order_name] = {
             'question': question,
             'blf_mapping': blf_mapping,
-            'factual_ascription': factual_ascription
+            'factual_ascription': factual_ascription,
+            'dependency_node': dependency_node  # Add dependency information
         }
         
         # Add the question to the question order
@@ -321,30 +322,36 @@ class ADF:
     
     def postfixEvaluation(self,acceptance):
         """
-        evaluates the given acceptance condition 
+        evaluates the given acceptance condition in postfix notation
         
         Parameters
         ----------
         acceptance : str
-            a string with the names of nodes seperated by logical operators            
+            a string with the names of nodes in postfix notation with logical operators            
         
         """
         #initialises stack of operands
         operandStack = Stack()
         #list of tokens from acceptance conditions
         tokenList = acceptance.split()
+        
         #checks each token's acceptance conditions
         for token in tokenList:
-            #checks if something is a rejection condition
-            if token == 'reject':
-                self.reject = True
-                try:
-                    if x in self.case:
-                        return True
-                    else:
-                        return False
-                except:
-                    pass          
+            if token == 'accept':
+                # Auto-accept condition - push True as a fallback
+                operandStack.push(True)
+            elif token == 'reject':
+                # Pop the operand (which should be a node name)
+                operand = operandStack.pop()
+                # Check if the node name is in the case
+                if operand in self.case:
+                    # Set reject flag and push True (condition met)
+                    self.reject = True
+                    operandStack.push(True)
+                else:
+                    # Set reject flag and push False (condition not met)
+                    self.reject = True
+                    operandStack.push(False)
             elif token == 'not':
                 operand1 = operandStack.pop()
                 result = self.checkCondition(token,operand1)
@@ -357,20 +364,22 @@ class ADF:
                 result = self.checkCondition(token,operand1,operand2)
                 operandStack.push(result)    
                                 
-            #for an acceptance condition with no operator 
-            elif len(tokenList) == 1 or (len(tokenList) ==2 and 'reject' in tokenList):
-                if 'reject' in tokenList and 'reject' != token:
-                    x = token   
-                else:
-                    if token in self.case:
-                        return True
-                    else:
-                        return False
             else:
-                #adds the operand to the stack
+                # This is a node name - push the node name itself, not a boolean
                 operandStack.push(token)
         
-        return operandStack.pop()
+        # Check if we have anything on the stack before popping
+        if operandStack.isEmpty():
+            return False
+        final_result = operandStack.pop()
+        
+        # Convert the final result to a boolean
+        if isinstance(final_result, str):
+            # If it's a node name, check if it's in the case
+            return final_result in self.case
+        else:
+            # If it's already a boolean, return it as is
+            return final_result
 
     def checkCondition(self, operator, op1, op2 = None):
         """
@@ -994,6 +1003,61 @@ class ADF:
         if name not in self.questionOrder:
             self.questionOrder.append(name)
 
+    def resolveQuestionTemplate(self, question_text):
+        """
+        Resolves template variables in question text using collected facts
+        
+        Parameters
+        ----------
+        question_text : str
+            the question text with template variables like {VARIABLE_NAME}
+            
+        Returns:
+            str: the resolved question text with placeholders replaced
+        """
+        if not hasattr(self, 'getFact'):
+            return question_text
+        
+        # Look for template variables like {VARIABLE_NAME}
+        import re
+        template_pattern = r'\{([^}]+)\}'
+        
+        def replace_template(match):
+            variable_name = match.group(1)
+            
+            # Try to get the fact from the INFORMATION category first
+            value = self.getFact('INFORMATION', variable_name)
+            if value:
+                return str(value)
+            
+            # If not found in INFORMATION, try to find it as a direct fact
+            # This would handle cases where the fact name is the same as the variable
+            if hasattr(self, 'facts') and variable_name in self.facts:
+                # Check if it's a direct fact (not nested under INFORMATION)
+                if isinstance(self.facts[variable_name], dict):
+                    # It's a nested fact structure, try to get a default value
+                    if 'value' in self.facts[variable_name]:
+                        return str(self.facts[variable_name]['value'])
+                    elif 'name' in self.facts[variable_name]:
+                        return str(self.facts[variable_name]['name'])
+                else:
+                    # It's a direct value
+                    return str(self.facts[variable_name])
+            
+            # If still not found, try to get it from any other fact categories
+            if hasattr(self, 'facts'):
+                for category in self.facts:
+                    if category != 'INFORMATION':  # Skip INFORMATION since we already checked
+                        if variable_name in self.facts[category]:
+                            value = self.facts[category][variable_name]
+                            if value:
+                                return str(value)
+            
+            return f"[{variable_name}]"  # Show placeholder if not found
+        
+        resolved_text = re.sub(template_pattern, replace_template, question_text)
+        return resolved_text
+
 class Node:
     """
     A class used to represent an individual node, whose acceptance conditions
@@ -1080,7 +1144,7 @@ class Node:
             #sets the children nodes
             for token in splitAcceptance:
                 
-                if token not in ['and','or','not','reject'] and token not in self.children:
+                if token not in ['and','or','not','reject','accept'] and token not in self.children:
                     
                     self.children.append(token)   
 
@@ -1094,8 +1158,8 @@ class Node:
             the acceptance condition to be converted into postfix form
         """
         
-        #precedent dictionary of logical operators and reject keyword
-        precedent = {'(':1,'or':2,'and':3,'not':4,'reject':5}
+        #precedent dictionary of logical operators and special keywords
+        precedent = {'(':1,'or':2,'and':3,'not':4,'reject':5,'accept':5}
         
         #creates the stack
         operatorStack = Stack()
@@ -1117,12 +1181,12 @@ class Node:
                     postfixList.append(topToken)
                     topToken = operatorStack.pop()
 
-                                
-            elif token == 'and' or token == 'or' or token == 'not' or token == 'reject':
+                            
+            elif token == 'and' or token == 'or' or token == 'not' or token == 'reject' or token == 'accept':
                 while (not operatorStack.isEmpty()) and (precedent[operatorStack.peek()] >= precedent[token]):
                     postfixList.append(operatorStack.pop())
                 operatorStack.push(token)
-                
+            
             else:
                 postfixList.append(token)
 
@@ -1407,7 +1471,10 @@ class DependentBLF(Node):
         """
         question_text = self.question_template
         
-        # Get inherited facts from the dependency node
+        # First, resolve any template variables using the ADF's template resolution
+        question_text = adf.resolveQuestionTemplate(question_text)
+        
+        # Then, get inherited facts from the dependency node and replace any remaining placeholders
         inherited = adf.getInheritedFacts(self.dependency_node, case)
         
         # Safety check: ensure inherited is a dictionary

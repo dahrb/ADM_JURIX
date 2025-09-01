@@ -1,0 +1,408 @@
+INVENTIVE STEP ADM - COMPREHENSIVE TESTING
+Testing various BLF combinations to verify logic
+
+================================================================================
+TEST 1: []
+================================================================================
+Input BLFs: []
+Final Case: ['CommonKnowledge']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Added to case: ['CommonKnowledge']
+
+================================================================================
+TEST 2: ['SimilarPurpose']
+================================================================================
+Input BLFs: ['SimilarPurpose']
+Final Case: ['SimilarPurpose', 'RelevantPriorArt', 'CommonKnowledge']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art has a  similar purpose
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt', 'CommonKnowledge']
+
+================================================================================
+TEST 3: ['SameField']
+================================================================================
+Input BLFs: ['SameField']
+Final Case: ['SameField', 'RelevantPriorArt', 'CommonKnowledge']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art is from the same field
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt', 'CommonKnowledge']
+
+================================================================================
+TEST 4: ['Contested']
+================================================================================
+Input BLFs: ['Contested']
+Final Case: ['Contested']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. no documentary evidence for common knowledge provided
+  3. no common knowledge established
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Nothing added to case
+
+================================================================================
+TEST 5: ['Individual']
+================================================================================
+Input BLFs: ['Individual']
+Final Case: ['Individual', 'CommonKnowledge', 'Person']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person is an individual
+  5. there is not a skilled person
+
+Added to case: ['CommonKnowledge', 'Person']
+
+================================================================================
+TEST 6: ['SimilarPurpose', 'SameField']
+================================================================================
+Input BLFs: ['SimilarPurpose', 'SameField']
+Final Case: ['SimilarPurpose', 'SameField', 'RelevantPriorArt', 'CommonKnowledge']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art is from the same field
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt', 'CommonKnowledge']
+
+================================================================================
+TEST 7: ['Contested', 'SinglePublication']
+================================================================================
+Input BLFs: ['Contested', 'SinglePublication']
+Final Case: ['Contested', 'SinglePublication']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. a single publication is not documentary evidence
+  3. no common knowledge established
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Nothing added to case
+
+================================================================================
+TEST 8: ['Individual', 'SkilledIn']
+================================================================================
+Input BLFs: ['Individual', 'SkilledIn']
+Final Case: ['Individual', 'SkilledIn', 'CommonKnowledge', 'Person']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person is an individual
+  5. there is not a skilled person
+
+Added to case: ['CommonKnowledge', 'Person']
+
+================================================================================
+TEST 9: ['SimilarPurpose', 'Contested']
+================================================================================
+Input BLFs: ['SimilarPurpose', 'Contested']
+Final Case: ['SimilarPurpose', 'Contested', 'RelevantPriorArt']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art has a  similar purpose
+  2. no documentary evidence for common knowledge provided
+  3. no common knowledge established
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt']
+
+================================================================================
+TEST 10: ['SameField', 'Individual']
+================================================================================
+Input BLFs: ['SameField', 'Individual']
+Final Case: ['SameField', 'Individual', 'RelevantPriorArt', 'CommonKnowledge', 'Person']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art is from the same field
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person is an individual
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt', 'CommonKnowledge', 'Person']
+
+================================================================================
+TEST 11: ['SimilarPurpose', 'SameField', 'Contested']
+================================================================================
+Input BLFs: ['SimilarPurpose', 'SameField', 'Contested']
+Final Case: ['SimilarPurpose', 'SameField', 'Contested', 'RelevantPriorArt']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art is from the same field
+  2. no documentary evidence for common knowledge provided
+  3. no common knowledge established
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt']
+
+================================================================================
+TEST 12: ['Individual', 'SkilledIn', 'Average']
+================================================================================
+Input BLFs: ['Individual', 'SkilledIn', 'Average']
+Final Case: ['Individual', 'SkilledIn', 'Average', 'CommonKnowledge', 'Person']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person is an individual
+  5. there is not a skilled person
+
+Added to case: ['CommonKnowledge', 'Person']
+
+================================================================================
+TEST 13: ['Contested', 'SinglePublication', 'Textbook']
+================================================================================
+Input BLFs: ['Contested', 'SinglePublication', 'Textbook']
+Final Case: ['Contested', 'SinglePublication', 'Textbook']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. a single publication is not documentary evidence
+  3. no common knowledge established
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Nothing added to case
+
+================================================================================
+TEST 14: ['SimilarPurpose', 'Individual', 'Contested']
+================================================================================
+Input BLFs: ['SimilarPurpose', 'Individual', 'Contested']
+Final Case: ['SimilarPurpose', 'Individual', 'Contested', 'RelevantPriorArt', 'Person']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art has a  similar purpose
+  2. no documentary evidence for common knowledge provided
+  3. no common knowledge established
+  4. the skilled person is an individual
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt', 'Person']
+
+================================================================================
+TEST 15: ['SameField', 'Contested', 'Individual']
+================================================================================
+Input BLFs: ['SameField', 'Contested', 'Individual']
+Final Case: ['SameField', 'Contested', 'Individual', 'RelevantPriorArt', 'Person']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art is from the same field
+  2. no documentary evidence for common knowledge provided
+  3. no common knowledge established
+  4. the skilled person is an individual
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt', 'Person']
+
+================================================================================
+TEST 16: ['SimilarPurpose', 'SameField', 'Contested', 'SinglePublication']
+================================================================================
+Input BLFs: ['SimilarPurpose', 'SameField', 'Contested', 'SinglePublication']
+Final Case: ['SimilarPurpose', 'SameField', 'Contested', 'SinglePublication', 'RelevantPriorArt']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art is from the same field
+  2. a single publication is not documentary evidence
+  3. no common knowledge established
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt']
+
+================================================================================
+TEST 17: ['Individual', 'SkilledIn', 'Average', 'Aware', 'Access']
+================================================================================
+Input BLFs: ['Individual', 'SkilledIn', 'Average', 'Aware', 'Access']
+Final Case: ['Individual', 'SkilledIn', 'Average', 'Aware', 'Access', 'CommonKnowledge', 'Person', 'SkilledPerson']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person is an individual
+  5. there is a defined skilled person
+
+Added to case: ['CommonKnowledge', 'Person', 'SkilledPerson']
+
+================================================================================
+TEST 18: ['SimilarPurpose', 'SameField', 'Individual', 'Contested']
+================================================================================
+Input BLFs: ['SimilarPurpose', 'SameField', 'Individual', 'Contested']
+Final Case: ['SimilarPurpose', 'SameField', 'Individual', 'Contested', 'RelevantPriorArt', 'Person']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art is from the same field
+  2. no documentary evidence for common knowledge provided
+  3. no common knowledge established
+  4. the skilled person is an individual
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt', 'Person']
+
+================================================================================
+TEST 19: ['Contested', 'SinglePublication', 'Textbook', 'Individual']
+================================================================================
+Input BLFs: ['Contested', 'SinglePublication', 'Textbook', 'Individual']
+Final Case: ['Contested', 'SinglePublication', 'Textbook', 'Individual', 'Person']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. a single publication is not documentary evidence
+  3. no common knowledge established
+  4. the skilled person is an individual
+  5. there is not a skilled person
+
+Added to case: ['Person']
+
+================================================================================
+TEST 20: ['SimilarPurpose', 'SameField', 'Contested', 'Individual', 'SkilledIn', 'Average']
+================================================================================
+Input BLFs: ['SimilarPurpose', 'SameField', 'Contested', 'Individual', 'SkilledIn', 'Average']
+Final Case: ['SimilarPurpose', 'SameField', 'Contested', 'Individual', 'SkilledIn', 'Average', 'RelevantPriorArt', 'Person']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art is from the same field
+  2. no documentary evidence for common knowledge provided
+  3. no common knowledge established
+  4. the skilled person is an individual
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt', 'Person']
+
+================================================================================
+TEST 21: ['SimilarPurpose', 'SimilarEffect', 'SameField', 'SimilarField']
+================================================================================
+Input BLFs: ['SimilarPurpose', 'SimilarEffect', 'SameField', 'SimilarField']
+Final Case: ['SimilarPurpose', 'SimilarEffect', 'SameField', 'SimilarField', 'RelevantPriorArt', 'CommonKnowledge']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art is from the same field
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Added to case: ['RelevantPriorArt', 'CommonKnowledge']
+
+================================================================================
+TEST 22: ['Textbook', 'TechnicalSurvey', 'PublicationNewField', 'SinglePublication']
+================================================================================
+Input BLFs: ['Textbook', 'TechnicalSurvey', 'PublicationNewField', 'SinglePublication']
+Final Case: ['Textbook', 'TechnicalSurvey', 'PublicationNewField', 'SinglePublication', 'CommonKnowledge']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. a single publication is not documentary evidence
+  3. common knowledge not disputed
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Added to case: ['CommonKnowledge']
+
+================================================================================
+TEST 23: ['Individual', 'ResearchTeam', 'ProductionTeam']
+================================================================================
+Input BLFs: ['Individual', 'ResearchTeam', 'ProductionTeam']
+Final Case: ['Individual', 'ResearchTeam', 'ProductionTeam', 'CommonKnowledge', 'Person']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person is an individual
+  5. there is not a skilled person
+
+Added to case: ['CommonKnowledge', 'Person']
+
+================================================================================
+TEST 24: ['SkilledIn', 'Average', 'Aware', 'Access']
+================================================================================
+Input BLFs: ['SkilledIn', 'Average', 'Aware', 'Access']
+Final Case: ['SkilledIn', 'Average', 'Aware', 'Access', 'CommonKnowledge']
+Statements Generated: 5
+
+Statements:
+  1. a relevant prior art cannot be established
+  2. no documentary evidence for common knowledge provided
+  3. common knowledge not disputed
+  4. the skilled person does not fall within a vaild category
+  5. there is not a skilled person
+
+Added to case: ['CommonKnowledge']
+
+================================================================================
+TEST 25: ['Contested', 'SimilarPurpose', 'SameField', 'Individual', 'SkilledIn', 'Average', 'Aware', 'Access']
+================================================================================
+Input BLFs: ['Contested', 'SimilarPurpose', 'SameField', 'Individual', 'SkilledIn', 'Average', 'Aware', 'Access']
+Final Case: ['Contested', 'SimilarPurpose', 'SameField', 'Individual', 'SkilledIn', 'Average', 'Aware', 'Access', 'RelevantPriorArt', 'Person', 'SkilledPerson']
+Statements Generated: 5
+
+Statements:
+  1. the relevant prior art is from the same field
+  2. no documentary evidence for common knowledge provided
+  3. no common knowledge established
+  4. the skilled person is an individual
+  5. there is a defined skilled person
+
+Added to case: ['RelevantPriorArt', 'Person', 'SkilledPerson']
+
+================================================================================
+TESTING COMPLETE
+================================================================================
+Total tests run: 25
+Check the outputs above for any unexpected behavior, errors, or logic issues
