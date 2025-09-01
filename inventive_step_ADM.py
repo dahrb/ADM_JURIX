@@ -151,7 +151,27 @@ def adf():
                         "ClosestPriorArt", 
                         "\n\nIs there a reason to combine other documents with the CPA to attempt to demonstrate obviousness?\n\nClosest Prior: {CPA}\n\n",
                         None)
-
+    #F17/F18
+    adf.addQuestionInstantiator(
+    "\n\nHow are the other documents to be combined related to the CPA's technical field \n\n Closest Prior Art: {CPA}\n\n",
+    {
+        "They are from the same technical field": "SameFieldCPA",
+        "They are from a similar technical field": "SimilarFieldCPA",
+        "They are from an unrelated field": ""
+    }, None,
+    question_order_name="combined_docs",
+    dependency_node=['ClosestPriorArt','CombinationAttempt']
+    )
+    #F23
+    adf.addDependentBLF("CombinationMotive", 
+                        ["ClosestPriorArt",'SkilledPerson','CombinationAttempt'], 
+                        "\n\nWould the skilled person have a clear and direct motive to combine these specific documents?\n\n The skilled person: {SkilledPerson}\n\nClosest Prior: {CPA}\n\n",
+                        None)
+    #F24
+    adf.addDependentBLF("BasisToAssociate", 
+                        ["ClosestPriorArt",'SkilledPerson','CombinationAttempt'],
+                        "\n\nIs there a reasonable basis for the skilled person to associate these specific documents with one another?\n\n The skilled person: {SkilledPerson}\n\nClosest Prior: {CPA}\n\n",
+                        None)
 
     #Abstract factors
     #AF5
@@ -173,12 +193,10 @@ def adf():
     adf.addNodes("ClosestPriorArtDocuments", ['CombinationDocuments','ClosestPriorArt',''], ['the closest prior art consists of a combination of documents','the closest prior art consists of a document of a single reference','no set of closest prior documents could be determined'])
 
 
-
-
     # Set question order to ask information questions first
     adf.questionOrder = ["INVENTION_TITLE", "INVENTION_DESCRIPTION", "INVENTION_TECHNICAL_FIELD", "REL_PRIOR_ART", "field_questions",
     "field_questions_2","field_questions_3",'CGK',"Contested",'field_questions_4','SkilledIn','Average','Aware','Access','skilled_person',
-    'SingleReference','cpa_min_mod',"CombinationAttempt"]
+    'SingleReference','cpa_min_mod',"CombinationAttempt",'combined_docs','CombinationMotive','BasisToAssociate']
 
 
 
