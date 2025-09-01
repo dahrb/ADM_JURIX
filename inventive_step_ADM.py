@@ -7,20 +7,24 @@ from MainClasses import *
 
 def create_sub_adm_prior_art(item_name):
     """Creates a sub-ADM for evaluating individual prior art items"""
-    sub_adf = SubADM("Prior Art Sub-ADM", item_name)
+    sub_adf = SubADM("Sub-Model 1", item_name)
+
+
+    #FAKE NODE
+    sub_adf.addNodes("ReliableTechnicalEffect",["DistinguishingFeatures"],["the closest prior art has a reliable technical effect","the closest prior art does not have a reliable technical effect"])
+        #The fact the sub-adm is running means there are distinguishing features so to more easily resolve this we just auto add it to eval later
+    sub_adf.case = ["DistinguishingFeatures"]
+    # # Add BLFs for the sub-ADM - {item} will be automatically resolved
+    # sub_adf.addNodes("KNOWN_PRIOR_ART", question="Is {item} known prior art?")
+    # sub_adf.addNodes("PUBLICLY_AVAILABLE", question="Is {item} publicly available?")
+    # sub_adf.addNodes("ENABLING_DISCLOSURE", question="Does {item} provide an enabling disclosure?")
+    # # Add abstract factors
+    # sub_adf.addNodes("VALID_PRIOR_ART", 
+    #                  ["KNOWN_PRIOR_ART and PUBLICLY_AVAILABLE and ENABLING_DISCLOSURE"], 
+    #                  ["VALID_PRIOR_ART is accepted - {item} is valid prior art", 
+    #                   "VALID_PRIOR_ART is rejected - {item} is not valid prior art"])
     
-    # Add BLFs for the sub-ADM - {item} will be automatically resolved
-    sub_adf.addNodes("KNOWN_PRIOR_ART", question="Is {item} known prior art?")
-    sub_adf.addNodes("PUBLICLY_AVAILABLE", question="Is {item} publicly available?")
-    sub_adf.addNodes("ENABLING_DISCLOSURE", question="Does {item} provide an enabling disclosure?")
-    
-    # Add abstract factors
-    sub_adf.addNodes("VALID_PRIOR_ART", 
-                     ["KNOWN_PRIOR_ART and PUBLICLY_AVAILABLE and ENABLING_DISCLOSURE"], 
-                     ["VALID_PRIOR_ART is accepted - {item} is valid prior art", 
-                      "VALID_PRIOR_ART is rejected - {item} is not valid prior art"])
-    
-    sub_adf.questionOrder = ["KNOWN_PRIOR_ART", "PUBLICLY_AVAILABLE", "ENABLING_DISCLOSURE"]
+    sub_adf.questionOrder = []#"KNOWN_PRIOR_ART", "PUBLICLY_AVAILABLE", "ENABLING_DISCLOSURE"]
     return sub_adf
 
 
@@ -192,29 +196,35 @@ def adf():
     #AF8
     adf.addNodes("ClosestPriorArtDocuments", ['CombinationDocuments','ClosestPriorArt',''], ['the closest prior art consists of a combination of documents','the closest prior art consists of a document of a single reference','no set of closest prior documents could be determined'])
 
+    # Add Sub-ADM 1 algorithm
+    def collect_features(ui_instance):
+        """Function to collect prior art items from user input"""
+        available_items = input("What features does the closest prior art have? \n\nClosest Prior Art: {CPA} \n\n(comma-separated list): ").strip()
+        needed_items = input("What features does the invention have? \n\nInvention: {INVENTION} \n\n(comma-separated list): ").strip()
+        available_list = [item.strip() for item in available_items.split(',') if item.strip()]
+        needed_list = [item.strip() for item in needed_items.split(',') if item.strip()]
+        
+        missing_items = [item for item in needed_list if item not in available_list]
+        return missing_items
+    
+    #F28
+    adf.addSubADMBLF("ReliableTechnicalEffect", create_sub_adm_prior_art, collect_features)
+
+    #F25
+    adf.addEvaluationBLF("DistinguishingFeatures", "ReliableTechnicalEffect", "DistinguishingFeatures", ['DistinguishingFeatures is accepted - there are distinguishing features','DistinguishingFeatures is rejected - there are no distinguishing features'])
+
 
     # Set question order to ask information questions first
     adf.questionOrder = ["INVENTION_TITLE", "INVENTION_DESCRIPTION", "INVENTION_TECHNICAL_FIELD", "REL_PRIOR_ART", "field_questions",
     "field_questions_2","field_questions_3",'CGK',"Contested",'field_questions_4','SkilledIn','Average','Aware','Access','skilled_person',
-    'SingleReference','cpa_min_mod',"CombinationAttempt",'combined_docs','CombinationMotive','BasisToAssociate']
+    'SingleReference','cpa_min_mod',"CombinationAttempt",'combined_docs','CombinationMotive','BasisToAssociate','ReliableTechnicalEffect','DistinguishingFeatures']
 
 
 
 
 
-    # # Add SubADMBLF for prior art items
-    # def collect_prior_art_items(ui_instance):
-    #     """Function to collect prior art items from user input"""
-    #     available_items = input("What prior art items do you have? (comma-separated list): ").strip()
-    #     needed_items = input("What prior art items do you need to evaluate? (comma-separated list): ").strip()
-        
-    #     available_list = [item.strip() for item in available_items.split(',') if item.strip()]
-    #     needed_list = [item.strip() for item in needed_items.split(',') if item.strip()]
-        
-    #     missing_items = [item for item in needed_list if item not in available_list]
-    #     return missing_items
-    
-    # adf.addSubADMBLF("PRIOR_ART_ITEMS", create_sub_adm_prior_art, collect_prior_art_items)
+  
+    # 
     
     # # Add EvaluationBLF for valid prior art
     # adf.addEvaluationBLF("VALID_PRIOR_ART_PRESENT", 

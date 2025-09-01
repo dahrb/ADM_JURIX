@@ -1369,7 +1369,7 @@ class SubADMBLF(Node):
             # This allows us to reuse all the existing question generation logic
             temp_ui = type(ui_instance)()  # Create instance of same class
             temp_ui.adf = sub_adf
-            temp_ui.case = []
+            temp_ui.case = sub_adf.case.copy()
             temp_ui.caseName = item
             
             # Use the existing UI infrastructure to ask questions and build the case
