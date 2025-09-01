@@ -1451,7 +1451,12 @@ class DependentBLF(Node):
         # Initialize as a regular Node but with special dependency handling
         super().__init__(name, None, statements, question_template)
         
-        self.dependency_node = dependency_node
+         # Handle both single string and list
+        if isinstance(dependency_node, str):
+            self.dependency_node = [dependency_node]
+        else:
+            self.dependency_node = dependency_node
+
         self.factual_ascription = factual_ascription or {}
         
         # Override the question to be dynamic
@@ -1474,12 +1479,26 @@ class DependentBLF(Node):
         # First, resolve any template variables using the ADF's template resolution
         question_text = adf.resolveQuestionTemplate(question_text)
         
-        # Then, get inherited facts from the dependency node and replace any remaining placeholders
-        inherited = adf.getInheritedFacts(self.dependency_node, case)
+        # Then, get inherited facts from the dependency nodes and replace any remaining placeholders
+        # For multiple dependencies, we need to combine facts from all dependency nodes
+        inherited = {}
+        
+        # Handle both single string and list of dependencies
+        if isinstance(self.dependency_node, str):
+            dependency_nodes = [self.dependency_node]
+        else:
+            dependency_nodes = self.dependency_node
+        
+        # Collect facts from all dependency nodes
+        for dep_node in dependency_nodes:
+            if isinstance(dep_node, str):  # Safety check
+                dep_inherited = adf.getInheritedFacts(dep_node, case)
+                if isinstance(dep_inherited, dict):
+                    inherited.update(dep_inherited)
         
         # Safety check: ensure inherited is a dictionary
         if not isinstance(inherited, dict):
-                    inherited = {}
+            inherited = {}
         
         # Replace placeholders in the question template
         # This is now generic - any placeholder like {ICE_CREAM_flavour} will be replaced
@@ -1493,21 +1512,14 @@ class DependentBLF(Node):
         # Remove any remaining {placeholder} patterns
         question_text = re.sub(r'\{[^}]+\}', '', question_text)
         # Clean up extra commas and spaces
-        question_text = question_text.replace(', ,', ',')
-        question_text = question_text.replace(', ,', ',')  # Handle double commas
-        question_text = question_text.replace('  ', ' ')  # Handle double spaces
-        question_text = question_text.strip()
-        # Remove trailing comma if it exists
-        if question_text.endswith(','):
-            question_text = question_text[:-1]
+        question_text = question_text.replace('  ', ' ').strip()
+        question_text = question_text.rstrip(',').strip()
         
-        self.question = question_text
-
         return question_text
-    
+
     def checkDependency(self, adf, case):
         """
-        Checks if the dependency node is satisfied
+        Checks if the dependency nodes are satisfied
         
         Parameters
         ----------
@@ -1516,11 +1528,11 @@ class DependentBLF(Node):
         case : list
             the current case
             
+        Returns
         Returns:
             bool: True if dependency is satisfied, False otherwise
         """
-        return self.dependency_node in case
-
+        return all(dep_node in case for dep_node in self.dependency_node)
 class SubADM(ADF):
     """
     A specialized ADF class for sub-ADMs that automatically resolves {item} placeholders

@@ -83,6 +83,7 @@ def adf():
             "Other":''
         },None,
         question_order_name="field_questions_4",
+        #TEST
         dependency_node= 'Contested'
     )
 
@@ -137,7 +138,7 @@ def adf():
     #
     #F20/F21
     adf.addQuestionInstantiator(
-    "\n\n Does the closest prior art document require minimal modifications to the invention as assessed from the perspective of the skilled person? \n\n The skilled person: {SkilledPerson}",
+    "\n\nDoes the closest prior art document require minimal modifications to the invention as assessed from the perspective of the skilled person? \n\n The skilled person: {SkilledPerson}",
     {
         "Yes": ["MinModifications","AssessedBy"],
         "No": ''
@@ -145,7 +146,6 @@ def adf():
     question_order_name="cpa_min_mod",
     dependency_node='SkilledPerson'
     )
-
     #F22
     adf.addDependentBLF("CombinationAttempt", 
                         "ClosestPriorArt", 
@@ -178,7 +178,7 @@ def adf():
     # Set question order to ask information questions first
     adf.questionOrder = ["INVENTION_TITLE", "INVENTION_DESCRIPTION", "INVENTION_TECHNICAL_FIELD", "REL_PRIOR_ART", "field_questions",
     "field_questions_2","field_questions_3",'CGK',"Contested",'field_questions_4','SkilledIn','Average','Aware','Access','skilled_person',
-    'SingleReference','cpa_min_mod']
+    'SingleReference','cpa_min_mod',"CombinationAttempt"]
 
 
 

@@ -162,19 +162,33 @@ class CLI:
             
             # Check if this question instantiator has a dependency
             if instantiator.get('dependency_node'):
-                dependency_node_name = instantiator['dependency_node']
-                
+                print('DEBUG: confirmed dependency')
                 # Check if dependency is satisfied
-                if dependency_node_name not in self.case:
-                    # Try to evaluate the dependency
-                    if self.evaluateDependency(dependency_node_name, current_question):
-                        # Dependency now satisfied, continue processing
-                        pass
-                    else:
-                        # Dependency cannot be satisfied, skip permanently
-                        print(f"⚠️  Skipping {current_question} - dependency {dependency_node_name} cannot be satisfied")
-                        question_order.pop(0)
-                        return self.questiongen(question_order, nodes)
+                # Handle both single string and list
+                dependency_node = instantiator['dependency_node']
+
+                if isinstance(dependency_node, str):
+                    print('DEBUG SINGLE STRING')
+                    dependency_node = [dependency_node]
+                
+                # Check if ALL dependencies are satisfied
+                all_dependencies_satisfied = True
+                for dependency_node_name in dependency_node:
+                    print(f'DEBUG: {dependency_node_name}')
+                    if dependency_node_name not in self.case:
+                        # Try to evaluate the dependency
+                        print(f" Trying to evaluate dependency {dependency_node_name} for {current_question}")
+                        if not self.evaluateDependency(dependency_node_name, current_question):
+                            # Check again if it's now in the case after evaluation
+                            if dependency_node_name not in self.case:
+                                all_dependencies_satisfied = False
+                                break
+                
+                if not all_dependencies_satisfied:
+                    # Dependency cannot be satisfied, skip permanently
+                    print(f"⚠️  Skipping {current_question} - dependencies cannot be satisfied")
+                    question_order.pop(0)
+                    return self.questiongen(question_order, nodes)
             
             # At this point, either no dependency or dependency is satisfied
             # Process the question instantiator
@@ -249,7 +263,20 @@ class CLI:
             if instantiator.get('dependency_node'):
                 dependency_node_name = instantiator['dependency_node']
                 if hasattr(self.adf, 'getInheritedFacts'):
-                    inherited_facts = self.adf.getInheritedFacts(dependency_node_name, self.case)
+                    # Handle both single string and list of dependencies
+                    if isinstance(dependency_node_name, str):
+                        dependency_nodes = [dependency_node_name]
+                    else:
+                        dependency_nodes = dependency_node_name
+                    
+                    # Collect facts from all dependency nodes
+                    inherited_facts = {}
+                    for dep_node in dependency_nodes:
+                        if isinstance(dep_node, str):
+                            dep_facts = self.adf.getInheritedFacts(dep_node, self.case)
+                            if isinstance(dep_facts, dict):
+                                inherited_facts.update(dep_facts)
+                    
                     if inherited_facts:
                         # Replace any placeholders in the question with inherited facts
                         for fact_name, value in inherited_facts.items():
@@ -319,30 +346,31 @@ class CLI:
             elif hasattr(current_node, 'question') and current_node.question:
                 question_text = self.resolve_question_template(current_node.question)
                             
-                # Ask the question
-                answer = input(f"{question_text}\nAnswer (y/n): ").strip().lower()
-                
-                if answer in ['y', 'yes']:
-                    # Check if this node has reject conditions before adding to case
-                    if hasattr(self.adf.nodes[current_question], 'acceptance') and self.adf.nodes[current_question].acceptance:
-                        # Check if any acceptance condition contains 'reject'
-                        has_reject = any('reject' in condition for condition in self.adf.nodes[current_question].acceptance)
-                        if has_reject:
-                            print(f"Note: {current_question} has reject conditions and will not be added to case")
+                # Ask the question with retry loop
+                while True:
+                    answer = input(f"{question_text}\nAnswer (y/n): ").strip().lower()
+                    
+                    if answer in ['y', 'yes']:
+                        # Check if this node has reject conditions before adding to case
+                        if hasattr(self.adf.nodes[current_question], 'acceptance') and self.adf.nodes[current_question].acceptance:
+                            # Check if any acceptance condition contains 'reject'
+                            has_reject = any('reject' in condition for condition in self.adf.nodes[current_question].acceptance)
+                            if has_reject:
+                                print(f"Note: {current_question} has reject conditions and will not be added to case")
+                            else:
+                                # No reject conditions, safe to add
+                                if current_question not in self.case:
+                                    self.case.append(current_question)
                         else:
-                            # No reject conditions, safe to add
+                            # No acceptance conditions, safe to add
                             if current_question not in self.case:
                                 self.case.append(current_question)
+                        return 'Done'
+                    elif answer in ['n', 'no']:
+                        return 'Done'
                     else:
-                        # No acceptance conditions, safe to add
-                        if current_question not in self.case:
-                            self.case.append(current_question)
-                    return 'Done'
-                elif answer in ['n', 'no']:
-                    return 'Done'
-                else:
-                    print("Invalid answer, please answer y/n")
-                    return 'Invalid'
+                        print("Invalid answer, please answer y/n")
+                        # Don't return 'Invalid' - just continue the loop to ask again
             else:
                 # Check if this node has reject conditions before adding to case
                 if hasattr(self.adf.nodes[current_question], 'acceptance') and self.adf.nodes[current_question].acceptance:
@@ -361,27 +389,11 @@ class CLI:
                 return 'Done'
 
     def handleDependentBLF(self, current_question, current_node, question_order, nodes):
-        """
-        Handles the processing of a DependentBLF node
+        """Handles the processing of a DependentBLF node"""
         
-        Parameters
-        ----------
-        current_question : str
-            the name of the current question being processed
-        current_node : DependentBLF
-            the DependentBLF node to process
-        question_order : list
-            the current question order
-        nodes : dict
-            the current nodes dictionary
-            
-        Returns
-        -------
-        tuple: (question_order, nodes) - the updated question order and nodes
-        """
+        # Check if ALL dependencies are satisfied
         if current_node.checkDependency(self.adf, self.case):
-            # Process the DependentBLF using questionHelper
-            # First resolve the question template with inherited facts
+            # All dependencies satisfied, process the DependentBLF
             resolved_question = current_node.resolveQuestion(self.adf, self.case)
             x = self.questionHelper(current_node, current_question)
             if x == 'Done':
@@ -390,10 +402,19 @@ class CLI:
             else:
                 return question_order, nodes
         else:
-            # Try to evaluate the dependency
-            dependency_node_name = current_node.dependency_node
-            if self.evaluateDependency(dependency_node_name, current_question):
-                # Dependency now satisfied, process the DependentBLF
+
+            # Try to evaluate missing dependencies
+            dependency_node = current_node.dependency_node
+            all_dependencies_satisfied = True
+            
+            for dependency_node_name in dependency_node:
+                if dependency_node_name not in self.case:
+                    if not self.evaluateDependency(dependency_node_name, current_question):
+                        all_dependencies_satisfied = False
+                        break
+            
+            if all_dependencies_satisfied:
+                # All dependencies now satisfied, process the DependentBLF
                 resolved_question = current_node.resolveQuestion(self.adf, self.case)
                 x = self.questionHelper(current_node, current_question)
                 if x == 'Done':
@@ -402,8 +423,8 @@ class CLI:
                 else:
                     return question_order, nodes
             else:
-                # Dependency cannot be satisfied, skip
-                print(f"⚠️  Skipping {current_question} - dependency {dependency_node_name} cannot be satisfied")
+                # Dependencies cannot be satisfied, skip
+                print(f"⚠️  Skipping {current_question} - dependencies cannot be satisfied")
                 question_order.pop(0)
                 return self.questiongen(question_order, nodes)
                 
@@ -474,20 +495,16 @@ class CLI:
             return 'Done'
 
     def evaluateDependency(self, dependency_node_name, current_question):
-        """
-        Helper method to evaluate a dependency node and add it to case if satisfied
+        """Helper method to evaluate a dependency node and add it to case if satisfied"""
         
-        Parameters
-        ----------
-        dependency_node_name : str
-            the name of the dependency node to evaluate
-        current_question : str
-            the name of the question that depends on this dependency (for logging)
+        # Handle multiple dependencies if passed as a list
+        if isinstance(dependency_node_name, list):
+            all_satisfied = True
+            for dep_node in dependency_node_name:
+                if not self.evaluateDependency(dep_node, current_question):
+                    all_satisfied = False
+            return all_satisfied
         
-        Returns
-        -------
-        bool: True if dependency is now satisfied, False if it cannot be satisfied
-        """
         dependency_node = self.adf.nodes[dependency_node_name]
         
         print(f" Trying to evaluate dependency {dependency_node_name} for {current_question}")
