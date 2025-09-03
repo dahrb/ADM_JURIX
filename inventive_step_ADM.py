@@ -58,7 +58,7 @@ def create_sub_adm_prior_art(item_name, key_facts=None):
                             None)
 
     #F40 - Q27
-    sub_adf.addNodes("FunctionallyLimited","MathematicalMethod",
+    sub_adf.addDependentBLF("FunctionallyLimited","MathematicalMethod",
                     'Is the claim functionally limited to the technical purpose stated either explicitly or implicitly?',
                     None)
 

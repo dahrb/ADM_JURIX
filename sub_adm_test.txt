@@ -1,0 +1,628 @@
+Testing Different BLF Combinations in Sub-ADM
+
+============================================================
+Testing: Independent Contribution Only
+BLFs: ['IndependentContribution']
+Initial case: ['DistinguishingFeatures', 'IndependentContribution']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'ComputerSimulation']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible']
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['CircumventTechProblem', 'ExcludedField', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible', 'ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible']
+
+FINAL CASE: ['DistinguishingFeatures', 'IndependentContribution']
+Root node: None
+Result: REJECTED
+
+============================================================
+Testing: Combination Contribution Only
+BLFs: ['CombinationContribution']
+Initial case: ['DistinguishingFeatures', 'CombinationContribution']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'ComputerSimulation']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible']
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible', 'ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible']
+
+FINAL CASE: ['DistinguishingFeatures', 'CombinationContribution']
+Root node: None
+Result: REJECTED
+
+============================================================
+Testing: Independent + CircumventTechProblem
+BLFs: ['IndependentContribution', 'CircumventTechProblem']
+Initial case: ['DistinguishingFeatures', 'IndependentContribution', 'CircumventTechProblem']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'ComputerSimulation']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible']
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['ExcludedField', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible', 'ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible']
+
+FINAL CASE: ['DistinguishingFeatures', 'IndependentContribution', 'CircumventTechProblem']
+Root node: None
+Result: REJECTED
+
+============================================================
+Testing: Independent + ExcludedField
+BLFs: ['IndependentContribution', 'ComputerSimulation']
+Initial case: ['DistinguishingFeatures', 'IndependentContribution', 'ComputerSimulation']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible']
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'MathematicalMethod', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['CircumventTechProblem', 'ExcludedField', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible', 'ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible']
+
+FINAL CASE: ['DistinguishingFeatures', 'IndependentContribution', 'ComputerSimulation']
+Root node: None
+Result: REJECTED
+
+============================================================
+Testing: Computer Simulation + Technical Adaptation
+BLFs: ['ComputerSimulation', 'TechnicalAdaptation']
+Initial case: ['DistinguishingFeatures', 'ComputerSimulation', 'TechnicalAdaptation']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible']
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'MathematicalMethod', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible', 'ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible']
+
+FINAL CASE: ['DistinguishingFeatures', 'ComputerSimulation', 'TechnicalAdaptation']
+Root node: None
+Result: REJECTED
+
+============================================================
+Testing: Mathematical Method + Specific Purpose
+BLFs: ['MathematicalMethod', 'SpecificPurpose', 'FunctionallyLimited']
+Initial case: ['DistinguishingFeatures', 'MathematicalMethod', 'SpecificPurpose', 'FunctionallyLimited']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'ComputerSimulation']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible']
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  All children present, evaluating...
+  Result: True, Reject: False
+  ✅ Added AppliedInField to case
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['TechnicalAdaptation']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'NumericalData', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible', 'ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible']
+
+FINAL CASE: ['DistinguishingFeatures', 'MathematicalMethod', 'SpecificPurpose', 'FunctionallyLimited', 'AppliedInField']
+Root node: AppliedInField
+Result: ACCEPTED
+
+============================================================
+Testing: Independent + Unexpected Effect
+BLFs: ['IndependentContribution', 'UnexpectedEffect', 'PreciseTerms', 'OneWayStreet']
+Initial case: ['DistinguishingFeatures', 'IndependentContribution', 'UnexpectedEffect', 'PreciseTerms', 'OneWayStreet']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'ComputerSimulation']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible']
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['CircumventTechProblem', 'ExcludedField', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible', 'ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  All children present, evaluating...
+  Result: False, Reject: True
+  ❌ Did not add ImpreciseUnexpectedEffect to case
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible']
+
+FINAL CASE: ['DistinguishingFeatures', 'IndependentContribution', 'UnexpectedEffect', 'PreciseTerms', 'OneWayStreet']
+Root node: None
+Result: REJECTED
+
+============================================================
+Testing: Independent + Credible + Reproducible
+BLFs: ['IndependentContribution', 'Credible', 'Reproducible']
+Initial case: ['DistinguishingFeatures', 'IndependentContribution', 'Credible', 'Reproducible']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'ComputerSimulation']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  All children present, evaluating...
+  Result: False, Reject: False
+  ❌ Did not add NonReproducible to case
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['CircumventTechProblem', 'ExcludedField', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution']
+
+FINAL CASE: ['DistinguishingFeatures', 'IndependentContribution', 'Credible', 'Reproducible']
+Root node: None
+Result: REJECTED
+
+============================================================
+Testing: Complex: All Positive
+BLFs: ['IndependentContribution', 'ComputerSimulation', 'TechnicalAdaptation', 'Credible', 'Reproducible']
+Initial case: ['DistinguishingFeatures', 'IndependentContribution', 'ComputerSimulation', 'TechnicalAdaptation', 'Credible', 'Reproducible']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  All children present, evaluating...
+  Result: False, Reject: False
+  ❌ Did not add NonReproducible to case
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'MathematicalMethod', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['CircumventTechProblem', 'ExcludedField', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution']
+
+FINAL CASE: ['DistinguishingFeatures', 'IndependentContribution', 'ComputerSimulation', 'TechnicalAdaptation', 'Credible', 'Reproducible']
+Root node: None
+Result: REJECTED
+
+============================================================
+Testing: Complex: Mixed with Reject
+BLFs: ['IndependentContribution', 'CircumventTechProblem', 'Credible', 'Reproducible']
+Initial case: ['DistinguishingFeatures', 'IndependentContribution', 'CircumventTechProblem', 'Credible', 'Reproducible']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'ComputerSimulation']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  All children present, evaluating...
+  Result: False, Reject: False
+  ❌ Did not add NonReproducible to case
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['ExcludedField', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution']
+
+FINAL CASE: ['DistinguishingFeatures', 'IndependentContribution', 'CircumventTechProblem', 'Credible', 'Reproducible']
+Root node: None
+Result: REJECTED
+
+============================================================
+Testing: No BLFs
+BLFs: []
+Initial case: ['DistinguishingFeatures']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'ComputerSimulation']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible']
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible', 'ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible']
+
+FINAL CASE: ['DistinguishingFeatures']
+Root node: None
+Result: REJECTED
+
+============================================================
+Testing: Only Excluded Field
+BLFs: ['OtherExclusions']
+Initial case: ['DistinguishingFeatures', 'OtherExclusions']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'ComputerSimulation']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible']
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible', 'ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible']
+
+FINAL CASE: ['DistinguishingFeatures', 'OtherExclusions']
+Root node: None
+Result: REJECTED
+
+============================================================
+Testing: Only CircumventTechProblem
+BLFs: ['CircumventTechProblem']
+Initial case: ['DistinguishingFeatures', 'CircumventTechProblem']
+Abstract factors to evaluate: ['NumOrComp', 'NonReproducible', 'AppliedInField', 'MathematicalContribution', 'ComputationalContribution', 'ExcludedField', 'NormalTechnicalContribution', 'FeatureTechnicalContribution', 'BonusEffect', 'SufficiencyOfDisclosureIssue', 'ImpreciseUnexpectedEffect', 'ReliableTechnicalEffect']
+
+Evaluating NumOrComp (children: ['NumericalData', 'ComputerSimulation'])
+  ⚠️  Cannot evaluate - missing children: ['NumericalData', 'ComputerSimulation']
+
+Evaluating NonReproducible (children: ['Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible']
+
+Evaluating AppliedInField (children: ['SpecificPurpose', 'FunctionallyLimited'])
+  ⚠️  Cannot evaluate - missing children: ['SpecificPurpose', 'FunctionallyLimited']
+
+Evaluating MathematicalContribution (children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation'])
+  ⚠️  Cannot evaluate - missing children: ['MathematicalMethod', 'AppliedInField', 'TechnicalAdaptation']
+
+Evaluating ComputationalContribution (children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'TechnicalAdaptation', 'IntendedTechnicalUse', 'NumericalData', 'TechUseSpecified']
+
+Evaluating ExcludedField (children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions'])
+  ⚠️  Cannot evaluate - missing children: ['ComputerSimulation', 'NumericalData', 'MathematicalMethod', 'OtherExclusions']
+
+Evaluating NormalTechnicalContribution (children: ['CircumventTechProblem', 'ExcludedField', 'IndependentContribution', 'CombinationContribution'])
+  ⚠️  Cannot evaluate - missing children: ['ExcludedField', 'IndependentContribution', 'CombinationContribution']
+
+Evaluating FeatureTechnicalContribution (children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution'])
+  ⚠️  Cannot evaluate - missing children: ['NormalTechnicalContribution', 'ComputationalContribution', 'MathematicalContribution']
+
+Evaluating BonusEffect (children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet'])
+  ⚠️  Cannot evaluate - missing children: ['FeatureTechnicalContribution', 'UnexpectedEffect', 'OneWayStreet']
+
+Evaluating SufficiencyOfDisclosureIssue (children: ['Reproducible', 'ClaimContainsEffect'])
+  ⚠️  Cannot evaluate - missing children: ['Reproducible', 'ClaimContainsEffect']
+
+Evaluating ImpreciseUnexpectedEffect (children: ['PreciseTerms', 'UnexpectedEffect'])
+  ⚠️  Cannot evaluate - missing children: ['PreciseTerms', 'UnexpectedEffect']
+
+Evaluating ReliableTechnicalEffect (children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible'])
+  ⚠️  Cannot evaluate - missing children: ['SufficiencyOfDisclosureIssue', 'BonusEffect', 'ImpreciseUnexpectedEffect', 'FeatureTechnicalContribution', 'Credible', 'Reproducible']
+
+FINAL CASE: ['DistinguishingFeatures', 'CircumventTechProblem']
+Root node: None
+Result: REJECTED
+
+================================================================================
+SUMMARY OF ALL COMBINATIONS
+================================================================================
+Combination                              Result     Final Case
+--------------------------------------------------------------------------------
+Independent Contribution Only            REJECTED   ['DistinguishingFeatures', 'In...
+Combination Contribution Only            REJECTED   ['DistinguishingFeatures', 'Co...
+Independent + CircumventTechProblem      REJECTED   ['DistinguishingFeatures', 'In...
+Independent + ExcludedField              REJECTED   ['DistinguishingFeatures', 'In...
+Computer Simulation + Technical Adaptation REJECTED   ['DistinguishingFeatures', 'Co...
+Mathematical Method + Specific Purpose   ACCEPTED   ['DistinguishingFeatures', 'Ma...
+Independent + Unexpected Effect          REJECTED   ['DistinguishingFeatures', 'In...
+Independent + Credible + Reproducible    REJECTED   ['DistinguishingFeatures', 'In...
+Complex: All Positive                    REJECTED   ['DistinguishingFeatures', 'In...
+Complex: Mixed with Reject               REJECTED   ['DistinguishingFeatures', 'In...
+No BLFs                                  REJECTED   ['DistinguishingFeatures']
+Only Excluded Field                      REJECTED   ['DistinguishingFeatures', 'Ot...
+Only CircumventTechProblem               REJECTED   ['DistinguishingFeatures', 'Ci...

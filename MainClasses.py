@@ -314,14 +314,28 @@ class ADF:
         self.counter = -1
         
         #checks each acceptance condition seperately
+        any_reject = False  # Track if any reject condition is met
+        any_accept = False  # Track if any accept condition is met
+        
         for i in node.acceptance:
             self.reject = False
             self.counter+=1
             x = self.postfixEvaluation(i)
-            if x == True:
-                return x  
+            if self.reject:
+                any_reject = True  # Mark that a reject condition was met
+            if x == True and not self.reject:
+                any_accept = True  # Mark that an accept condition was met
 
-        return x
+        # If any reject condition was met, return False
+        if any_reject:
+            self.reject = True
+            return False
+        
+        # If any accept condition was met, return True
+        if any_accept:
+            return True
+            
+        return False
     
     def postfixEvaluation(self,acceptance):
         """
