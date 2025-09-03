@@ -37,7 +37,7 @@ def create_sub_adm_prior_art(item_name, key_facts=None):
     #F32 - Q21
     sub_adf.addNodes("CircumventTechProblem",question='Is the feature a technical implementation of a non-technical method i.e. game rules or a business method, and does it circumvent the technical problem rather than addressing it in an inherently technical way?')
 
-    #F41 - Q22
+    #F41 - Q22 -hmmm
     sub_adf.addNodes("TechnicalAdaptation",question='Is the feature a specific technical adaptation which is specific for that implementation in that its design is motivated by technical considerations relating to the internal functioning of the computer system or network.')
 
     #bridge node to make things easier
@@ -53,10 +53,14 @@ def create_sub_adm_prior_art(item_name, key_facts=None):
                             None)
 
     #F39 - Q26
-    sub_adf.addNodes("SpecificPurpose",question='Does the technical contribution have a specific technical purpose i.e. produces a technical effect serving a technical purpose. Not merely a ’generic’ purpose i.e. ”controlling a technical system”.')
+    sub_adf.addDependentBLF("SpecificPurpose","MathematicalMethod",
+                            'Does the technical contribution have a specific technical purpose i.e. produces a technical effect serving a technical purpose. Not merely a `generic\' purpose i.e. "controlling a technical system".',
+                            None)
 
     #F40 - Q27
-    sub_adf.addNodes("FunctionallyLimited",question='Is the claim functionally limited to the technical purpose stated either explicitly or implicitly?')
+    sub_adf.addNodes("FunctionallyLimited","MathematicalMethod",
+                    'Is the claim functionally limited to the technical purpose stated either explicitly or implicitly?',
+                    None)
 
     #F56 - Q28
     sub_adf.addDependentBLF("UnexpectedEffect","FeatureTechnicalContribution",
@@ -101,7 +105,7 @@ def create_sub_adm_prior_art(item_name, key_facts=None):
     sub_adf.addNodes("BonusEffect",["FeatureTechnicalContribution and UnexpectedEffect and OneWayStreet"],["there is a bonus effect","there is no bonus effect"])
     sub_adf.addNodes("SufficiencyOfDisclosureIssue",["reject Reproducible","ClaimContainsEffect"],["reject cus Reproducible","reject ClaimContainsEffect","reject"])
     sub_adf.addNodes("ImpreciseUnexpectedEffect",["reject PreciseTerms","UnexpectedEffect"],["reject PreciseTerms","UnexpectedEffect","reject"])
-    sub_adf.addNodes("ReliableTechnicalEffect",["reject SufficiencyOfDisclosureIssue","reject BonusEffect","reject ImpreciseUnexpectedEffect", "FeatureTechnicalContribution and Credible and Reproducible"],["reject SufficiencyOfDisclosureIssue","reject BonusEffect","reject ImpreciseUnexpectedEffect","FeatureTechnicalContribution and Credible and Reproducible","reject"])
+    sub_adf.addNodes("ReliableTechnicalEffect",["reject SufficiencyOfDisclosureIssue","reject BonusEffect","reject ImpreciseUnexpectedEffect", "FeatureTechnicalContribution and Credible and Reproducible"],["reject SufficiencyOfDisclosureIssue","reject BonusEffect","reject ImpreciseUnexpectedEffect","FeatureTechnicalContribution and Credible and Reproducible","reject reliable"])
     
     #The fact the sub-adm is running means there are distinguishing features so to more easily resolve this we just auto add it to eval later
     sub_adf.case = ["DistinguishingFeatures"]
@@ -253,7 +257,7 @@ def adf():
                         ["ClosestPriorArt",'SkilledPerson','CombinationAttempt'], 
                         "\n\nWould the skilled person have a clear and direct motive to combine these specific documents?\n\n The skilled person: {SkilledPerson}\n\nClosest Prior: {CPA}\n\n",
                         None)
-    #F24
+
     adf.addDependentBLF("BasisToAssociate", 
                         ["ClosestPriorArt",'SkilledPerson','CombinationAttempt'],
                         "\n\nIs there a reasonable basis for the skilled person to associate these specific documents with one another?\n\n The skilled person: {SkilledPerson}\n\nClosest Prior: {CPA}\n\n",

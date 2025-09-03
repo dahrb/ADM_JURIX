@@ -348,12 +348,12 @@ class ADF:
                 operand = operandStack.pop()
                 # Check if the node name is in the case
                 if operand in self.case:
-                    # Set reject flag and push True (condition met)
+                    # Node is in case, so we should reject the parent node
                     self.reject = True
                     operandStack.push(True)
                 else:
-                    # Set reject flag and push False (condition not met)
-                    self.reject = True
+                    # Node is not in case, so we should not reject the parent node
+                    self.reject = False
                     operandStack.push(False)
             elif token == 'not':
                 operand1 = operandStack.pop()
@@ -1446,43 +1446,50 @@ class SubADMBLF(Node):
             temp_ui.case = sub_adf.case.copy()
             temp_ui.caseName = item
             
+            print(f"  → Created temp_ui with {len(temp_ui.adf.nodes)} nodes")
+            
             # Use the existing UI infrastructure to ask questions and build the case
             # This will handle all node types generically
             temp_ui.ask_questions()
+            
+            print(f"  → Completed ask_questions for {item}")
             
             # Get the final case after evaluation
             final_case = temp_ui.case
             print(f"  → Final case for {item}: {final_case}")
             
-            # Determine the result based on which abstract factors were accepted/rejected
-            # Look for abstract factors (nodes with children) in the sub-ADM
-            abstract_factors = []
-            for factor in sub_adf.nodes:
-                if (hasattr(sub_adf.nodes[factor], 'children') and 
-                    sub_adf.nodes[factor].children):
-                    abstract_factors.append(factor)
+            # Determine the result based on whether the root node is accepted or rejected
+            # The root node is the final node that gets evaluated (corresponds to final statement in explanation)
+            # We need to find the node that was evaluated last during the ask_questions process
+            # This is the node that determines the final acceptance/rejection
+            root_node = None
             
-            if abstract_factors:
-                # Check which abstract factors were accepted vs rejected
-                accepted_abstract_factors = [factor for factor in abstract_factors if factor in final_case]
-                rejected_abstract_factors = [factor for factor in abstract_factors if factor not in final_case]
-                
-                if accepted_abstract_factors:
-                    # At least one abstract factor was accepted
-                    classification = accepted_abstract_factors[0]
-                    print(f"  → {item} classified as {classification}")
-                    return 'ACCEPTED', final_case
-                elif rejected_abstract_factors and len(rejected_abstract_factors) == len(abstract_factors):
-                    # All abstract factors were rejected
-                    print(f"  → {item} REJECTED (all abstract factors rejected)")
-                    return 'REJECTED', final_case
-                else:
-                    # Some abstract factors were neither accepted nor rejected (edge case)
-                    print(f"  → {item} classification: UNKNOWN (some abstract factors not evaluated)")
-                    return 'UNKNOWN', final_case
-            else:
-                print(f"  → {item} classification: UNKNOWN (no abstract factors found)")
+            # Find the node that was evaluated last by looking at the evaluation order
+            # The final node is typically the one that corresponds to the final statement
+            # We can identify it by looking at which node was processed last in the evaluation
+            if hasattr(temp_ui.adf, 'statements') and temp_ui.adf.statements and hasattr(temp_ui.adf, 'nodes') and temp_ui.adf.nodes:
+                # The final statement corresponds to the final evaluated node
+                # We need to find which node this statement belongs to
+                final_statement = temp_ui.adf.statements[-1]
+                # Find the node that has this statement
+                for node_name, node in temp_ui.adf.nodes.items():
+                    if hasattr(node, 'statement') and node.statement and final_statement in node.statement:
+                        root_node = node_name
+                        break
+            
+            # Fallback: if we can't find the root node from statements, use the last node in question order
+            if not root_node:
+                print(f"  → {item} classification: UNKNOWN (no root node found)")
                 return 'UNKNOWN', final_case
+            
+            if root_node in final_case:
+                # Root node was accepted
+                print(f"  → {item} classified as {root_node} (ACCEPTED)")
+                return 'ACCEPTED', final_case
+            else:
+                # Root node was rejected (not in final_case)
+                print(f"  → {item} REJECTED (root node {root_node} rejected)")
+                return 'REJECTED', final_case
                 
         except Exception as e:
             print(f"  → Error evaluating sub-ADM for {item}: {e}")
