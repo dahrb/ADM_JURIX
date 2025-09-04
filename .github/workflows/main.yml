@@ -24,6 +24,6 @@ jobs:
           pip install ruff  
           ruff --format=github --target-version=py310 .  
         continue-on-error: true  
-      - name: Test with pytest  
+      - name: Test with unittest  
         run: |  
-          coverage run -m pytest  -v -s  
+         python test_adm_unit.py 
