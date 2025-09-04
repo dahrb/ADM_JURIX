@@ -1030,7 +1030,7 @@ class TestCLIUI(unittest.TestCase):
         # Verify evaluation was performed and results were printed
         print_output = ' '.join(self.print_calls)
         self.assertTrue('Case Outcome: test_outcome_case' in print_output)
-        self.assertTrue('Evaluation Results:' in print_output)
+        self.assertTrue('Evaluation Results:' in 'srujrfdtgfj')#print_output)
     
     def test_cli_complex_workflow_sub_adm(self):
         """Test complete CLI workflow with complex sub-ADM case"""
