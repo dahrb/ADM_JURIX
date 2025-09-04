@@ -1313,6 +1313,10 @@ def run_all_tests():
                 if line.strip():
                     print(f"   {line}")
     
+    # Exit with error code if tests failed
+    if result.failures or result.errors:
+        sys.exit(1)
+    
     return result
 
 
@@ -1405,6 +1409,10 @@ def run_sub_adm_tests():
             for line in lines:
                 if line.strip():
                     print(f"   {line}")
+    
+    # Exit with error code if tests failed
+    if result.failures or result.errors:
+        sys.exit(1)
     
     return result
 
@@ -1499,6 +1507,10 @@ def run_main_adm_tests():
                 if line.strip():
                     print(f"   {line}")
     
+    # Exit with error code if tests failed
+    if result.failures or result.errors:
+        sys.exit(1)
+    
     return result
 
 
@@ -1592,22 +1604,34 @@ def run_cli_tests():
                 if line.strip():
                     print(f"   {line}")
     
+    # Exit with error code if tests failed
+    if result.failures or result.errors:
+        sys.exit(1)
+    
     return result
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        if sys.argv[1] == "sub":
-            run_sub_adm_tests()
+        if sys.argv[1] == "all":
+            result = run_all_tests()
+        elif sys.argv[1] == "sub":
+            result = run_sub_adm_tests()
         elif sys.argv[1] == "main":
-            run_main_adm_tests()
+            result = run_main_adm_tests()
         elif sys.argv[1] == "cli":
-            run_cli_tests()
+            result = run_cli_tests()
         else:
-            print("Usage: python test_adm_clean.py [sub|main|cli]")
+            print("Usage: python test_adm_unit.py [all|sub|main|cli]")
+            print("  all  - Run all tests")
             print("  sub  - Run only sub-ADM tests")
             print("  main - Run only main ADM tests")
             print("  cli  - Run only CLI UI tests")
             print("  (no args) - Run all tests")
+            sys.exit(1)
     else:
-        run_all_tests()
+        result = run_all_tests()
+    
+    # Exit with error code if any tests failed
+    if result.failures or result.errors:
+        sys.exit(1)
