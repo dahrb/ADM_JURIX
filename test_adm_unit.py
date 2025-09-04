@@ -234,6 +234,255 @@ class TestSubADMEvaluation(unittest.TestCase):
         ]
         
         self.assert_final_case("Only Circumvent Tech Problem", blf_list, expected_final_case)
+    
+    def test_reject_statements_basic(self):
+        """Test: Basic reject statements with CircumventTechProblem"""
+        blf_list = ["DistinguishingFeatures", "CircumventTechProblem"]
+        expected_final_case = [
+            "DistinguishingFeatures", 
+            "CircumventTechProblem",
+            "NonReproducible"
+        ]
+        
+        # Test the evaluation and check for reject statements
+        sub_adf = create_sub_adm_prior_art("reject_test")
+        sub_adf.evaluateTree(blf_list)
+        statements = sub_adf.evaluateTree(blf_list)
+        
+        # Verify reject statements are present
+        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
+        self.assertGreater(len(reject_statements), 0, "Should have reject statements")
+        
+        self.assert_final_case("Basic Reject Statements", blf_list, expected_final_case)
+    
+    def test_reject_statements_excluded_field(self):
+        """Test: ExcludedField reject statements"""
+        blf_list = ["DistinguishingFeatures", "ComputerSimulation", "MathematicalMethod"]
+        expected_final_case = [
+            "DistinguishingFeatures", 
+            "NumOrComp",
+            "ComputerSimulation",
+            "MathematicalMethod",
+            "ExcludedField",
+            "NonReproducible"
+        ]
+        
+        # Test the evaluation and check for reject statements
+        sub_adf = create_sub_adm_prior_art("excluded_field_test")
+        sub_adf.evaluateTree(blf_list)
+        statements = sub_adf.evaluateTree(blf_list)
+        
+        # Verify reject statements are present
+        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
+        self.assertGreater(len(reject_statements), 0, "Should have reject statements")
+        
+        self.assert_final_case("Excluded Field Reject Statements", blf_list, expected_final_case)
+    
+    def test_reject_statements_sufficiency_issue(self):
+        """Test: SufficiencyOfDisclosureIssue reject statements"""
+        blf_list = ["DistinguishingFeatures", "ClaimContainsEffect"]
+        expected_final_case = [
+            "DistinguishingFeatures", 
+            "ClaimContainsEffect",
+            "SufficiencyOfDisclosureIssue",
+            "NonReproducible"
+        ]
+        
+        # Test the evaluation and check for reject statements
+        sub_adf = create_sub_adm_prior_art("sufficiency_test")
+        sub_adf.evaluateTree(blf_list)
+        statements = sub_adf.evaluateTree(blf_list)
+        
+        # Verify reject statements are present
+        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
+        self.assertGreater(len(reject_statements), 0, "Should have reject statements")
+        
+        self.assert_final_case("Sufficiency Issue Reject Statements", blf_list, expected_final_case)
+    
+    def test_reject_statements_imprecise_effect(self):
+        """Test: ImpreciseUnexpectedEffect reject statements"""
+        blf_list = ["DistinguishingFeatures", "PreciseTerms"]
+        expected_final_case = [
+            "DistinguishingFeatures", 
+            "PreciseTerms",
+            "NonReproducible"
+        ]
+        
+        # Test the evaluation and check for reject statements
+        sub_adf = create_sub_adm_prior_art("imprecise_test")
+        sub_adf.evaluateTree(blf_list)
+        statements = sub_adf.evaluateTree(blf_list)
+        
+        # Verify reject statements are present
+        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
+        self.assertGreater(len(reject_statements), 0, "Should have reject statements")
+        
+        self.assert_final_case("Imprecise Effect Reject Statements", blf_list, expected_final_case)
+    
+    def test_reject_statements_reliable_effect(self):
+        """Test: ReliableTechnicalEffect reject statements"""
+        blf_list = ["DistinguishingFeatures", "BonusEffect"]
+        expected_final_case = [
+            "DistinguishingFeatures", 
+            "BonusEffect",
+            "NonReproducible"
+        ]
+        
+        # Test the evaluation and check for reject statements
+        sub_adf = create_sub_adm_prior_art("reliable_test")
+        sub_adf.evaluateTree(blf_list)
+        statements = sub_adf.evaluateTree(blf_list)
+        
+        # Verify reject statements are present
+        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
+        self.assertGreater(len(reject_statements), 0, "Should have reject statements")
+        
+        self.assert_final_case("Reliable Effect Reject Statements", blf_list, expected_final_case)
+     
+    def test_reject_statements_multiple_rejects(self):
+        """Test: Multiple reject conditions in one case"""
+        blf_list = ["DistinguishingFeatures", "CircumventTechProblem", "ComputerSimulation", "ClaimContainsEffect"]
+        expected_final_case = [
+            "DistinguishingFeatures", 
+            "CircumventTechProblem",
+            "ComputerSimulation",
+            "NumOrComp",
+            "ClaimContainsEffect",
+            "ExcludedField",
+            "SufficiencyOfDisclosureIssue",
+            "NonReproducible"
+        ]
+        
+        # Test the evaluation and check for reject statements
+        sub_adf = create_sub_adm_prior_art("multiple_reject_test")
+        sub_adf.evaluateTree(blf_list)
+        statements = sub_adf.evaluateTree(blf_list)
+        
+        # Verify multiple reject statements are present
+        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
+        self.assertGreater(len(reject_statements), 1, "Should have multiple reject statements")
+        
+        self.assert_final_case("Multiple Reject Statements", blf_list, expected_final_case)
+    
+    def test_reject_statements_no_rejects(self):
+        """Test: Case that should not trigger reject statements"""
+        blf_list = ["DistinguishingFeatures", "IndependentContribution", "Credible", "Reproducible"]
+        expected_final_case = [
+            "DistinguishingFeatures", 
+            "IndependentContribution",
+            "Credible",
+            "Reproducible",
+            "NormalTechnicalContribution",
+            "FeatureTechnicalContribution",
+            "ReliableTechnicalEffect",
+        ]
+        
+        # Test the evaluation - this case should have minimal or no reject statements
+        sub_adf = create_sub_adm_prior_art("no_reject_test")
+        sub_adf.evaluateTree(blf_list)
+        statements = sub_adf.evaluateTree(blf_list)
+        
+        # This case should have evaluation results (statements)
+        self.assertGreater(len(statements), 0, "Should have evaluation statements")
+        
+        # Check that we have some non-reject statements (positive or neutral statements)
+        non_reject_statements = [stmt for stmt in statements if 'reject' not in stmt.lower()]
+        self.assertGreater(len(non_reject_statements), 0, "Should have non-reject statements")
+        
+        self.assert_final_case("No Reject Statements", blf_list, expected_final_case)
+    
+    
+    def test_question_instantiator_basic(self):
+        """Test: QuestionInstantiator basic functionality"""
+        from inventive_step_ADM import create_sub_adm_prior_art
+        
+        # Create a sub-ADM and test question instantiator
+        sub_adf = create_sub_adm_prior_art("question_instantiator_test")
+        
+        # Find a QuestionInstantiator node
+        question_instantiator = None
+        for node_name, node in sub_adf.nodes.items():
+            if hasattr(node, 'blf_mapping'):
+                question_instantiator = node
+                break
+        
+        if question_instantiator:
+            # Test that it has the required attributes
+            self.assertIsNotNone(question_instantiator.blf_mapping)
+            self.assertIsInstance(question_instantiator.blf_mapping, dict)
+            self.assertGreater(len(question_instantiator.blf_mapping), 0)
+    
+    def test_question_instantiator_blf_mapping(self):
+        """Test: QuestionInstantiator BLF mapping functionality"""
+        from inventive_step_ADM import create_sub_adm_prior_art
+        
+        # Create a sub-ADM
+        sub_adf = create_sub_adm_prior_art("mapping_test")
+        
+        # Find a QuestionInstantiator node with BLF mapping
+        question_instantiator = None
+        for node_name, node in sub_adf.nodes.items():
+            if hasattr(node, 'blf_mapping'):
+                question_instantiator = node
+                break
+        
+        if question_instantiator:
+            mapping = question_instantiator.blf_mapping
+            
+            # Verify expected mappings exist
+            expected_mappings = [
+                "A computer simulation.",
+                "The processing of numerical data.",
+                "A mathematical method or algorithm.",
+                "Other excluded field",
+                "None of the above"
+            ]
+            
+            for expected in expected_mappings:
+                self.assertIn(expected, mapping)
+            
+            # Verify BLF mappings
+            self.assertEqual(mapping["A computer simulation."], "ComputerSimulation")
+            self.assertEqual(mapping["The processing of numerical data."], "NumericalData")
+            self.assertEqual(mapping["A mathematical method or algorithm."], "MathematicalMethod")
+    
+    
+    def test_dependent_blf_factual_ascription(self):
+        """Test: DependentBLF factual ascription inheritance"""
+        from inventive_step_ADM import create_sub_adm_prior_art
+        
+        # Create a sub-ADM
+        sub_adf = create_sub_adm_prior_art("ascription_test")
+        
+        # Find a DependentBLF with factual ascription
+        dependent_blf = None
+        for node_name, node in sub_adf.nodes.items():
+            if hasattr(node, 'dependency_node') and hasattr(node, 'factual_ascription'):
+                dependent_blf = node
+                break
+        
+        if dependent_blf and dependent_blf.factual_ascription:
+            # Test that factual ascription is properly set
+            self.assertIsInstance(dependent_blf.factual_ascription, dict)
+    
+    def test_question_instantiator_dependency(self):
+        """Test: QuestionInstantiator with dependency node"""
+        from inventive_step_ADM import create_sub_adm_prior_art
+        
+        # Create a sub-ADM
+        sub_adf = create_sub_adm_prior_art("qi_dependency_test")
+        
+        # Find a QuestionInstantiator with dependency
+        qi_with_dep = None
+        for node_name, node in sub_adf.nodes.items():
+            if hasattr(node, 'blf_mapping') and hasattr(node, 'dependency_node'):
+                qi_with_dep = node
+                break
+        
+        if qi_with_dep:
+            # Test that dependency is properly set
+            self.assertIsNotNone(qi_with_dep.dependency_node)
+            self.assertIsInstance(qi_with_dep.dependency_node, (str, list))
 
 
 class TestMainADMEvaluation(unittest.TestCase):
@@ -671,6 +920,321 @@ class TestCLIUI(unittest.TestCase):
         if not (hasattr(mock_node_no_question, 'question') and mock_node_no_question.question):
             # This would add to case without asking in the actual method
             self.assertTrue(True)  # Just verify the logic works
+    
+    def test_cli_with_sub_adm_case_data(self):
+        """Test CLI with sub-ADM case data and expected outcomes"""
+        # Set up CLI with sub-ADM
+        from inventive_step_ADM import create_sub_adm_prior_art
+        self.cli.adf = create_sub_adm_prior_art("test_feature")
+        self.cli.caseName = "test_sub_adm_case"
+        self.cli.case = []
+        
+        # Test case: Independent Contribution + Computer Simulation + Technical Adaptation
+        test_blfs = ["DistinguishingFeatures","IndependentContribution", "ComputerSimulation", "TechnicalAdaptation"]
+        expected_final_case = [
+            "DistinguishingFeatures", 
+            "IndependentContribution", 
+            "ExcludedField",
+            "NumOrComp",
+            "ComputerSimulation", 
+            "TechnicalAdaptation", 
+            "NonReproducible",
+            "ComputationalContribution", 
+            "FeatureTechnicalContribution"
+        ]
+        
+        # Simulate adding BLFs to case
+        for blf in test_blfs:
+            if blf not in self.cli.case:
+                self.cli.case.append(blf)
+        
+        # Evaluate the case
+        self.cli.adf.evaluateTree(self.cli.case)
+        actual_final_case = self.cli.case.copy()
+        
+        # Verify expected outcome
+        self.assertEqual(set(actual_final_case), set(expected_final_case))
+    
+    def test_cli_with_main_adm_case_data(self):
+        """Test CLI with main ADM case data and expected outcomes"""
+        # Set up CLI with main ADM
+        from inventive_step_ADM import adf
+        self.cli.adf = adf()
+        self.cli.caseName = "test_main_adm_case"
+        self.cli.case = []
+        
+        # Test case: Basic skilled person establishment
+        test_blfs = ["Individual", "SkilledIn", "Average", "Aware", "Access"]
+        expected_final_case = [
+            "Individual", "SkilledIn", "Average", 
+            "Aware", "Access", "Person", "SkilledPerson", "CommonKnowledge"
+        ]
+        
+        # Simulate adding BLFs to case
+        for blf in test_blfs:
+            if blf not in self.cli.case:
+                self.cli.case.append(blf)
+        
+        # Evaluate the case
+        self.cli.adf.evaluateTree(self.cli.case)
+        actual_final_case = self.cli.case.copy()
+        
+        # Verify expected outcome
+        self.assertEqual(set(actual_final_case), set(expected_final_case))
+    
+    def test_cli_query_domain_with_case_evaluation(self):
+        """Test CLI query domain with full case evaluation workflow"""
+        # Set up CLI with sub-ADM
+        from inventive_step_ADM import create_sub_adm_prior_art
+        self.cli.adf = create_sub_adm_prior_art("test_feature")
+        self.cli.caseName = "test_query_case"
+        self.cli.case = []
+        
+        # Mock the ask_questions method to simulate user input
+        original_ask = self.cli.ask_questions
+        def mock_ask_questions():
+            # Simulate adding BLFs based on user responses
+            test_blfs = ["IndependentContribution", "Credible", "Reproducible"]
+            for blf in test_blfs:
+                if blf not in self.cli.case:
+                    self.cli.case.append(blf)
+            return "questions_completed"
+        
+        self.cli.ask_questions = mock_ask_questions
+        
+        # Test query domain workflow
+        result = self.cli.query_domain()
+        self.assertIsNone(result)  # query_domain returns None
+        self.assertEqual(self.cli.caseName, "test")  # query_domain hardcodes caseName as 'test'
+        
+        # Verify case was populated
+        self.assertTrue(len(self.cli.case) > 0)
+        
+        # Restore original method
+        self.cli.ask_questions = original_ask
+    
+    def test_cli_show_outcome_with_actual_evaluation(self):
+        """Test CLI show_outcome with actual ADF evaluation"""
+        # Set up CLI with sub-ADM and case data
+        from inventive_step_ADM import create_sub_adm_prior_art
+        self.cli.adf = create_sub_adm_prior_art("test_feature")
+        self.cli.caseName = "test_outcome_case"
+        self.cli.case = ["DistinguishingFeatures", "IndependentContribution"]
+        
+        # Mock print to capture output
+        builtins.print = self.mock_print
+        
+        # Call show_outcome
+        self.cli.show_outcome()
+        
+        # Verify evaluation was performed and results were printed
+        print_output = ' '.join(self.print_calls)
+        self.assertTrue('Case Outcome: test_outcome_case' in print_output)
+        self.assertTrue('Evaluation Results:' in print_output)
+    
+    def test_cli_visualize_domain_with_case_data(self):
+        """Test CLI visualize_domain with actual case data"""
+        # Set up CLI with sub-ADM and case data
+        from inventive_step_ADM import create_sub_adm_prior_art
+        self.cli.adf = create_sub_adm_prior_art("test_feature")
+        self.cli.caseName = "test_visualize_case"
+        self.cli.case = ["DistinguishingFeatures", "IndependentContribution", "ComputerSimulation"]
+        
+        # Mock print to capture output
+        builtins.print = self.mock_print
+        
+        # Mock os.system to avoid actual system calls
+        import os
+        original_system = os.system
+        os.system = lambda x: None
+        
+        try:
+            # Call visualize_domain
+            self.cli.visualize_domain()
+            
+            # Verify visualization was attempted
+            print_output = ' '.join(self.print_calls)
+            self.assertTrue('test_visualize_case' in print_output)
+        finally:
+            os.system = original_system
+    
+    def test_cli_complex_workflow_sub_adm(self):
+        """Test complete CLI workflow with complex sub-ADM case"""
+        # Set up CLI with sub-ADM
+        from inventive_step_ADM import create_sub_adm_prior_art
+        self.cli.adf = create_sub_adm_prior_art("complex_feature")
+        self.cli.caseName = "complex_sub_adm_case"
+        self.cli.case = []
+        
+        # Complex test case: All positive factors
+        test_blfs = ["DistinguishingFeatures", "IndependentContribution", "ComputerSimulation", "TechnicalAdaptation", "Credible", "Reproducible"]
+        expected_final_case = [
+            "DistinguishingFeatures", 
+            "IndependentContribution", 
+            "ExcludedField",
+            "NumOrComp",
+            "ComputerSimulation", 
+            "TechnicalAdaptation", 
+            "Credible", 
+            "Reproducible", 
+            "ComputationalContribution", 
+            "FeatureTechnicalContribution", 
+            "ReliableTechnicalEffect"
+        ]
+        
+        # Simulate full workflow
+        for blf in test_blfs:
+            if blf not in self.cli.case:
+                self.cli.case.append(blf)
+        
+        # Evaluate case
+        self.cli.adf.evaluateTree(self.cli.case)
+        actual_final_case = self.cli.case.copy()
+        
+        # Verify expected outcome
+        self.assertEqual(set(actual_final_case), set(expected_final_case))
+        
+        # Test show_outcome
+        builtins.print = self.mock_print
+        self.cli.show_outcome()
+        
+        # Verify results were displayed
+        print_output = ' '.join(self.print_calls)
+        self.assertTrue('complex_sub_adm_case' in print_output)
+    
+    def test_cli_complex_workflow_main_adm(self):
+        """Test complete CLI workflow with complex main ADM case"""
+        # Set up CLI with main ADM
+        from inventive_step_ADM import adf
+        self.cli.adf = adf()
+        self.cli.caseName = "complex_main_adm_case"
+        self.cli.case = []
+        
+        # Complex test case: All major factors
+        test_blfs = [
+            "Individual", "SkilledIn", "Average", "Aware", "Access",
+            "SameField", "SimilarPurpose", "SimilarEffect",
+            "Textbook", "SingleReference", "MinModifications", "AssessedBy",
+            "CombinationAttempt", "SameFieldCPA", "CombinationMotive", "BasisToAssociate"
+        ]
+        expected_final_case = [
+            "Individual", "SkilledIn", "Average", 
+            "Aware", "Access", "Person", "SkilledPerson", "SameField", 
+            "SimilarPurpose", "SimilarEffect", "RelevantPriorArt", "Textbook", 
+            "DocumentaryEvidence", "CommonKnowledge", "SingleReference", 
+            "MinModifications", "AssessedBy", "ClosestPriorArt", "CombinationAttempt", 
+            "SameFieldCPA", "CombinationMotive", "BasisToAssociate", 
+            "CombinationDocuments", "ClosestPriorArtDocuments"
+        ]
+        
+        # Simulate full workflow
+        for blf in test_blfs:
+            if blf not in self.cli.case:
+                self.cli.case.append(blf)
+        
+        # Evaluate case
+        self.cli.adf.evaluateTree(self.cli.case)
+        actual_final_case = self.cli.case.copy()
+        
+        # Verify expected outcome
+        self.assertEqual(set(actual_final_case), set(expected_final_case))
+        
+        # Test show_outcome
+        builtins.print = self.mock_print
+        self.cli.show_outcome()
+        
+        # Verify results were displayed
+        print_output = ' '.join(self.print_calls)
+        self.assertTrue('complex_main_adm_case' in print_output)
+    
+    def test_cli_rejection_case_sub_adm(self):
+        """Test CLI with sub-ADM rejection case"""
+        # Set up CLI with sub-ADM
+        from inventive_step_ADM import create_sub_adm_prior_art
+        self.cli.adf = create_sub_adm_prior_art("rejection_feature")
+        self.cli.caseName = "rejection_case"
+        self.cli.case = []
+        
+        # Test case: Should be rejected due to CircumventTechProblem
+        test_blfs = ["DistinguishingFeatures","IndependentContribution", "CircumventTechProblem", "Credible", "Reproducible"]
+        expected_final_case = [
+            "DistinguishingFeatures", 
+            "IndependentContribution", 
+            "CircumventTechProblem", 
+            "Credible", 
+            "Reproducible"
+            # NormalTechnicalContribution should NOT be added due to CircumventTechProblem
+        ]
+        
+        # Simulate workflow
+        for blf in test_blfs:
+            if blf not in self.cli.case:
+                self.cli.case.append(blf)
+        
+        # Evaluate case
+        self.cli.adf.evaluateTree(self.cli.case)
+        actual_final_case = self.cli.case.copy()
+        
+        # Verify expected outcome (rejection)
+        self.assertEqual(set(actual_final_case), set(expected_final_case))
+        self.assertNotIn("NormalTechnicalContribution", actual_final_case)
+    
+    def test_cli_edge_case_no_blfs(self):
+        """Test CLI with edge case - no BLFs"""
+        # Set up CLI with sub-ADM
+        from inventive_step_ADM import create_sub_adm_prior_art
+        self.cli.adf = create_sub_adm_prior_art("edge_feature")
+        self.cli.caseName = "edge_case"
+        self.cli.case = []
+        
+        # Test case: Only base case
+        test_blfs = ["DistinguishingFeatures"]
+        expected_final_case = [
+            "DistinguishingFeatures",
+            "NonReproducible"
+        ]
+        
+        # Simulate workflow
+        for blf in test_blfs:
+            if blf not in self.cli.case:
+                self.cli.case.append(blf)
+        
+        # Evaluate case
+        self.cli.adf.evaluateTree(self.cli.case)
+        actual_final_case = self.cli.case.copy()
+        
+        # Verify expected outcome
+        self.assertEqual(set(actual_final_case), set(expected_final_case))
+    
+    def test_cli_case_persistence(self):
+        """Test CLI case persistence across operations"""
+        # Set up CLI with sub-ADM
+        from inventive_step_ADM import create_sub_adm_prior_art
+        self.cli.adf = create_sub_adm_prior_art("persistence_feature")
+        self.cli.caseName = "persistence_case"
+        self.cli.case = []
+        
+        # Add some BLFs
+        test_blfs = ["IndependentContribution", "ComputerSimulation"]
+        for blf in test_blfs:
+            if blf not in self.cli.case:
+                self.cli.case.append(blf)
+        
+        # Verify case is stored
+        self.assertEqual(len(self.cli.case), 2)
+        self.assertIn("IndependentContribution", self.cli.case)
+        self.assertIn("ComputerSimulation", self.cli.case)
+        
+        # Test that case persists across operations (but show_outcome will add abstract factors)
+        original_case = self.cli.case.copy()
+        self.cli.show_outcome()  # This will add abstract factors via evaluateTree()
+        
+        # Verify that the original BLFs are still there, but abstract factors may be added
+        for blf in original_case:
+            self.assertIn(blf, self.cli.case)
+        
+        # The case should have grown (abstract factors added)
+        self.assertGreaterEqual(len(self.cli.case), len(original_case))
 
 
 def run_all_tests():
@@ -707,24 +1271,73 @@ def run_all_tests():
     print(f"Success rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%")
     
     if result.failures:
-        print(f"\nFAILURES:")
-        for test, traceback in result.failures:
+        print(f"\n{'='*60}")
+        print(f"DETAILED FAILURE ANALYSIS")
+        print(f"{'='*60}")
+        for i, (test, traceback) in enumerate(result.failures, 1):
+            print(f"\n{i}. FAILURE: {test}")
+            print(f"{'─'*50}")
+            
             # Extract the detailed error message
             lines = traceback.split('\n')
+            assertion_found = False
+            
             for line in lines:
                 if 'Expected:' in line and 'Got:' in line:
-                    print(f"  - {test}: {line}")
+                    print(f"   Assertion Error: {line}")
+                    assertion_found = True
                     break
-            else:
+            
+            if not assertion_found:
+                # Look for AssertionError line
+                for line in lines:
+                    if 'AssertionError:' in line:
+                        error_msg = line.split('AssertionError: ')[-1]
+                        print(f"   Assertion Error: {error_msg}")
+                        assertion_found = True
+                        break
+            
+            if not assertion_found:
                 # Fallback to original error message
                 error_msg = traceback.split('AssertionError: ')[-1].split('\n')[0]
-                print(f"  - {test}: {error_msg}")
+                print(f"   Error: {error_msg}")
+            
+            # Show the full traceback for debugging
+            print(f"\n   Full Traceback:")
+            for line in lines:
+                if line.strip():
+                    print(f"   {line}")
     
     if result.errors:
-        print(f"\nERRORS:")
-        for test, traceback in result.errors:
-            error_msg = traceback.split('\n')[-2]
-            print(f"  - {test}: {error_msg}")
+        print(f"\n{'='*60}")
+        print(f"DETAILED ERROR ANALYSIS")
+        print(f"{'='*60}")
+        for i, (test, traceback) in enumerate(result.errors, 1):
+            print(f"\n{i}. ERROR: {test}")
+            print(f"{'─'*50}")
+            
+            # Extract the main error message
+            lines = traceback.split('\n')
+            error_msg = "Unknown error"
+            
+            for line in lines:
+                if 'Exception:' in line or 'Error:' in line:
+                    error_msg = line.strip()
+                    break
+                elif 'Traceback' in line and 'most recent call last' in line:
+                    # Look for the actual exception in the next few lines
+                    for j, trace_line in enumerate(lines[lines.index(line)+1:], lines.index(line)+1):
+                        if 'Exception' in trace_line or 'Error' in trace_line:
+                            error_msg = trace_line.strip()
+                            break
+            
+            print(f"   Error: {error_msg}")
+            
+            # Show the full traceback for debugging
+            print(f"\n   Full Traceback:")
+            for line in lines:
+                if line.strip():
+                    print(f"   {line}")
     
     return result
 
@@ -751,24 +1364,73 @@ def run_sub_adm_tests():
     print(f"Success rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%")
     
     if result.failures:
-        print(f"\nFAILURES:")
-        for test, traceback in result.failures:
+        print(f"\n{'='*60}")
+        print(f"DETAILED FAILURE ANALYSIS")
+        print(f"{'='*60}")
+        for i, (test, traceback) in enumerate(result.failures, 1):
+            print(f"\n{i}. FAILURE: {test}")
+            print(f"{'─'*50}")
+            
             # Extract the detailed error message
             lines = traceback.split('\n')
+            assertion_found = False
+            
             for line in lines:
                 if 'Expected:' in line and 'Got:' in line:
-                    print(f"  - {test}: {line}")
+                    print(f"   Assertion Error: {line}")
+                    assertion_found = True
                     break
-            else:
+            
+            if not assertion_found:
+                # Look for AssertionError line
+                for line in lines:
+                    if 'AssertionError:' in line:
+                        error_msg = line.split('AssertionError: ')[-1]
+                        print(f"   Assertion Error: {error_msg}")
+                        assertion_found = True
+                        break
+            
+            if not assertion_found:
                 # Fallback to original error message
                 error_msg = traceback.split('AssertionError: ')[-1].split('\n')[0]
-                print(f"  - {test}: {error_msg}")
+                print(f"   Error: {error_msg}")
+            
+            # Show the full traceback for debugging
+            print(f"\n   Full Traceback:")
+            for line in lines:
+                if line.strip():
+                    print(f"   {line}")
     
     if result.errors:
-        print(f"\nERRORS:")
-        for test, traceback in result.errors:
-            error_msg = traceback.split('\n')[-2]
-            print(f"  - {test}: {error_msg}")
+        print(f"\n{'='*60}")
+        print(f"DETAILED ERROR ANALYSIS")
+        print(f"{'='*60}")
+        for i, (test, traceback) in enumerate(result.errors, 1):
+            print(f"\n{i}. ERROR: {test}")
+            print(f"{'─'*50}")
+            
+            # Extract the main error message
+            lines = traceback.split('\n')
+            error_msg = "Unknown error"
+            
+            for line in lines:
+                if 'Exception:' in line or 'Error:' in line:
+                    error_msg = line.strip()
+                    break
+                elif 'Traceback' in line and 'most recent call last' in line:
+                    # Look for the actual exception in the next few lines
+                    for j, trace_line in enumerate(lines[lines.index(line)+1:], lines.index(line)+1):
+                        if 'Exception' in trace_line or 'Error' in trace_line:
+                            error_msg = trace_line.strip()
+                            break
+            
+            print(f"   Error: {error_msg}")
+            
+            # Show the full traceback for debugging
+            print(f"\n   Full Traceback:")
+            for line in lines:
+                if line.strip():
+                    print(f"   {line}")
     
     return result
 
@@ -795,24 +1457,73 @@ def run_main_adm_tests():
     print(f"Success rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%")
     
     if result.failures:
-        print(f"\nFAILURES:")
-        for test, traceback in result.failures:
+        print(f"\n{'='*60}")
+        print(f"DETAILED FAILURE ANALYSIS")
+        print(f"{'='*60}")
+        for i, (test, traceback) in enumerate(result.failures, 1):
+            print(f"\n{i}. FAILURE: {test}")
+            print(f"{'─'*50}")
+            
             # Extract the detailed error message
             lines = traceback.split('\n')
+            assertion_found = False
+            
             for line in lines:
                 if 'Expected:' in line and 'Got:' in line:
-                    print(f"  - {test}: {line}")
+                    print(f"   Assertion Error: {line}")
+                    assertion_found = True
                     break
-            else:
+            
+            if not assertion_found:
+                # Look for AssertionError line
+                for line in lines:
+                    if 'AssertionError:' in line:
+                        error_msg = line.split('AssertionError: ')[-1]
+                        print(f"   Assertion Error: {error_msg}")
+                        assertion_found = True
+                        break
+            
+            if not assertion_found:
                 # Fallback to original error message
                 error_msg = traceback.split('AssertionError: ')[-1].split('\n')[0]
-                print(f"  - {test}: {error_msg}")
+                print(f"   Error: {error_msg}")
+            
+            # Show the full traceback for debugging
+            print(f"\n   Full Traceback:")
+            for line in lines:
+                if line.strip():
+                    print(f"   {line}")
     
     if result.errors:
-        print(f"\nERRORS:")
-        for test, traceback in result.errors:
-            error_msg = traceback.split('\n')[-2]
-            print(f"  - {test}: {error_msg}")
+        print(f"\n{'='*60}")
+        print(f"DETAILED ERROR ANALYSIS")
+        print(f"{'='*60}")
+        for i, (test, traceback) in enumerate(result.errors, 1):
+            print(f"\n{i}. ERROR: {test}")
+            print(f"{'─'*50}")
+            
+            # Extract the main error message
+            lines = traceback.split('\n')
+            error_msg = "Unknown error"
+            
+            for line in lines:
+                if 'Exception:' in line or 'Error:' in line:
+                    error_msg = line.strip()
+                    break
+                elif 'Traceback' in line and 'most recent call last' in line:
+                    # Look for the actual exception in the next few lines
+                    for j, trace_line in enumerate(lines[lines.index(line)+1:], lines.index(line)+1):
+                        if 'Exception' in trace_line or 'Error' in trace_line:
+                            error_msg = trace_line.strip()
+                            break
+            
+            print(f"   Error: {error_msg}")
+            
+            # Show the full traceback for debugging
+            print(f"\n   Full Traceback:")
+            for line in lines:
+                if line.strip():
+                    print(f"   {line}")
     
     return result
 
@@ -839,16 +1550,73 @@ def run_cli_tests():
     print(f"Success rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%")
     
     if result.failures:
-        print(f"\nFAILURES:")
-        for test, traceback in result.failures:
-            error_msg = traceback.split('AssertionError: ')[-1].split('\n')[0]
-            print(f"  - {test}: {error_msg}")
+        print(f"\n{'='*60}")
+        print(f"DETAILED FAILURE ANALYSIS")
+        print(f"{'='*60}")
+        for i, (test, traceback) in enumerate(result.failures, 1):
+            print(f"\n{i}. FAILURE: {test}")
+            print(f"{'─'*50}")
+            
+            # Extract the detailed error message
+            lines = traceback.split('\n')
+            assertion_found = False
+            
+            for line in lines:
+                if 'Expected:' in line and 'Got:' in line:
+                    print(f"   Assertion Error: {line}")
+                    assertion_found = True
+                    break
+            
+            if not assertion_found:
+                # Look for AssertionError line
+                for line in lines:
+                    if 'AssertionError:' in line:
+                        error_msg = line.split('AssertionError: ')[-1]
+                        print(f"   Assertion Error: {error_msg}")
+                        assertion_found = True
+                        break
+            
+            if not assertion_found:
+                # Fallback to original error message
+                error_msg = traceback.split('AssertionError: ')[-1].split('\n')[0]
+                print(f"   Error: {error_msg}")
+            
+            # Show the full traceback for debugging
+            print(f"\n   Full Traceback:")
+            for line in lines:
+                if line.strip():
+                    print(f"   {line}")
     
     if result.errors:
-        print(f"\nERRORS:")
-        for test, traceback in result.errors:
-            error_msg = traceback.split('\n')[-2]
-            print(f"  - {test}: {error_msg}")
+        print(f"\n{'='*60}")
+        print(f"DETAILED ERROR ANALYSIS")
+        print(f"{'='*60}")
+        for i, (test, traceback) in enumerate(result.errors, 1):
+            print(f"\n{i}. ERROR: {test}")
+            print(f"{'─'*50}")
+            
+            # Extract the main error message
+            lines = traceback.split('\n')
+            error_msg = "Unknown error"
+            
+            for line in lines:
+                if 'Exception:' in line or 'Error:' in line:
+                    error_msg = line.strip()
+                    break
+                elif 'Traceback' in line and 'most recent call last' in line:
+                    # Look for the actual exception in the next few lines
+                    for j, trace_line in enumerate(lines[lines.index(line)+1:], lines.index(line)+1):
+                        if 'Exception' in trace_line or 'Error' in trace_line:
+                            error_msg = trace_line.strip()
+                            break
+            
+            print(f"   Error: {error_msg}")
+            
+            # Show the full traceback for debugging
+            print(f"\n   Full Traceback:")
+            for line in lines:
+                if line.strip():
+                    print(f"   {line}")
     
     return result
 
