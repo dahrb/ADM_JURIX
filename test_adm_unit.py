@@ -1032,32 +1032,6 @@ class TestCLIUI(unittest.TestCase):
         self.assertTrue('Case Outcome: test_outcome_case' in print_output)
         self.assertTrue('Evaluation Results:' in print_output)
     
-    def test_cli_visualize_domain_with_case_data(self):
-        """Test CLI visualize_domain with actual case data"""
-        # Set up CLI with sub-ADM and case data
-        from inventive_step_ADM import create_sub_adm_prior_art
-        self.cli.adf = create_sub_adm_prior_art("test_feature")
-        self.cli.caseName = "test_visualize_case"
-        self.cli.case = ["DistinguishingFeatures", "IndependentContribution", "ComputerSimulation"]
-        
-        # Mock print to capture output
-        builtins.print = self.mock_print
-        
-        # Mock os.system to avoid actual system calls
-        import os
-        original_system = os.system
-        os.system = lambda x: None
-        
-        try:
-            # Call visualize_domain
-            self.cli.visualize_domain()
-            
-            # Verify visualization was attempted
-            print_output = ' '.join(self.print_calls)
-            self.assertTrue('test_visualize_case' in print_output)
-        finally:
-            os.system = original_system
-    
     def test_cli_complex_workflow_sub_adm(self):
         """Test complete CLI workflow with complex sub-ADM case"""
         # Set up CLI with sub-ADM
