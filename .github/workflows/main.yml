@@ -50,3 +50,8 @@ jobs:
       run: |
         uv run python test_adm_unit.py cli
       continue-on-error: false
+    
+    - name: Run dependency tests only
+      run: |
+        uv run python test_adm_unit.py dep
+      continue-on-error: false
