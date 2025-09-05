@@ -232,6 +232,7 @@ class ADF:
         self.nonLeafGen()
         #while there are nonLeaf nodes which have not been evaluated, evaluate a node in this list in ascending order  
         while self.nonLeaf != {}:
+
             for name,node in zip(self.nonLeaf,self.nonLeaf.values()):
                 #checks if the node's children are non-leaf nodes
                 if name == 'Decide' and len(self.nonLeaf) != 1:
@@ -241,44 +242,47 @@ class ADF:
                     self.nodeDone.append(name) 
                     #checks candidate node's acceptance conditions
                     if self.evaluateNode(node):
-                        #enables rejection clauses - handy for automobile
-                        if self.reject != True:
-                            #adds factor to case if present (only if not already there)
-                            if name not in self.case:
-                                self.case.append(name)
-                            else:
-                                pass
+
+                        #adds factor to case if present (only if not already there)
+                        if name not in self.case:
+                            self.case.append(name)
+                        else:
+                            pass
+                        
+                        # NEW: Automatically inherit facts when abstract factors are added to case
+                        if hasattr(self, 'facts'):
                             
-                            # NEW: Automatically inherit facts when abstract factors are added to case
-                            if hasattr(self, 'facts'):
-                                
-                                # Check if this is an abstract factor (has children)
-                                if (hasattr(self.nodes[name], 'children') and 
-                                    self.nodes[name].children):
-                                    # Get inherited facts and store them for this abstract factor
-                                    inherited_facts = self.getInheritedFacts(name, self.case)
-                                    if inherited_facts:
-                                        # Store inherited facts on the abstract factor itself
-                                        if name not in self.facts:
-                                            self.facts[name] = {}
-                                        for fact_name, value in inherited_facts.items():
-                                            self.facts[name][fact_name] = value
+                            # Check if this is an abstract factor (has children)
+                            if (hasattr(self.nodes[name], 'children') and 
+                                self.nodes[name].children):
+                                # Get inherited facts and store them for this abstract factor
+                                inherited_facts = self.getInheritedFacts(name, self.case)
+                                if inherited_facts:
+                                    # Store inherited facts on the abstract factor itself
+                                    if name not in self.facts:
+                                        self.facts[name] = {}
+                                    for fact_name, value in inherited_facts.items():
+                                        self.facts[name][fact_name] = value
                                 
                         #deletes node from nonLeaf nodes
                         self.nonLeaf.pop(name)
                         self.statements.append(node.statement[self.counter])
                         self.reject = False
                         break
+
                     #if node's acceptance conditions are false                       
                     else:
                         #deletes node from nonLeaf nodes but doesn't add to case
                         self.nonLeaf.pop(name)
                         #the last statement is always the rejection statemenr
-                        self.statements.append(node.statement[-1])
+         
+                        if self.reject: 
+                            self.statements.append(node.statement[self.counter])
+                        else:
+                            self.statements.append(node.statement[-1])
                         self.reject = False
                         break
-        
-        
+                
         # Clean up any duplicates that might have slipped through
         if hasattr(self, 'case') and self.case:
             # Remove duplicates while preserving order
@@ -314,27 +318,24 @@ class ADF:
         self.counter = -1
         
         #checks each acceptance condition seperately
-        any_reject = False  # Track if any reject condition is met
-        any_accept = False  # Track if any accept condition is met
-        
         for i in node.acceptance:
             self.reject = False
             self.counter+=1
             x = self.postfixEvaluation(i)
-            if self.reject:
-                any_reject = True  # Mark that a reject condition was met
-            if x == True and not self.reject:
-                any_accept = True  # Mark that an accept condition was met
-
-        # If any reject condition was met, return False
-        if any_reject:
-            self.reject = True
-            return False
-        
-        # If any accept condition was met, return True
-        if any_accept:
-            return True
             
+            # If this is a reject condition and it's true, return False immediately
+            if self.reject and x == True:
+                self.reject = True
+                return False
+            
+            # If this is an accept condition and it's true, return True immediately
+            if not self.reject and x == True:
+                return True
+
+            if x == 'accept':
+                return True
+                
+        # If we get here, no conditions were satisfied
         return False
     
     def postfixEvaluation(self,acceptance):

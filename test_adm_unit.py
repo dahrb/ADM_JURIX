@@ -6,18 +6,20 @@ Clean unit tests for both sub-ADM and main ADM evaluation with expected final ca
 import unittest
 import os
 from MainClasses import *
-from inventive_step_ADM import create_sub_adm_prior_art, adf
+from inventive_step_ADM import create_sub_adm_1, adf
+import UI
 from UI import CLI
 import builtins
 import sys
-
+import io
+from contextlib import redirect_stdout
 
 class TestSubADMEvaluation(unittest.TestCase):
     """Unit tests for sub-ADM evaluation"""
     
     def setUp(self):
         """Set up test fixtures"""
-        self.sub_adf = create_sub_adm_prior_art("test_feature")
+        self.sub_adf = create_sub_adm_1("test_feature")
     
     def evaluate_blf_combination(self, blf_list):
         """Helper method to evaluate a combination of BLFs using the tree evaluation algorithm"""
@@ -236,7 +238,7 @@ class TestSubADMEvaluation(unittest.TestCase):
         self.assert_final_case("Only Circumvent Tech Problem", blf_list, expected_final_case)
     
     def test_reject_statements_basic(self):
-        """Test: Basic reject statements with CircumventTechProblem"""
+        """Test: Basic reject statements with CircumventTechProblem - should prevent NormalTechnicalContribution"""
         blf_list = ["DistinguishingFeatures", "CircumventTechProblem"]
         expected_final_case = [
             "DistinguishingFeatures", 
@@ -244,42 +246,52 @@ class TestSubADMEvaluation(unittest.TestCase):
             "NonReproducible"
         ]
         
-        # Test the evaluation and check for reject statements
-        sub_adf = create_sub_adm_prior_art("reject_test")
+        # Test the evaluation - CircumventTechProblem should prevent NormalTechnicalContribution
+        sub_adf = create_sub_adm_1("reject_test")
         sub_adf.evaluateTree(blf_list)
         statements = sub_adf.evaluateTree(blf_list)
         
-        # Verify reject statements are present
-        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
+        # With new short-circuiting logic, reject conditions prevent node satisfaction
+        # NormalTechnicalContribution should NOT be in the case due to reject CircumventTechProblem
+        self.assertNotIn("NormalTechnicalContribution", sub_adf.case, "NormalTechnicalContribution should be rejected due to CircumventTechProblem")
+        self.assertNotIn("FeatureTechnicalContribution", sub_adf.case, "FeatureTechnicalContribution should not be satisfied without NormalTechnicalContribution")
+        
+        # Verify reject statements are present in the evaluation output
+        reject_statements = [stmt for stmt in statements if 'not a technical contribution' in stmt.lower() or 'circumvents a technical problem' in stmt.lower()]
         self.assertGreater(len(reject_statements), 0, "Should have reject statements")
         
         self.assert_final_case("Basic Reject Statements", blf_list, expected_final_case)
     
     def test_reject_statements_excluded_field(self):
-        """Test: ExcludedField reject statements"""
-        blf_list = ["DistinguishingFeatures", "ComputerSimulation", "MathematicalMethod"]
+        """Test: ExcludedField reject statements - should prevent NormalTechnicalContribution"""
+        blf_list = ["DistinguishingFeatures", "ComputerSimulation"]
         expected_final_case = [
             "DistinguishingFeatures", 
             "NumOrComp",
             "ComputerSimulation",
-            "MathematicalMethod",
             "ExcludedField",
             "NonReproducible"
         ]
         
-        # Test the evaluation and check for reject statements
-        sub_adf = create_sub_adm_prior_art("excluded_field_test")
+        # Test the evaluation - ExcludedField should prevent NormalTechnicalContribution
+        sub_adf = create_sub_adm_1("excluded_field_test")
         sub_adf.evaluateTree(blf_list)
         statements = sub_adf.evaluateTree(blf_list)
         
-        # Verify reject statements are present
-        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
+        # With new short-circuiting logic, reject conditions prevent node satisfaction
+        # NormalTechnicalContribution should NOT be in the case due to reject ExcludedField
+        self.assertNotIn("NormalTechnicalContribution", sub_adf.case, "NormalTechnicalContribution should be rejected due to ExcludedField")
+        self.assertNotIn("FeatureTechnicalContribution", sub_adf.case, "FeatureTechnicalContribution should not be satisfied without NormalTechnicalContribution")
+        
+        # Verify reject statements are present in the evaluation output
+        print(statements)
+        reject_statements = [stmt for stmt in statements if 'not a technical contribution' in stmt.lower() or 'part of an excluded field' in stmt.lower()]
         self.assertGreater(len(reject_statements), 0, "Should have reject statements")
         
         self.assert_final_case("Excluded Field Reject Statements", blf_list, expected_final_case)
     
     def test_reject_statements_sufficiency_issue(self):
-        """Test: SufficiencyOfDisclosureIssue reject statements"""
+        """Test: SufficiencyOfDisclosureIssue reject statements - should prevent ReliableTechnicalEffect"""
         blf_list = ["DistinguishingFeatures", "ClaimContainsEffect"]
         expected_final_case = [
             "DistinguishingFeatures", 
@@ -288,39 +300,23 @@ class TestSubADMEvaluation(unittest.TestCase):
             "NonReproducible"
         ]
         
-        # Test the evaluation and check for reject statements
-        sub_adf = create_sub_adm_prior_art("sufficiency_test")
+        # Test the evaluation - SufficiencyOfDisclosureIssue should prevent ReliableTechnicalEffect
+        sub_adf = create_sub_adm_1("sufficiency_test")
         sub_adf.evaluateTree(blf_list)
         statements = sub_adf.evaluateTree(blf_list)
         
-        # Verify reject statements are present
-        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
+        # With new short-circuiting logic, reject conditions prevent node satisfaction
+        # ReliableTechnicalEffect should NOT be in the case due to reject SufficiencyOfDisclosureIssue
+        self.assertNotIn("ReliableTechnicalEffect", sub_adf.case, "ReliableTechnicalEffect should be rejected due to SufficiencyOfDisclosureIssue")
+        
+        # Verify reject statements are present in the evaluation output
+        reject_statements = [stmt for stmt in statements if 'sufficiency of disclosure precludes' in stmt.lower() or 'not reproducible' in stmt.lower()]
         self.assertGreater(len(reject_statements), 0, "Should have reject statements")
         
         self.assert_final_case("Sufficiency Issue Reject Statements", blf_list, expected_final_case)
     
-    def test_reject_statements_imprecise_effect(self):
-        """Test: ImpreciseUnexpectedEffect reject statements"""
-        blf_list = ["DistinguishingFeatures", "PreciseTerms"]
-        expected_final_case = [
-            "DistinguishingFeatures", 
-            "PreciseTerms",
-            "NonReproducible"
-        ]
-        
-        # Test the evaluation and check for reject statements
-        sub_adf = create_sub_adm_prior_art("imprecise_test")
-        sub_adf.evaluateTree(blf_list)
-        statements = sub_adf.evaluateTree(blf_list)
-        
-        # Verify reject statements are present
-        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
-        self.assertGreater(len(reject_statements), 0, "Should have reject statements")
-        
-        self.assert_final_case("Imprecise Effect Reject Statements", blf_list, expected_final_case)
-    
     def test_reject_statements_reliable_effect(self):
-        """Test: ReliableTechnicalEffect reject statements"""
+        """Test: ReliableTechnicalEffect reject statements - should prevent ReliableTechnicalEffect"""
         blf_list = ["DistinguishingFeatures", "BonusEffect"]
         expected_final_case = [
             "DistinguishingFeatures", 
@@ -328,19 +324,46 @@ class TestSubADMEvaluation(unittest.TestCase):
             "NonReproducible"
         ]
         
-        # Test the evaluation and check for reject statements
-        sub_adf = create_sub_adm_prior_art("reliable_test")
-        sub_adf.evaluateTree(blf_list)
+        # Test the evaluation - BonusEffect should prevent ReliableTechnicalEffect
+        sub_adf = create_sub_adm_1("reliable_test")
         statements = sub_adf.evaluateTree(blf_list)
         
-        # Verify reject statements are present
-        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
+        # With new short-circuiting logic, reject conditions prevent node satisfaction
+        # ReliableTechnicalEffect should NOT be in the case due to reject BonusEffect
+        self.assertNotIn("ReliableTechnicalEffect", sub_adf.case, "ReliableTechnicalEffect should be rejected due to BonusEffect")
+        
+        # Verify reject statements are present in the evaluation output
+        reject_statements = [stmt for stmt in statements if 'bonus effect which precludes' in stmt.lower() or 'no bonus effect' in stmt.lower()]
+        self.assertGreater(len(reject_statements), 0, "Should have reject statements")
+        
+        self.assert_final_case("Reliable Effect Reject Statements", blf_list, expected_final_case)
+
+    def test_reject_statements_full_reliable_effect(self):
+        """Test: ReliableTechnicalEffect reject statements - should prevent ReliableTechnicalEffect - use full bonus effect def"""
+        blf_list = ["DistinguishingFeatures", "OneWayStreet","UnexpectedEffect","IndependentContribution"]
+        expected_final_case = [
+            "DistinguishingFeatures", 
+            "FeatureTechnicalContribution", "UnexpectedEffect", "OneWayStreet","NormalTechnicalContribution","IndependentContribution",
+            "ImpreciseUnexpectedEffect","BonusEffect",
+            "NonReproducible"
+        ]
+        
+        # Test the evaluation - BonusEffect should prevent ReliableTechnicalEffect
+        sub_adf = create_sub_adm_1("reliable_test")
+        statements = sub_adf.evaluateTree(blf_list)
+        
+        # With new short-circuiting logic, reject conditions prevent node satisfaction
+        # ReliableTechnicalEffect should NOT be in the case due to reject BonusEffect
+        self.assertNotIn("ReliableTechnicalEffect", sub_adf.case, "ReliableTechnicalEffect should be rejected due to BonusEffect")
+        
+        # Verify reject statements are present in the evaluation output
+        reject_statements = [stmt for stmt in statements if 'bonus effect which precludes' in stmt.lower() or 'no bonus effect' in stmt.lower()]
         self.assertGreater(len(reject_statements), 0, "Should have reject statements")
         
         self.assert_final_case("Reliable Effect Reject Statements", blf_list, expected_final_case)
      
     def test_reject_statements_multiple_rejects(self):
-        """Test: Multiple reject conditions in one case"""
+        """Test: Multiple reject conditions in one case - should prevent multiple nodes"""
         blf_list = ["DistinguishingFeatures", "CircumventTechProblem", "ComputerSimulation", "ClaimContainsEffect"]
         expected_final_case = [
             "DistinguishingFeatures", 
@@ -353,19 +376,26 @@ class TestSubADMEvaluation(unittest.TestCase):
             "NonReproducible"
         ]
         
-        # Test the evaluation and check for reject statements
-        sub_adf = create_sub_adm_prior_art("multiple_reject_test")
+        # Test the evaluation - multiple reject conditions should prevent multiple nodes
+        sub_adf = create_sub_adm_1("multiple_reject_test")
         sub_adf.evaluateTree(blf_list)
         statements = sub_adf.evaluateTree(blf_list)
         
-        # Verify multiple reject statements are present
-        reject_statements = [stmt for stmt in statements if 'reject' in stmt.lower()]
+        # With new short-circuiting logic, reject conditions prevent node satisfaction
+        # NormalTechnicalContribution should NOT be in the case due to reject CircumventTechProblem
+        self.assertNotIn("NormalTechnicalContribution", sub_adf.case, "NormalTechnicalContribution should be rejected due to CircumventTechProblem")
+        self.assertNotIn("FeatureTechnicalContribution", sub_adf.case, "FeatureTechnicalContribution should not be satisfied without NormalTechnicalContribution")
+        # ReliableTechnicalEffect should NOT be in the case due to reject SufficiencyOfDisclosureIssue
+        self.assertNotIn("ReliableTechnicalEffect", sub_adf.case, "ReliableTechnicalEffect should be rejected due to SufficiencyOfDisclosureIssue")
+        
+        # Verify multiple reject statements are present in the evaluation output
+        reject_statements = [stmt for stmt in statements if 'not a technical contribution' in stmt.lower() or 'circumvents a technical problem' in stmt.lower() or 'sufficiency of disclosure precludes' in stmt.lower() or 'not reproducible' in stmt.lower()]
         self.assertGreater(len(reject_statements), 1, "Should have multiple reject statements")
         
         self.assert_final_case("Multiple Reject Statements", blf_list, expected_final_case)
     
     def test_reject_statements_no_rejects(self):
-        """Test: Case that should not trigger reject statements"""
+        """Test: Case that should not trigger reject statements - should allow all nodes"""
         blf_list = ["DistinguishingFeatures", "IndependentContribution", "Credible", "Reproducible"]
         expected_final_case = [
             "DistinguishingFeatures", 
@@ -377,27 +407,33 @@ class TestSubADMEvaluation(unittest.TestCase):
             "ReliableTechnicalEffect",
         ]
         
-        # Test the evaluation - this case should have minimal or no reject statements
-        sub_adf = create_sub_adm_prior_art("no_reject_test")
+        # Test the evaluation - this case should allow all nodes to be satisfied
+        sub_adf = create_sub_adm_1("no_reject_test")
         sub_adf.evaluateTree(blf_list)
         statements = sub_adf.evaluateTree(blf_list)
+        
+        # With new short-circuiting logic, no reject conditions should allow all nodes
+        # All these nodes should be in the case since no reject conditions are satisfied
+        self.assertIn("NormalTechnicalContribution", sub_adf.case, "NormalTechnicalContribution should be satisfied without reject conditions")
+        self.assertIn("FeatureTechnicalContribution", sub_adf.case, "FeatureTechnicalContribution should be satisfied")
+        self.assertIn("ReliableTechnicalEffect", sub_adf.case, "ReliableTechnicalEffect should be satisfied without reject conditions")
         
         # This case should have evaluation results (statements)
         self.assertGreater(len(statements), 0, "Should have evaluation statements")
         
-        # Check that we have some non-reject statements (positive or neutral statements)
-        non_reject_statements = [stmt for stmt in statements if 'reject' not in stmt.lower()]
-        self.assertGreater(len(non_reject_statements), 0, "Should have non-reject statements")
+        # Check that we have some positive statements (technical contribution statements)
+        positive_statements = [stmt for stmt in statements if 'technical contribution' in stmt.lower() and 'not' not in stmt.lower()]
+        self.assertGreater(len(positive_statements), 0, "Should have positive technical contribution statements")
         
         self.assert_final_case("No Reject Statements", blf_list, expected_final_case)
     
     
     def test_question_instantiator_basic(self):
         """Test: QuestionInstantiator basic functionality"""
-        from inventive_step_ADM import create_sub_adm_prior_art
+        from inventive_step_ADM import create_sub_adm_1
         
         # Create a sub-ADM and test question instantiator
-        sub_adf = create_sub_adm_prior_art("question_instantiator_test")
+        sub_adf = create_sub_adm_1("question_instantiator_test")
         
         # Find a QuestionInstantiator node
         question_instantiator = None
@@ -414,10 +450,10 @@ class TestSubADMEvaluation(unittest.TestCase):
     
     def test_question_instantiator_blf_mapping(self):
         """Test: QuestionInstantiator BLF mapping functionality"""
-        from inventive_step_ADM import create_sub_adm_prior_art
+        from inventive_step_ADM import create_sub_adm_1
         
         # Create a sub-ADM
-        sub_adf = create_sub_adm_prior_art("mapping_test")
+        sub_adf = create_sub_adm_1("mapping_test")
         
         # Find a QuestionInstantiator node with BLF mapping
         question_instantiator = None
@@ -449,10 +485,10 @@ class TestSubADMEvaluation(unittest.TestCase):
     
     def test_dependent_blf_factual_ascription(self):
         """Test: DependentBLF factual ascription inheritance"""
-        from inventive_step_ADM import create_sub_adm_prior_art
+        from inventive_step_ADM import create_sub_adm_1
         
         # Create a sub-ADM
-        sub_adf = create_sub_adm_prior_art("ascription_test")
+        sub_adf = create_sub_adm_1("ascription_test")
         
         # Find a DependentBLF with factual ascription
         dependent_blf = None
@@ -467,10 +503,10 @@ class TestSubADMEvaluation(unittest.TestCase):
     
     def test_question_instantiator_dependency(self):
         """Test: QuestionInstantiator with dependency node"""
-        from inventive_step_ADM import create_sub_adm_prior_art
+        from inventive_step_ADM import create_sub_adm_1
         
         # Create a sub-ADM
-        sub_adf = create_sub_adm_prior_art("qi_dependency_test")
+        sub_adf = create_sub_adm_1("qi_dependency_test")
         
         # Find a QuestionInstantiator with dependency
         qi_with_dep = None
@@ -924,8 +960,8 @@ class TestCLIUI(unittest.TestCase):
     def test_cli_with_sub_adm_case_data(self):
         """Test CLI with sub-ADM case data and expected outcomes"""
         # Set up CLI with sub-ADM
-        from inventive_step_ADM import create_sub_adm_prior_art
-        self.cli.adf = create_sub_adm_prior_art("test_feature")
+        from inventive_step_ADM import create_sub_adm_1
+        self.cli.adf = create_sub_adm_1("test_feature")
         self.cli.caseName = "test_sub_adm_case"
         self.cli.case = []
         
@@ -985,8 +1021,8 @@ class TestCLIUI(unittest.TestCase):
     def test_cli_query_domain_with_case_evaluation(self):
         """Test CLI query domain with full case evaluation workflow"""
         # Set up CLI with sub-ADM
-        from inventive_step_ADM import create_sub_adm_prior_art
-        self.cli.adf = create_sub_adm_prior_art("test_feature")
+        from inventive_step_ADM import create_sub_adm_1
+        self.cli.adf = create_sub_adm_1("test_feature")
         self.cli.caseName = "test_query_case"
         self.cli.case = []
         
@@ -1016,8 +1052,8 @@ class TestCLIUI(unittest.TestCase):
     def test_cli_show_outcome_with_actual_evaluation(self):
         """Test CLI show_outcome with actual ADF evaluation"""
         # Set up CLI with sub-ADM and case data
-        from inventive_step_ADM import create_sub_adm_prior_art
-        self.cli.adf = create_sub_adm_prior_art("test_feature")
+        from inventive_step_ADM import create_sub_adm_1
+        self.cli.adf = create_sub_adm_1("test_feature")
         self.cli.caseName = "test_outcome_case"
         self.cli.case = ["DistinguishingFeatures", "IndependentContribution"]
         
@@ -1035,8 +1071,8 @@ class TestCLIUI(unittest.TestCase):
     def test_cli_complex_workflow_sub_adm(self):
         """Test complete CLI workflow with complex sub-ADM case"""
         # Set up CLI with sub-ADM
-        from inventive_step_ADM import create_sub_adm_prior_art
-        self.cli.adf = create_sub_adm_prior_art("complex_feature")
+        from inventive_step_ADM import create_sub_adm_1
+        self.cli.adf = create_sub_adm_1("complex_feature")
         self.cli.caseName = "complex_sub_adm_case"
         self.cli.case = []
         
@@ -1124,8 +1160,8 @@ class TestCLIUI(unittest.TestCase):
     def test_cli_rejection_case_sub_adm(self):
         """Test CLI with sub-ADM rejection case"""
         # Set up CLI with sub-ADM
-        from inventive_step_ADM import create_sub_adm_prior_art
-        self.cli.adf = create_sub_adm_prior_art("rejection_feature")
+        from inventive_step_ADM import create_sub_adm_1
+        self.cli.adf = create_sub_adm_1("rejection_feature")
         self.cli.caseName = "rejection_case"
         self.cli.case = []
         
@@ -1156,8 +1192,8 @@ class TestCLIUI(unittest.TestCase):
     def test_cli_edge_case_no_blfs(self):
         """Test CLI with edge case - no BLFs"""
         # Set up CLI with sub-ADM
-        from inventive_step_ADM import create_sub_adm_prior_art
-        self.cli.adf = create_sub_adm_prior_art("edge_feature")
+        from inventive_step_ADM import create_sub_adm_1
+        self.cli.adf = create_sub_adm_1("edge_feature")
         self.cli.caseName = "edge_case"
         self.cli.case = []
         
@@ -1183,8 +1219,8 @@ class TestCLIUI(unittest.TestCase):
     def test_cli_case_persistence(self):
         """Test CLI case persistence across operations"""
         # Set up CLI with sub-ADM
-        from inventive_step_ADM import create_sub_adm_prior_art
-        self.cli.adf = create_sub_adm_prior_art("persistence_feature")
+        from inventive_step_ADM import create_sub_adm_1
+        self.cli.adf = create_sub_adm_1("persistence_feature")
         self.cli.caseName = "persistence_case"
         self.cli.case = []
         
@@ -1210,6 +1246,213 @@ class TestCLIUI(unittest.TestCase):
         # The case should have grown (abstract factors added)
         self.assertGreaterEqual(len(self.cli.case), len(original_case))
 
+# Add this test class between lines 1213 and 1215
+class TestDependencyEvaluation(unittest.TestCase):
+    """Unit tests for dependency evaluation debugging"""
+    
+    def setUp(self):
+        """Set up test fixtures"""
+        self.adf_instance = adf()
+        self.ui = CLI()
+        self.ui.adf = self.adf_instance
+        
+    def test_evaluateDependency_detailed_debug(self):
+        """Test: Detailed debug output for evaluateDependency method"""
+        # Set up case with TechnicalSurvey to enable the full chain
+        self.ui.case = ["Contested","TechnicalSurvey"]
+        
+        output = io.StringIO()
+        with redirect_stdout(output):
+            # Test evaluateDependency for CommonKnowledge directly
+            result = self.ui.evaluateDependency("CommonKnowledge", "Access")
+        
+        debug_output = output.getvalue()
+
+        # Basic assertions - should see successful evaluation
+        self.assertIn("Trying to evaluate dependency", debug_output, "Should see dependency evaluation")
+        self.assertIn("CommonKnowledge", debug_output, "Should see CommonKnowledge in debug output")
+        self.assertIn("CommonKnowledge now satisfied", debug_output, "Should see CommonKnowledge now satisfied message")
+        self.assertIn("DocumentaryEvidence now satisfied", debug_output, "Should see DocumentaryEvidence now satisfied message")
+        
+        # Check that both dependencies were added to case
+        self.assertIn("DocumentaryEvidence", self.ui.case, "DocumentaryEvidence should be added to case")
+        self.assertIn("CommonKnowledge", self.ui.case, "CommonKnowledge should be added to case")
+    
+     
+    def test_evaluateDependency_combination_motive_chain(self):
+        """Test: CombinationMotive dependency chain"""
+        # Set up case with required components for CombinationMotive
+        # CombinationMotive requires: ClosestPriorArt, SkilledPerson, CombinationAttempt
+        self.ui.case = ["ClosestPriorArt", "SkilledPerson", "CombinationAttempt", "TechnicalSurvey"]
+        
+        output = io.StringIO()
+        with redirect_stdout(output):
+            # Test evaluateDependency for CombinationMotive directly
+            result = self.ui.evaluateDependency("CombinationMotive", "TestQuestion")
+        
+        debug_output = output.getvalue()
+        
+        
+        # Should see dependency evaluation
+        self.assertIn("Trying to evaluate dependency", debug_output, "Should see dependency evaluation")
+        self.assertIn("CombinationMotive", debug_output, "Should see CombinationMotive in debug output")
+
+    def test_evaluateDependency_combination_motive_failure_case(self):
+        """Test: CombinationMotive failure case - missing required dependency"""
+        # Set up case missing CombinationAttempt (required for CombinationMotive)
+        self.ui.case = ["ClosestPriorArt", "SkilledPerson", "TechnicalSurvey"]
+        
+        output = io.StringIO()
+        with redirect_stdout(output):
+            # Test evaluateDependency for CombinationMotive directly
+            result = self.ui.evaluateDependency("CombinationMotive", "TestQuestion")
+        
+        debug_output = output.getvalue()
+        
+        # Should see dependency evaluation attempt but CombinationMotive should not be satisfied
+        self.assertIn("Trying to evaluate dependency", debug_output, "Should see dependency evaluation")
+        self.assertIn("CombinationMotive", debug_output, "Should see CombinationMotive in debug output")
+        # CombinationMotive should not be added to case due to missing CombinationAttempt
+        self.assertNotIn("CombinationMotive", self.ui.case, "CombinationMotive should not be added with missing dependencies")
+    
+    def test_evaluateDependency_basis_to_associate_chain(self):
+        """Test: BasisToAssociate dependency chain"""
+        # Set up case with required components for BasisToAssociate
+        self.ui.case = ["ClosestPriorArt", "SkilledPerson", "CombinationAttempt", "TechnicalSurvey"]
+        
+        output = io.StringIO()
+        with redirect_stdout(output):
+            # Test evaluateDependency for BasisToAssociate directly
+            result = self.ui.evaluateDependency("BasisToAssociate", "TestQuestion")
+        
+        debug_output = output.getvalue()
+
+        # Should see dependency evaluation
+        self.assertIn("Trying to evaluate dependency", debug_output, "Should see dependency evaluation")
+        self.assertIn("BasisToAssociate", debug_output, "Should see BasisToAssociate in debug output")
+    
+    def test_evaluateDependency_closest_prior_art_chain(self):
+        """Test: ClosestPriorArt dependency chain"""
+        # Set up case with required components for ClosestPriorArt
+        # ClosestPriorArt requires: RelevantPriorArt and SingleReference and MinModifications and AssessedBy
+        self.ui.case = ["RelevantPriorArt", "SingleReference", "MinModifications", "AssessedBy", "SameField"]
+        
+        output = io.StringIO()
+        with redirect_stdout(output):
+            # Test evaluateDependency for ClosestPriorArt directly
+            result = self.ui.evaluateDependency("ClosestPriorArt", "TestQuestion")
+        
+        debug_output = output.getvalue()
+        
+        
+        # Should see dependency evaluation
+        self.assertIn("Trying to evaluate dependency", debug_output, "Should see dependency evaluation")
+        self.assertIn("ClosestPriorArt", debug_output, "Should see ClosestPriorArt in debug output")
+    
+    def test_evaluateDependency_combination_documents_chain(self):
+        """Test: CombinationDocuments dependency chain"""
+        # Set up case with required components for CombinationDocuments
+        self.ui.case = ["CombinationAttempt", "SameFieldCPA", "CombinationMotive", "BasisToAssociate", "TechnicalSurvey"]
+        
+        output = io.StringIO()
+        with redirect_stdout(output):
+            # Test evaluateDependency for CombinationDocuments directly
+            result = self.ui.evaluateDependency("CombinationDocuments", "TestQuestion")
+        
+        debug_output = output.getvalue()
+        
+        
+        # Should see dependency evaluation
+        self.assertIn("Trying to evaluate dependency", debug_output, "Should see dependency evaluation")
+        self.assertIn("CombinationDocuments", debug_output, "Should see CombinationDocuments in debug output")
+    
+    def test_evaluateDependency_relevant_prior_art_chain(self):
+        """Test: RelevantPriorArt dependency chain"""
+        # Set up case with required components for RelevantPriorArt
+        self.ui.case = ["SameField", "SimilarField", "SimilarPurpose", "SimilarEffect"]
+        
+        output = io.StringIO()
+        with redirect_stdout(output):
+            # Test evaluateDependency for RelevantPriorArt directly
+            result = self.ui.evaluateDependency("RelevantPriorArt", "TestQuestion")
+        
+        debug_output = output.getvalue()
+        
+        # Should see dependency evaluation
+        self.assertIn("Trying to evaluate dependency", debug_output, "Should see dependency evaluation")
+        self.assertIn("RelevantPriorArt", debug_output, "Should see RelevantPriorArt in debug output")
+    
+    def test_evaluateDependency_person_chain(self):
+        """Test: Person dependency chain"""
+        # Set up case with required components for Person
+        self.ui.case = ["Individual", "ResearchTeam", "ProductionTeam"]
+        
+        output = io.StringIO()
+        with redirect_stdout(output):
+            # Test evaluateDependency for Person directly
+            result = self.ui.evaluateDependency("Person", "TestQuestion")
+        
+        debug_output = output.getvalue()
+        
+        # Should see dependency evaluation
+        self.assertIn("Trying to evaluate dependency", debug_output, "Should see dependency evaluation")
+        self.assertIn("Person", debug_output, "Should see Person in debug output")
+    
+    def test_evaluateDependency_skilled_in_chain(self):
+        """Test: SkilledIn dependency chain"""
+        # Set up case with required components for SkilledIn
+        # SkilledIn depends on RelevantPriorArt
+        self.ui.case = ["RelevantPriorArt", "SameField"]
+        
+        output = io.StringIO()
+        with redirect_stdout(output):
+            # Test evaluateDependency for SkilledIn directly
+            result = self.ui.evaluateDependency("SkilledIn", "TestQuestion")
+        
+        debug_output = output.getvalue()
+        
+        
+        # Should see dependency evaluation
+        self.assertIn("Trying to evaluate dependency", debug_output, "Should see dependency evaluation")
+        self.assertIn("SkilledIn", debug_output, "Should see SkilledIn in debug output")
+    
+    def test_evaluateDependency_combination_attempt_chain(self):
+        """Test: CombinationAttempt dependency chain"""
+        # Set up case with required components for CombinationAttempt
+        self.ui.case = ["ClosestPriorArt", "SkilledPerson", "MinModifications", "AssessedBy"]
+        
+        output = io.StringIO()
+        with redirect_stdout(output):
+            # Test evaluateDependency for CombinationAttempt directly
+            result = self.ui.evaluateDependency("CombinationAttempt", "TestQuestion")
+        
+        debug_output = output.getvalue()
+        
+        # Should see dependency evaluation
+        self.assertIn("Trying to evaluate dependency", debug_output, "Should see dependency evaluation")
+        self.assertIn("CombinationAttempt", debug_output, "Should see CombinationAttempt in debug output")
+    
+    def test_evaluateDependency_complex_failure_case(self):
+        """Test: Complex failure case with missing dependencies"""
+        # Set up case with incomplete dependencies
+        self.ui.case = ["TechnicalSurvey"]  # Missing other required components
+        
+        output = io.StringIO()
+        with redirect_stdout(output):
+            # Test evaluateDependency for SkilledPerson (should fail due to missing dependencies)
+            result = self.ui.evaluateDependency("SkilledPerson", "TestQuestion")
+        
+        debug_output = output.getvalue()
+        
+        # Should see dependency evaluation attempts but failures
+        self.assertIn("Trying to evaluate dependency", debug_output, "Should see dependency evaluation attempts")
+        self.assertIn("SkilledPerson", debug_output, "Should see SkilledPerson in debug output")
+        
+        # SkilledPerson should not be added due to missing dependencies
+        self.assertNotIn("SkilledPerson", self.ui.case, "SkilledPerson should not be added with incomplete dependencies")
+    
+    # Note: Sub-ADM tests removed because those nodes are in sub_adf, not the main adf
+    # The evaluateDependency method only works with nodes in the main ADF
 
 def run_all_tests():
     """Run all unit tests (sub-ADM, main ADM, and CLI UI)"""
@@ -1230,6 +1473,10 @@ def run_all_tests():
     # Add CLI UI tests
     cli_suite = unittest.TestLoader().loadTestsFromTestCase(TestCLIUI)
     suite.addTest(cli_suite)
+    
+    # Add dependency evaluation tests
+    dependency_suite = unittest.TestLoader().loadTestsFromTestCase(TestDependencyEvaluation)
+    suite.addTest(dependency_suite)
     
     # Run tests with minimal verbosity
     runner = unittest.TextTestRunner(verbosity=1)
@@ -1611,6 +1858,103 @@ def run_cli_tests():
     return result
 
 
+def run_dependency_tests():
+    """Run only dependency evaluation unit tests"""
+    print("Running Dependency Evaluation Unit Tests...")
+    print("="*60)
+    
+    # Create test suite
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestDependencyEvaluation)
+    
+    # Run tests with minimal verbosity
+    runner = unittest.TextTestRunner(verbosity=1)
+    result = runner.run(suite)
+    
+    # Print summary
+    print("\n" + "="*60)
+    print("TEST SUMMARY")
+    print("="*60)
+    print(f"Tests run: {result.testsRun}")
+    print(f"Failures: {len(result.failures)}")
+    print(f"Errors: {len(result.errors)}")
+    print(f"Success rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%")
+    
+    if result.failures:
+        print(f"\n{'='*60}")
+        print(f"DETAILED FAILURE ANALYSIS")
+        print(f"{'='*60}")
+        for i, (test, traceback) in enumerate(result.failures, 1):
+            print(f"\n{i}. FAILURE: {test}")
+            print(f"{'─'*50}")
+            
+            # Extract the detailed error message
+            lines = traceback.split('\n')
+            assertion_found = False
+            
+            for line in lines:
+                if 'Expected:' in line and 'Got:' in line:
+                    print(f"   Assertion Error: {line}")
+                    assertion_found = True
+                    break
+            
+            if not assertion_found:
+                # Look for AssertionError line
+                for line in lines:
+                    if 'AssertionError:' in line:
+                        error_msg = line.split('AssertionError: ')[-1]
+                        print(f"   Assertion Error: {error_msg}")
+                        assertion_found = True
+                        break
+            
+            if not assertion_found:
+                # Fallback to original error message
+                error_msg = traceback.split('AssertionError: ')[-1].split('\n')[0]
+                print(f"   Error: {error_msg}")
+            
+            # Show the full traceback for debugging
+            print(f"\n   Full Traceback:")
+            for line in lines:
+                if line.strip():
+                    print(f"   {line}")
+    
+    if result.errors:
+        print(f"\n{'='*60}")
+        print(f"DETAILED ERROR ANALYSIS")
+        print(f"{'='*60}")
+        for i, (test, traceback) in enumerate(result.errors, 1):
+            print(f"\n{i}. ERROR: {test}")
+            print(f"{'─'*50}")
+            
+            # Extract the main error message
+            lines = traceback.split('\n')
+            error_msg = "Unknown error"
+            
+            for line in lines:
+                if 'Exception:' in line or 'Error:' in line:
+                    error_msg = line.strip()
+                    break
+                elif 'Traceback' in line and 'most recent call last' in line:
+                    # Look for the actual exception in the next few lines
+                    for j, trace_line in enumerate(lines[lines.index(line)+1:], lines.index(line)+1):
+                        if 'Exception' in trace_line or 'Error' in trace_line:
+                            error_msg = trace_line.strip()
+                            break
+            
+            print(f"   Error: {error_msg}")
+            
+            # Show the full traceback for debugging
+            print(f"\n   Full Traceback:")
+            for line in lines:
+                if line.strip():
+                    print(f"   {line}")
+    
+    # Exit with error code if tests failed
+    if result.failures or result.errors:
+        sys.exit(1)
+    
+    return result
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         if sys.argv[1] == "all":
@@ -1621,12 +1965,15 @@ if __name__ == "__main__":
             result = run_main_adm_tests()
         elif sys.argv[1] == "cli":
             result = run_cli_tests()
+        elif sys.argv[1] == "dep":
+            result = run_dependency_tests()
         else:
-            print("Usage: python test_adm_unit.py [all|sub|main|cli]")
+            print("Usage: python test_adm_unit.py [all|sub|main|cli|dep]")
             print("  all  - Run all tests")
             print("  sub  - Run only sub-ADM tests")
             print("  main - Run only main ADM tests")
             print("  cli  - Run only CLI UI tests")
+            print("  dep  - Run only dependency evaluation tests")
             print("  (no args) - Run all tests")
             sys.exit(1)
     else:

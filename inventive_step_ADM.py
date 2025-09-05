@@ -4,8 +4,7 @@ Inventive Step ADM
 
 from MainClasses import *
 
-
-def create_sub_adm_prior_art(item_name, key_facts=None):
+def create_sub_adm_1(item_name, key_facts=None):
     """Creates a sub-ADM for evaluating individual prior art items"""
     sub_adf = SubADM("Sub-Model 1", item_name)
 
@@ -41,7 +40,7 @@ def create_sub_adm_prior_art(item_name, key_facts=None):
     sub_adf.addNodes("TechnicalAdaptation",question='Is the feature a specific technical adaptation which is specific for that implementation in that its design is motivated by technical considerations relating to the internal functioning of the computer system or network.')
 
     #bridge node to make things easier
-    sub_adf.addNodes("NumOrComp",["NumericalData or ComputerSimulation"],["NumericalData or ComputerSimulation","reject"])
+    sub_adf.addNodes("NumOrComp",["NumericalData","ComputerSimulation"],["The feature involves numercial data","The feature involves a computer simulation","The feature does involve a computer simulation or numerical data"])
 
     #F37 - Q23
     sub_adf.addDependentBLF("IntendedTechnicalUse","NumOrComp",
@@ -113,14 +112,12 @@ def create_sub_adm_prior_art(item_name, key_facts=None):
     sub_adf.questionOrder = [ "IndependentContribution","CombinationContribution","nature_feat","CircumventTechProblem","TechnicalAdaptation","IntendedTechnicalUse","TechUseSpecified","SpecificPurpose","FunctionallyLimited","UnexpectedEffect","PreciseTerms","OneWayStreet","cred_repro_questions","ClaimContainsEffect"]
     return sub_adf
 
-
 def adf():
     """
     Creates and returns an ADF for the Inventive Step domain
     """
     adf = ADF("Inventive Step")
 
-    
     # Add information questions before the logic questions
     adf.addInformationQuestion("INVENTION_TITLE", "\n\nWhat is the title of your invention?")
     adf.addInformationQuestion("INVENTION_DESCRIPTION", "\n\nPlease provide a brief description of your invention")
@@ -311,7 +308,7 @@ def adf():
         return missing_items
     
     #F28
-    adf.addSubADMBLF("FeatureReliableTechnicalEffect", create_sub_adm_prior_art, collect_features, dependency_node=['SkilledPerson','ClosestPriorArt'])
+    adf.addSubADMBLF("FeatureReliableTechnicalEffect", create_sub_adm_1, collect_features, dependency_node=['SkilledPerson','ClosestPriorArt'])
 
     #F25
     adf.addEvaluationBLF("DistinguishingFeatures", "FeatureReliableTechnicalEffect", "DistinguishingFeatures", ['DistinguishingFeatures is accepted - there are distinguishing features','DistinguishingFeatures is rejected - there are no distinguishing features'])

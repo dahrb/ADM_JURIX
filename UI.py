@@ -160,7 +160,7 @@ class CLI:
         if current_question in self.adf.question_instantiators:
             instantiator = self.adf.question_instantiators[current_question]
             
-            # Check if this question instantiator has a dependency
+            # Check if this question instantiator  has a dependency
             if instantiator.get('dependency_node'):
                 print('DEBUG: confirmed dependency')
                 # Check if dependency is satisfied
@@ -569,7 +569,7 @@ class CLI:
                 # Reset counter for evaluation
                 self.adf.counter = -1
                 evaluation_result = self.adf.evaluateNode(dependency_node)
-                
+
                 # Restore the original case on the ADF object
                 if original_case is not None:
                     self.adf.case = original_case
@@ -616,7 +616,13 @@ class CLI:
         print("="*50)
         
         try:
-            statements = self.adf.evaluateTree(self.case)
+            # Check if statements are already available from previous evaluation
+            if hasattr(self.adf, 'statements') and self.adf.statements:
+                statements = self.adf.statements
+            else:
+                # Only evaluate if statements are not available
+                statements = self.adf.evaluateTree(self.case)
+            
             print("Evaluation Results:")
             for i, statement in enumerate(statements, 1):
                 print(f"{i}. {statement}")
