@@ -1451,6 +1451,136 @@ class TestMainADMEvaluation(unittest.TestCase):
         result3 = rejected_count < 1
         self.assertFalse(result3, "Should be REJECTED when rejected_count = 3 (NOT obvious)")
 
+    def test_new_abstract_factors_secondary_indicator(self):
+        """Test: New abstract factor SecondaryIndicator evaluation"""
+        # Test SecondaryIndicator with PredictableDisadvantage
+        self.main_adf.case = ['PredictableDisadvantage']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('SecondaryIndicator', self.main_adf.case, "SecondaryIndicator should be accepted when PredictableDisadvantage is present")
+        
+        # Test SecondaryIndicator with BioTechObvious
+        self.main_adf.case = ['BioTechObvious']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('SecondaryIndicator', self.main_adf.case, "SecondaryIndicator should be accepted when BioTechObvious is present")
+        
+        # Test SecondaryIndicator with AntibodyObvious
+        self.main_adf.case = ['AntibodyObvious']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('SecondaryIndicator', self.main_adf.case, "SecondaryIndicator should be accepted when AntibodyObvious is present")
+        
+        # Test SecondaryIndicator with KnownMeasures
+        self.main_adf.case = ['KnownMeasures']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('SecondaryIndicator', self.main_adf.case, "SecondaryIndicator should be accepted when KnownMeasures is present")
+        
+        # Test SecondaryIndicator with ObviousCombination
+        self.main_adf.case = ['ObviousCombination']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('SecondaryIndicator', self.main_adf.case, "SecondaryIndicator should be accepted when ObviousCombination is present")
+        
+        # Test SecondaryIndicator with ObviousSelection
+        self.main_adf.case = ['ObviousSelection']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('SecondaryIndicator', self.main_adf.case, "SecondaryIndicator should be accepted when ObviousSelection is present")
+        
+        # Test SecondaryIndicator rejection when none of the sub-factors are present
+        self.main_adf.case = ['ReliableTechnicalEffect']  # None of the secondary indicator factors
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertNotIn('SecondaryIndicator', self.main_adf.case, "SecondaryIndicator should be rejected when none of its sub-factors are present")
+
+    def test_biotech_antibody_abstract_factors(self):
+        """Test: Biotech and antibody related abstract factors"""
+        # Test BioTechObvious - requires InventionUnexpectedEffect rejection and BioTech + PredictableResults/ReasonableSuccess
+        self.main_adf.case = ['BioTech', 'PredictableResults', 'ReasonableSuccess']
+        # Mock that InventionUnexpectedEffect is rejected (not in case)
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('BioTechObvious', self.main_adf.case, "BioTechObvious should be accepted when BioTech and both PredictableResults and ReasonableSuccess are present")
+        
+        # Test AntibodyObvious - requires OvercomeTechDifficulty rejection and SubjectMatterAntibody + KnownTechnique
+        self.main_adf.case = ['SubjectMatterAntibody', 'KnownTechnique']
+        # Mock that OvercomeTechDifficulty is rejected (not in case)
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('AntibodyObvious', self.main_adf.case, "AntibodyObvious should be accepted when SubjectMatterAntibody and KnownTechnique are present")
+        
+        # Test SubjectMatterAntibody - requires BioTech and Antibody
+        self.main_adf.case = ['BioTech', 'Antibody']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('SubjectMatterAntibody', self.main_adf.case, "SubjectMatterAntibody should be accepted when BioTech and Antibody are present")
+
+    def test_known_measures_abstract_factors(self):
+        """Test: Known measures related abstract factors"""
+        # Test KnownMeasures with GapFilled
+        self.main_adf.case = ['GapFilled']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('KnownMeasures', self.main_adf.case, "KnownMeasures should be accepted when GapFilled is present")
+        
+        # Test KnownMeasures with WellKnownEquivalent
+        self.main_adf.case = ['WellKnownEquivalent']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('KnownMeasures', self.main_adf.case, "KnownMeasures should be accepted when WellKnownEquivalent is present")
+        
+        # Test KnownMeasures with KnownUsage
+        self.main_adf.case = ['KnownUsage']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('KnownMeasures', self.main_adf.case, "KnownMeasures should be accepted when KnownUsage is present")
+        
+        # Test KnownUsage with KnownProperties
+        self.main_adf.case = ['KnownProperties']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('KnownUsage', self.main_adf.case, "KnownUsage should be accepted when KnownProperties is present")
+        
+        # Test KnownUsage with AnalogousUse
+        self.main_adf.case = ['AnalogousUse']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('KnownUsage', self.main_adf.case, "KnownUsage should be accepted when AnalogousUse is present")
+        
+        # Test KnownUsage with KnownDevice and AnalogousSubstitution
+        self.main_adf.case = ['KnownDevice', 'AnalogousSubstitution']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('KnownUsage', self.main_adf.case, "KnownUsage should be accepted when KnownDevice and AnalogousSubstitution are present")
+
+    def test_obvious_selection_abstract_factors(self):
+        """Test: Obvious selection related abstract factors"""
+        # Test ObviousSelection with ChooseEqualAlternatives
+        self.main_adf.case = ['ChooseEqualAlternatives']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('ObviousSelection', self.main_adf.case, "ObviousSelection should be accepted when ChooseEqualAlternatives is present")
+        
+        # Test ObviousSelection with NormalDesignProcedure
+        self.main_adf.case = ['NormalDesignProcedure']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('ObviousSelection', self.main_adf.case, "ObviousSelection should be accepted when NormalDesignProcedure is present")
+        
+        # Test ObviousSelection with SimpleExtrapolation
+        self.main_adf.case = ['SimpleExtrapolation']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('ObviousSelection', self.main_adf.case, "ObviousSelection should be accepted when SimpleExtrapolation is present")
+        
+        # Test ObviousSelection with ChemicalSelection
+        self.main_adf.case = ['ChemicalSelection']
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        self.assertIn('ObviousSelection', self.main_adf.case, "ObviousSelection should be accepted when ChemicalSelection is present")
+
     def test_otp_obvious_vs_normal_sub_adm_blf_behavior(self):
         """Test: Compare OTPObvious (rejection condition) vs normal SubADMBLF behavior"""
         # Test normal SubADMBLF behavior (rejection_condition=False)
@@ -1513,6 +1643,208 @@ class TestMainADMEvaluation(unittest.TestCase):
         rejected_count = self.main_adf.getFact("OTPObvious", "rejected_count") or 0
         result = rejected_count < 1
         self.assertFalse(result, "Should be REJECTED when some items are rejected (NOT obvious)")
+
+    def test_synergy_question_instantiator(self):
+        """Test: Synergy question instantiator functionality"""
+        synergy_question = self.main_adf.question_instantiators.get("synergy_question")
+        self.assertIsNotNone(synergy_question, "Synergy question instantiator should exist")
+        
+        # Test the question text
+        expected_question = "How do the invention's features create the technical effect?"
+        self.assertEqual(synergy_question['question'], expected_question, "Synergy question should have correct text")
+        
+        # Test the options (blf_mapping)
+        expected_options = {
+            "As a synergistic combination (effect is greater than the sum of parts).": "Synergy",
+            "As a simple aggregation of independent effects.": "",
+            "Neither": ""
+        }
+        self.assertEqual(synergy_question['blf_mapping'], expected_options, "Synergy question should have correct options")
+
+    def test_functional_interaction_dependent_blf(self):
+        """Test: FunctionalInteraction DependentBLF functionality"""
+        functional_interaction = self.main_adf.nodes.get("FunctionalInteraction")
+        self.assertIsNotNone(functional_interaction, "FunctionalInteraction should exist")
+        
+        # Test dependencies
+        expected_dependencies = ["ReliableTechnicalEffect", "Synergy"]
+        self.assertEqual(functional_interaction.dependency_node, expected_dependencies, "FunctionalInteraction should have correct dependencies")
+        
+        # Test question text
+        expected_question = "Is the synergistic combination achieved through a functional interaction between features?"
+        self.assertEqual(functional_interaction.question, expected_question, "FunctionalInteraction should have correct question")
+
+    def test_full_adm_inventive_step_scenario_1(self):
+        """Test: Full ADM - Inventive step present scenario"""
+        # Scenario: Invention with synergistic combination, unexpected effects, and valid OTP
+        self.main_adf.case = [
+            'ReliableTechnicalEffect', 'FunctionalInteraction', 'Synergy',  # Synergistic combination
+            'InventionUnexpectedEffect',  # Unexpected effects
+            'TechnicalContribution', 'Novelty',  # Technical contribution and novelty
+            'ObjectiveTechnicalProblem'  # Valid OTP
+        ]
+        
+        # Mock sub-ADM results
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "rejected_count", 0)  # OTP is obvious (accepted)
+            self.main_adf.setFact("ReliableTechnicalEffect", "accepted_count", 3)
+            self.main_adf.setFact("ReliableTechnicalEffect", "rejected_count", 0)
+        
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        # Check that key factors are present
+        self.assertIn('Combination', self.main_adf.case, "Combination should be present for synergistic effects")
+        self.assertIn('CandidateOTP', self.main_adf.case, "CandidateOTP should be present")
+        self.assertIn('InvStep', self.main_adf.case, "InvStep should be present")
+        
+        # Check that the invention is not obvious
+        self.assertNotIn('Obvious', self.main_adf.case, "Obvious should not be present for inventive step")
+
+    def test_full_adm_inventive_step_scenario_2(self):
+        """Test: Full ADM - No inventive step due to obviousness scenario"""
+        # Scenario: Invention with obvious combination and known measures
+        self.main_adf.case = [
+            'ReliableTechnicalEffect',  # Technical effect present
+            'ObviousCombination',  # Obvious combination
+            'KnownMeasures',  # Known measures
+            'TechnicalContribution', 'Novelty'  # Technical contribution and novelty
+        ]
+        
+        # Mock sub-ADM results - OTP is obvious
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "rejected_count", 0)  # OTP is obvious (accepted)
+            self.main_adf.setFact("ReliableTechnicalEffect", "accepted_count", 2)
+            self.main_adf.setFact("ReliableTechnicalEffect", "rejected_count", 0)
+        
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        # Check that obviousness factors are present
+        self.assertIn('SecondaryIndicator', self.main_adf.case, "SecondaryIndicator should be present")
+        self.assertIn('Obvious', self.main_adf.case, "Obvious should be present")
+        
+        # Check that the invention has no inventive step due to obviousness
+        # InvStep should be rejected when Obvious is present (reject condition)
+        self.assertNotIn('InvStep', self.main_adf.case, "InvStep should be rejected due to obviousness")
+
+    def test_full_adm_biotech_scenario(self):
+        """Test: Full ADM - Biotech invention scenario"""
+        # Scenario: Biotech invention with predictable results
+        self.main_adf.case = [
+            'ReliableTechnicalEffect', 'BioTech', 'PredictableResults', 'ReasonableSuccess',
+            'TechnicalContribution', 'Novelty'
+        ]
+        
+        # Mock sub-ADM results
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "rejected_count", 0)
+            self.main_adf.setFact("ReliableTechnicalEffect", "accepted_count", 2)
+            self.main_adf.setFact("ReliableTechnicalEffect", "rejected_count", 0)
+        
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        # Check biotech-specific factors
+        self.assertIn('BioTechObvious', self.main_adf.case, "BioTechObvious should be present")
+        self.assertIn('SecondaryIndicator', self.main_adf.case, "SecondaryIndicator should be present")
+        self.assertIn('Obvious', self.main_adf.case, "Obvious should be present for obvious biotech invention")
+        
+        # Check that the invention has no inventive step due to obviousness
+        # InvStep should be rejected when Obvious is present (reject condition)
+        self.assertNotIn('InvStep', self.main_adf.case, "InvStep should be rejected due to obviousness")
+
+    def test_full_adm_antibody_scenario(self):
+        """Test: Full ADM - Antibody invention scenario"""
+        # Scenario: Antibody invention with known techniques
+        self.main_adf.case = [
+            'ReliableTechnicalEffect', 'BioTech', 'Antibody', 'SubjectMatterAntibody', 'KnownTechnique',
+            'TechnicalContribution', 'Novelty'
+        ]
+        
+        # Mock sub-ADM results
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "rejected_count", 0)
+            self.main_adf.setFact("ReliableTechnicalEffect", "accepted_count", 2)
+            self.main_adf.setFact("ReliableTechnicalEffect", "rejected_count", 0)
+        
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        # Check antibody-specific factors
+        self.assertIn('AntibodyObvious', self.main_adf.case, "AntibodyObvious should be present")
+        self.assertIn('SecondaryIndicator', self.main_adf.case, "SecondaryIndicator should be present")
+        self.assertIn('Obvious', self.main_adf.case, "Obvious should be present for obvious antibody invention")
+        
+        # Check that the invention has no inventive step due to obviousness
+        # InvStep should be rejected when Obvious is present (reject condition)
+        self.assertNotIn('InvStep', self.main_adf.case, "InvStep should be rejected due to obviousness")
+
+    def test_full_adm_obvious_selection_scenario(self):
+        """Test: Full ADM - Obvious selection scenario"""
+        # Scenario: Invention involving obvious selection from known alternatives
+        self.main_adf.case = [
+            'ReliableTechnicalEffect', 'ChooseEqualAlternatives', 'ObviousSelection',
+            'TechnicalContribution', 'Novelty'
+        ]
+        
+        # Mock sub-ADM results
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "rejected_count", 0)
+            self.main_adf.setFact("ReliableTechnicalEffect", "accepted_count", 2)
+            self.main_adf.setFact("ReliableTechnicalEffect", "rejected_count", 0)
+        
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        # Check obvious selection factors
+        self.assertIn('SecondaryIndicator', self.main_adf.case, "SecondaryIndicator should be present")
+        self.assertIn('Obvious', self.main_adf.case, "Obvious should be present for obvious selection")
+        
+        # Check that the invention has no inventive step due to obviousness
+        # InvStep should be rejected when Obvious is present (reject condition)
+        self.assertNotIn('InvStep', self.main_adf.case, "InvStep should be rejected due to obviousness")
+
+    def test_full_adm_no_technical_contribution_scenario(self):
+        """Test: Full ADM - No technical contribution scenario"""
+        # Scenario: Invention with no technical contribution
+        self.main_adf.case = [
+            'ReliableTechnicalEffect', 'NonTechnicalContribution',  # Non-technical contribution
+            'Novelty'
+        ]
+        
+        # Mock sub-ADM results
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "rejected_count", 0)
+            self.main_adf.setFact("ReliableTechnicalEffect", "accepted_count", 1)
+            self.main_adf.setFact("ReliableTechnicalEffect", "rejected_count", 0)
+        
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        # Check that technical contribution is rejected
+        self.assertNotIn('TechnicalContribution', self.main_adf.case, "TechnicalContribution should be rejected")
+        
+        # Check that the invention has no inventive step due to no technical contribution
+        # InvStep requires TechnicalContribution and ReliableTechnicalEffect and Novelty
+        self.assertNotIn('InvStep', self.main_adf.case, "InvStep should be rejected due to no technical contribution")
+
+    def test_full_adm_insufficient_disclosure_scenario(self):
+        """Test: Full ADM - Insufficient disclosure scenario"""
+        # Scenario: Invention with insufficient disclosure
+        self.main_adf.case = [
+            'ReliableTechnicalEffect', 'SufficiencyOfDisclosure',  # Insufficient disclosure
+            'TechnicalContribution', 'Novelty'
+        ]
+        
+        # Mock sub-ADM results
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "rejected_count", 0)
+            self.main_adf.setFact("ReliableTechnicalEffect", "accepted_count", 1)
+            self.main_adf.setFact("ReliableTechnicalEffect", "rejected_count", 0)
+        
+        self.main_adf.evaluateTree(self.main_adf.case)
+        
+        # Check that sufficiency of disclosure issue is present
+        self.assertIn('SufficiencyOfDisclosure', self.main_adf.case, "SufficiencyOfDisclosure should be present")
+        
+        # Check that the invention has no inventive step due to insufficient disclosure
+        # InvStep should be rejected when SufficiencyOfDisclosure is present (reject condition)
+        self.assertNotIn('InvStep', self.main_adf.case, "InvStep should be rejected due to insufficient disclosure")
 
 
 class TestCLIUI(unittest.TestCase):
