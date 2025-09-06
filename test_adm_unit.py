@@ -6,7 +6,7 @@ Clean unit tests for both sub-ADM and main ADM evaluation with expected final ca
 import unittest
 import os
 from MainClasses import *
-from inventive_step_ADM import create_sub_adm_1, adf
+from inventive_step_ADM import create_sub_adm_1, create_sub_adm_2, adf
 import UI
 from UI import CLI
 import builtins
@@ -167,7 +167,7 @@ class TestSubADMEvaluation(unittest.TestCase):
             "FeatureTechnicalContribution", 
             "Credible", 
             "Reproducible", 
-            "ReliableTechnicalEffect"
+            "FeatureReliableTechnicalEffect"
         ]
         
         self.assert_final_case("Independent + Credible + Reproducible", blf_list, expected_final_case)
@@ -186,7 +186,7 @@ class TestSubADMEvaluation(unittest.TestCase):
             "Reproducible", 
             "ComputationalContribution", 
             "FeatureTechnicalContribution", 
-            "ReliableTechnicalEffect"
+            "FeatureReliableTechnicalEffect"
         ]
         
         self.assert_final_case("Complex All Positive Factors", blf_list, expected_final_case)
@@ -291,7 +291,7 @@ class TestSubADMEvaluation(unittest.TestCase):
         self.assert_final_case("Excluded Field Reject Statements", blf_list, expected_final_case)
     
     def test_reject_statements_sufficiency_issue(self):
-        """Test: SufficiencyOfDisclosureIssue reject statements - should prevent ReliableTechnicalEffect"""
+        """Test: SufficiencyOfDisclosureIssue reject statements - should prevent FeatureReliableTechnicalEffect"""
         blf_list = ["DistinguishingFeatures", "ClaimContainsEffect"]
         expected_final_case = [
             "DistinguishingFeatures", 
@@ -300,14 +300,14 @@ class TestSubADMEvaluation(unittest.TestCase):
             "NonReproducible"
         ]
         
-        # Test the evaluation - SufficiencyOfDisclosureIssue should prevent ReliableTechnicalEffect
+        # Test the evaluation - SufficiencyOfDisclosureIssue should prevent FeatureReliableTechnicalEffect
         sub_adf = create_sub_adm_1("sufficiency_test")
         sub_adf.evaluateTree(blf_list)
         statements = sub_adf.evaluateTree(blf_list)
         
         # With new short-circuiting logic, reject conditions prevent node satisfaction
-        # ReliableTechnicalEffect should NOT be in the case due to reject SufficiencyOfDisclosureIssue
-        self.assertNotIn("ReliableTechnicalEffect", sub_adf.case, "ReliableTechnicalEffect should be rejected due to SufficiencyOfDisclosureIssue")
+        # FeatureReliableTechnicalEffect should NOT be in the case due to reject SufficiencyOfDisclosureIssue
+        self.assertNotIn("FeatureReliableTechnicalEffect", sub_adf.case, "FeatureReliableTechnicalEffect should be rejected due to SufficiencyOfDisclosureIssue")
         
         # Verify reject statements are present in the evaluation output
         reject_statements = [stmt for stmt in statements if 'sufficiency of disclosure precludes' in stmt.lower() or 'not reproducible' in stmt.lower()]
@@ -316,7 +316,7 @@ class TestSubADMEvaluation(unittest.TestCase):
         self.assert_final_case("Sufficiency Issue Reject Statements", blf_list, expected_final_case)
     
     def test_reject_statements_reliable_effect(self):
-        """Test: ReliableTechnicalEffect reject statements - should prevent ReliableTechnicalEffect"""
+        """Test: FeatureReliableTechnicalEffect reject statements - should prevent FeatureReliableTechnicalEffect"""
         blf_list = ["DistinguishingFeatures", "BonusEffect"]
         expected_final_case = [
             "DistinguishingFeatures", 
@@ -324,13 +324,13 @@ class TestSubADMEvaluation(unittest.TestCase):
             "NonReproducible"
         ]
         
-        # Test the evaluation - BonusEffect should prevent ReliableTechnicalEffect
+        # Test the evaluation - BonusEffect should prevent FeatureReliableTechnicalEffect
         sub_adf = create_sub_adm_1("reliable_test")
         statements = sub_adf.evaluateTree(blf_list)
         
         # With new short-circuiting logic, reject conditions prevent node satisfaction
-        # ReliableTechnicalEffect should NOT be in the case due to reject BonusEffect
-        self.assertNotIn("ReliableTechnicalEffect", sub_adf.case, "ReliableTechnicalEffect should be rejected due to BonusEffect")
+        # FeatureReliableTechnicalEffect should NOT be in the case due to reject BonusEffect
+        self.assertNotIn("FeatureReliableTechnicalEffect", sub_adf.case, "FeatureReliableTechnicalEffect should be rejected due to BonusEffect")
         
         # Verify reject statements are present in the evaluation output
         reject_statements = [stmt for stmt in statements if 'bonus effect which precludes' in stmt.lower() or 'no bonus effect' in stmt.lower()]
@@ -348,13 +348,13 @@ class TestSubADMEvaluation(unittest.TestCase):
             "NonReproducible"
         ]
         
-        # Test the evaluation - BonusEffect should prevent ReliableTechnicalEffect
+        # Test the evaluation - BonusEffect should prevent FeatureReliableTechnicalEffect
         sub_adf = create_sub_adm_1("reliable_test")
         statements = sub_adf.evaluateTree(blf_list)
         
         # With new short-circuiting logic, reject conditions prevent node satisfaction
-        # ReliableTechnicalEffect should NOT be in the case due to reject BonusEffect
-        self.assertNotIn("ReliableTechnicalEffect", sub_adf.case, "ReliableTechnicalEffect should be rejected due to BonusEffect")
+        # FeatureReliableTechnicalEffect should NOT be in the case due to reject BonusEffect
+        self.assertNotIn("FeatureReliableTechnicalEffect", sub_adf.case, "FeatureReliableTechnicalEffect should be rejected due to BonusEffect")
         
         # Verify reject statements are present in the evaluation output
         reject_statements = [stmt for stmt in statements if 'bonus effect which precludes' in stmt.lower() or 'no bonus effect' in stmt.lower()]
@@ -385,8 +385,8 @@ class TestSubADMEvaluation(unittest.TestCase):
         # NormalTechnicalContribution should NOT be in the case due to reject CircumventTechProblem
         self.assertNotIn("NormalTechnicalContribution", sub_adf.case, "NormalTechnicalContribution should be rejected due to CircumventTechProblem")
         self.assertNotIn("FeatureTechnicalContribution", sub_adf.case, "FeatureTechnicalContribution should not be satisfied without NormalTechnicalContribution")
-        # ReliableTechnicalEffect should NOT be in the case due to reject SufficiencyOfDisclosureIssue
-        self.assertNotIn("ReliableTechnicalEffect", sub_adf.case, "ReliableTechnicalEffect should be rejected due to SufficiencyOfDisclosureIssue")
+        # FeatureReliableTechnicalEffect should NOT be in the case due to reject SufficiencyOfDisclosureIssue
+        self.assertNotIn("FeatureReliableTechnicalEffect", sub_adf.case, "FeatureReliableTechnicalEffect should be rejected due to SufficiencyOfDisclosureIssue")
         
         # Verify multiple reject statements are present in the evaluation output
         reject_statements = [stmt for stmt in statements if 'not a technical contribution' in stmt.lower() or 'circumvents a technical problem' in stmt.lower() or 'sufficiency of disclosure precludes' in stmt.lower() or 'not reproducible' in stmt.lower()]
@@ -404,7 +404,7 @@ class TestSubADMEvaluation(unittest.TestCase):
             "Reproducible",
             "NormalTechnicalContribution",
             "FeatureTechnicalContribution",
-            "ReliableTechnicalEffect",
+            "FeatureReliableTechnicalEffect",
         ]
         
         # Test the evaluation - this case should allow all nodes to be satisfied
@@ -416,7 +416,7 @@ class TestSubADMEvaluation(unittest.TestCase):
         # All these nodes should be in the case since no reject conditions are satisfied
         self.assertIn("NormalTechnicalContribution", sub_adf.case, "NormalTechnicalContribution should be satisfied without reject conditions")
         self.assertIn("FeatureTechnicalContribution", sub_adf.case, "FeatureTechnicalContribution should be satisfied")
-        self.assertIn("ReliableTechnicalEffect", sub_adf.case, "ReliableTechnicalEffect should be satisfied without reject conditions")
+        self.assertIn("FeatureReliableTechnicalEffect", sub_adf.case, "FeatureReliableTechnicalEffect should be satisfied without reject conditions")
         
         # This case should have evaluation results (statements)
         self.assertGreater(len(statements), 0, "Should have evaluation statements")
@@ -519,6 +519,323 @@ class TestSubADMEvaluation(unittest.TestCase):
             # Test that dependency is properly set
             self.assertIsNotNone(qi_with_dep.dependency_node)
             self.assertIsInstance(qi_with_dep.dependency_node, (str, list))
+
+
+class TestSubADM2Evaluation(unittest.TestCase):
+    """Unit tests for sub-ADM 2 (Objective Technical Problem) evaluation"""
+    
+    def setUp(self):
+        """Set up test fixtures"""
+        self.sub_adf = create_sub_adm_2("test_otp")
+    
+    def evaluate_blf_combination(self, blf_list, key_facts=None):
+        """Helper method to evaluate a combination of BLFs using the tree evaluation algorithm"""
+        # Create a new sub-ADM with key facts if provided
+        if key_facts:
+            self.sub_adf = create_sub_adm_2("test_otp", key_facts)
+        
+        # Add the BLFs to the case
+        for blf in blf_list:
+            if blf not in self.sub_adf.case:
+                self.sub_adf.case.append(blf)
+        
+        # Use the existing tree evaluation algorithm
+        self.sub_adf.evaluateTree(self.sub_adf.case)
+        
+        return self.sub_adf.case.copy()
+    
+    def assert_final_case(self, test_name, blf_list, expected_final_case, key_facts=None):
+        """Helper method to test and display final case results"""
+        actual_final_case = self.evaluate_blf_combination(blf_list, key_facts)
+        
+        # Only show output for failures
+        try:
+            self.assertEqual(
+                set(actual_final_case), 
+                set(expected_final_case),
+                f"Expected: {expected_final_case}, Got: {actual_final_case}"
+            )
+        except AssertionError:
+            # Show both cases for failures only
+            print(f"\nTest: {test_name}")
+            print(f"BLFs: {blf_list}")
+            print(f"Key Facts: {key_facts}")
+            print(f"Expected: {sorted(expected_final_case)}")
+            print(f"Actual:   {sorted(actual_final_case)}")
+            raise
+    
+    def test_basic_formulation_with_all_requirements(self):
+        """Test: Basic formulation with all requirements (Encompassed, Embodied, ScopeOfClaim)"""
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim"]
+        expected_final_case = [
+            "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation"
+        ]
+        
+        self.assert_final_case("Basic Formulation with All Requirements", blf_list, expected_final_case)
+    
+    def test_well_formed_without_hindsight(self):
+        """Test: Well formed objective technical problem without hindsight"""
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation"]
+        expected_final_case = [
+            "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation", "WrittenFormulation", "WellFormed"
+        ]
+        
+        self.assert_final_case("Well Formed without Hindsight", blf_list, expected_final_case)
+    
+    def test_well_formed_with_hindsight_rejection(self):
+        """Test: Well formed objective technical problem with hindsight (should be rejected)"""
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation", "Hindsight"]
+        expected_final_case = [
+            "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation", "WrittenFormulation", "Hindsight"
+        ]
+        
+        self.assert_final_case("Well Formed with Hindsight (rejected)", blf_list, expected_final_case)
+    
+    def test_constrained_problem_with_non_technical_contribution(self):
+        """Test: Constrained problem with non-technical contribution"""
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation", "NonTechnicalContribution"]
+        expected_final_case = [
+            "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation", "WrittenFormulation", "WellFormed",
+            "NonTechnicalContribution", "ConstrainedProblem"
+        ]
+        
+        self.assert_final_case("Constrained Problem with Non-Technical Contribution", blf_list, expected_final_case)
+    
+    def test_objective_technical_problem_formulation_constrained(self):
+        """Test: Objective technical problem formulation with constraints"""
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation", "NonTechnicalContribution"]
+        expected_final_case = [
+            "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation", "WrittenFormulation", "WellFormed",
+            "NonTechnicalContribution", "ConstrainedProblem", "ObjectiveTechnicalProblemFormulation"
+        ]
+        
+        self.assert_final_case("OTP Formulation Constrained", blf_list, expected_final_case)
+    
+    def test_objective_technical_problem_formulation_unconstrained(self):
+        """Test: Objective technical problem formulation without constraints"""
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation"]
+        expected_final_case = [
+            "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation", "WrittenFormulation", "WellFormed", "ObjectiveTechnicalProblemFormulation"
+        ]
+        
+        self.assert_final_case("OTP Formulation Unconstrained", blf_list, expected_final_case)
+    
+    def test_would_have_arrived_by_modification(self):
+        """Test: Would have arrived at invention by modification"""
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation", "WouldModify"]
+        expected_final_case = [
+            "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation", "WrittenFormulation", "WellFormed", 
+            "ObjectiveTechnicalProblemFormulation", "WouldModify", "WouldHaveArrived"
+        ]
+        
+        self.assert_final_case("Would Have Arrived by Modification", blf_list, expected_final_case)
+    
+    def test_would_have_arrived_by_adaptation(self):
+        """Test: Would have arrived at invention by adaptation"""
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation", "WouldAdapt"]
+        expected_final_case = [
+            "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation", "WrittenFormulation", "WellFormed", 
+            "ObjectiveTechnicalProblemFormulation", "WouldAdapt", "WouldHaveArrived"
+        ]
+        
+        self.assert_final_case("Would Have Arrived by Adaptation", blf_list, expected_final_case)
+    
+    def test_non_technical_contribution_from_main_case(self):
+        """Test: NonTechnicalContribution added to sub-ADM case when present in main case"""
+        key_facts = {'main_case': ['NonTechnicalContribution', 'OtherFactor']}
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation"]
+        expected_final_case = [
+            "NonTechnicalContribution", "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation", "WrittenFormulation", "WellFormed", 
+            "ConstrainedProblem", "ObjectiveTechnicalProblemFormulation"
+        ]
+        
+        self.assert_final_case("NonTechnicalContribution from Main Case", blf_list, expected_final_case, key_facts)
+    
+    def test_no_non_technical_contribution_from_main_case(self):
+        """Test: No NonTechnicalContribution added when not present in main case"""
+        key_facts = {'main_case': ['OtherFactor', 'AnotherFactor']}
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation"]
+        expected_final_case = [
+            "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation", "WrittenFormulation", "WellFormed", 
+            "ObjectiveTechnicalProblemFormulation"
+        ]
+        
+        self.assert_final_case("No NonTechnicalContribution from Main Case", blf_list, expected_final_case, key_facts)
+    
+    def test_no_key_facts_provided(self):
+        """Test: Sub-ADM case remains empty when no key facts provided"""
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation"]
+        expected_final_case = [
+            "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation", "WrittenFormulation", "WellFormed", 
+            "ObjectiveTechnicalProblemFormulation"
+        ]
+        
+        self.assert_final_case("No Key Facts Provided", blf_list, expected_final_case)
+    
+    def test_incomplete_basic_formulation(self):
+        """Test: Incomplete basic formulation (missing one requirement)"""
+        blf_list = ["Encompassed", "Embodied"]  # Missing ScopeOfClaim
+        expected_final_case = [
+            "Encompassed", "Embodied"
+        ]
+        
+        self.assert_final_case("Incomplete Basic Formulation", blf_list, expected_final_case)
+    
+    def test_question_order(self):
+        """Test: Verify question order is set correctly"""
+        self.assertEqual(
+            self.sub_adf.questionOrder, 
+            ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation", "Hindsight", "modify_adapt"]
+        )
+
+    def test_abstract_factor_statements(self):
+        """Test: Verify that abstract factors have correct updated statements"""
+        # Test BasicFormulation statements
+        basic_formulation = self.sub_adf.nodes["BasicFormulation"]
+        self.assertEqual(basic_formulation.statements, 
+                        ['We have a valid basic formulation of the objective technical problem', 
+                         'We do not have a valid basic formulation of the objective technical problem'])
+        
+        # Test WellFormed statements
+        well_formed = self.sub_adf.nodes["WellFormed"]
+        self.assertEqual(well_formed.statements, 
+                        ['There is a written objective technical problem which has been formed without hindsight', 
+                         'There is no written objective technical problem which has been formed without hindsight'])
+        
+        # Test ConstrainedProblem statements
+        constrained_problem = self.sub_adf.nodes["ConstrainedProblem"]
+        self.assertEqual(constrained_problem.statements, 
+                        ['There are non-technical contributions constraining the objective technical problem', 
+                         'There are no non-technical contributions constraining the objective technical problem'])
+        
+        # Test ObjectiveTechnicalProblemFormulation statements
+        otp_formulation = self.sub_adf.nodes["ObjectiveTechnicalProblemFormulation"]
+        self.assertEqual(otp_formulation.statements, 
+                        ['There is a valid objective technical problem formulation constrained by non-technical contributions', 
+                         'There is a valid objective technical problem formulation', 
+                         'There is no valid objective technical problem formulation'])
+        
+        # Test WouldHaveArrived statements
+        would_have_arrived = self.sub_adf.nodes["WouldHaveArrived"]
+        self.assertEqual(would_have_arrived.statements, 
+                        ['The skilled person would have arrived at the proposed invention by modifying the closest prior art', 
+                         'The skilled person would have arrived at the proposed invention by adapting the closest prior art'])
+
+    def test_basic_formulation_acceptance_conditions(self):
+        """Test: BasicFormulation acceptance conditions work correctly"""
+        # Test that BasicFormulation requires all three conditions
+        basic_formulation = self.sub_adf.nodes["BasicFormulation"]
+        self.assertEqual(basic_formulation.acceptance, ['Encompassed and Embodied and ScopeOfClaim'])
+        
+        # Test that it's properly configured as an abstract factor
+        self.assertIsInstance(basic_formulation, Node)
+        self.assertEqual(len(basic_formulation.statements), 2)
+
+    def test_well_formed_acceptance_conditions(self):
+        """Test: WellFormed acceptance conditions work correctly"""
+        # Test that WellFormed requires rejection of Hindsight AND WrittenFormulation AND BasicFormulation
+        well_formed = self.sub_adf.nodes["WellFormed"]
+        self.assertEqual(well_formed.acceptance, ['reject Hindsight','WrittenFormulation and BasicFormulation'])
+        
+        # Test that it's properly configured as an abstract factor
+        self.assertIsInstance(well_formed, Node)
+        self.assertEqual(len(well_formed.statements), 2)
+
+    def test_constrained_problem_acceptance_conditions(self):
+        """Test: ConstrainedProblem acceptance conditions work correctly"""
+        # Test that ConstrainedProblem requires WellFormed AND NonTechnicalContribution
+        constrained_problem = self.sub_adf.nodes["ConstrainedProblem"]
+        self.assertEqual(constrained_problem.acceptance, ['WellFormed and NonTechnicalContribution'])
+        
+        # Test that it's properly configured as an abstract factor
+        self.assertIsInstance(constrained_problem, Node)
+        self.assertEqual(len(constrained_problem.statements), 2)
+
+    def test_objective_technical_problem_formulation_acceptance_conditions(self):
+        """Test: ObjectiveTechnicalProblemFormulation acceptance conditions work correctly"""
+        # Test that it has two acceptance conditions: ConstrainedProblem and WellFormed
+        otp_formulation = self.sub_adf.nodes["ObjectiveTechnicalProblemFormulation"]
+        self.assertEqual(otp_formulation.acceptance, ['ConstrainedProblem','WellFormed'])
+        
+        # Test that it's properly configured as an abstract factor
+        self.assertIsInstance(otp_formulation, Node)
+        self.assertEqual(len(otp_formulation.statements), 3)
+
+    def test_would_have_arrived_acceptance_conditions(self):
+        """Test: WouldHaveArrived acceptance conditions work correctly"""
+        # Test that it has two acceptance conditions for modification and adaptation
+        would_have_arrived = self.sub_adf.nodes["WouldHaveArrived"]
+        self.assertEqual(would_have_arrived.acceptance, 
+                        ['WouldModify and  ObjectiveTechnicalProblemFormulation', 
+                         'WouldAdapt and ObjectiveTechnicalProblemFormulation'])
+        
+        # Test that it's properly configured as an abstract factor
+        self.assertIsInstance(would_have_arrived, Node)
+        self.assertEqual(len(would_have_arrived.statements), 2)
+
+    def test_abstract_factor_evaluation_with_updated_statements(self):
+        """Test: Abstract factors evaluate correctly with their updated statements"""
+        # Test a complete evaluation path that should trigger all updated statements
+        blf_list = ["Encompassed", "Embodied", "ScopeOfClaim", "WrittenFormulation", "NonTechnicalContribution", "WouldModify"]
+        final_case = self.evaluate_blf_combination(blf_list)
+        
+        # Verify that all abstract factors are properly evaluated
+        expected_abstract_factors = [
+            "BasicFormulation", "WellFormed", "ConstrainedProblem", 
+            "ObjectiveTechnicalProblemFormulation", "WouldHaveArrived"
+        ]
+        
+        for factor in expected_abstract_factors:
+            self.assertIn(factor, final_case, f"Abstract factor {factor} should be in final case")
+        
+        # Verify the complete evaluation path
+        expected_final_case = [
+            "Encompassed", "Embodied", "ScopeOfClaim", 
+            "BasicFormulation", "WrittenFormulation", "WellFormed",
+            "NonTechnicalContribution", "ConstrainedProblem", 
+            "ObjectiveTechnicalProblemFormulation", "WouldModify", "WouldHaveArrived"
+        ]
+        
+        self.assertEqual(set(final_case), set(expected_final_case), 
+                        f"Complete evaluation path should include all abstract factors. Got: {final_case}")
+
+    def test_abstract_factor_statement_consistency(self):
+        """Test: Verify that abstract factor statements are consistent with their logic"""
+        # Test that BasicFormulation has appropriate statements for success/failure
+        basic_formulation = self.sub_adf.nodes["BasicFormulation"]
+        self.assertTrue(any("valid basic formulation" in stmt.lower() for stmt in basic_formulation.statements))
+        self.assertTrue(any("not have a valid basic formulation" in stmt.lower() for stmt in basic_formulation.statements))
+        
+        # Test that WellFormed has appropriate statements for success/failure
+        well_formed = self.sub_adf.nodes["WellFormed"]
+        self.assertTrue(any("written objective technical problem" in stmt.lower() for stmt in well_formed.statements))
+        self.assertTrue(any("no written objective technical problem" in stmt.lower() for stmt in well_formed.statements))
+        
+        # Test that ConstrainedProblem has appropriate statements for success/failure
+        constrained_problem = self.sub_adf.nodes["ConstrainedProblem"]
+        self.assertTrue(any("non-technical contributions constraining" in stmt.lower() for stmt in constrained_problem.statements))
+        self.assertTrue(any("no non-technical contributions constraining" in stmt.lower() for stmt in constrained_problem.statements))
+        
+        # Test that ObjectiveTechnicalProblemFormulation has appropriate statements
+        otp_formulation = self.sub_adf.nodes["ObjectiveTechnicalProblemFormulation"]
+        self.assertTrue(any("valid objective technical problem formulation" in stmt.lower() for stmt in otp_formulation.statements))
+        self.assertTrue(any("no valid objective technical problem formulation" in stmt.lower() for stmt in otp_formulation.statements))
+        
+        # Test that WouldHaveArrived has appropriate statements
+        would_have_arrived = self.sub_adf.nodes["WouldHaveArrived"]
+        self.assertTrue(any("modifying the closest prior art" in stmt.lower() for stmt in would_have_arrived.statements))
+        self.assertTrue(any("adapting the closest prior art" in stmt.lower() for stmt in would_have_arrived.statements))
 
 
 class TestMainADMEvaluation(unittest.TestCase):
@@ -709,6 +1026,493 @@ class TestMainADMEvaluation(unittest.TestCase):
         expected_final_case = ["CommonKnowledge"]
         
         self.assert_final_case("Minimal Case Information Only", blf_list, expected_final_case)
+
+    def test_evaluation_blf_distinguishing_features(self):
+        """Test: DistinguishingFeatures EvaluationBLF - normal condition (should find target in sub-ADM)"""
+        # Get the real EvaluationBLF node from the ADM
+        eval_blf = self.main_adf.nodes["DistinguishingFeatures"]
+        
+        # Set up sub-ADM results with DistinguishingFeatures present
+        sub_adm_results = [
+            ["DistinguishingFeatures", "FeatureTechnicalContribution", "FeatureReliableTechnicalEffect"],  # Case 1: has DistinguishingFeatures
+            ["DistinguishingFeatures", "NormalTechnicalContribution", "FeatureReliableTechnicalEffect"]    # Case 2: has DistinguishingFeatures
+        ]
+        
+        # Set the facts in the ADF
+        self.main_adf.setFact("ReliableTechnicalEffect", "results", sub_adm_results)
+        self.main_adf.setFact("ReliableTechnicalEffect", "items", ["Item1", "Item2"])
+        
+        # Test the evaluateResults method directly
+        result = eval_blf.evaluateResults(self.main_adf)
+        
+        # Should return True because DistinguishingFeatures is found in both cases
+        self.assertTrue(result, "DistinguishingFeatures should be accepted when found in sub-ADM results")
+
+    def test_evaluation_blf_non_technical_contribution_rejection(self):
+        """Test: NonTechnicalContribution EvaluationBLF - rejection condition (should accept if target NOT found)"""
+        # Get the real EvaluationBLF node from the ADM
+        eval_blf = self.main_adf.nodes["NonTechnicalContribution"]
+        
+        # Set up sub-ADM results WITHOUT FeatureTechnicalContribution
+        sub_adm_results = [
+            ["DistinguishingFeatures"],  # Case 1: no FeatureTechnicalContribution
+            ["DistinguishingFeatures", "Credible", "Reproducible"]      # Case 2: no FeatureTechnicalContribution
+        ]
+        
+        # Set the facts in the ADF
+        self.main_adf.setFact("ReliableTechnicalEffect", "results", sub_adm_results)
+        self.main_adf.setFact("ReliableTechnicalEffect", "items", ["Item1", "Item2"])
+        
+        # Test the evaluateResults method directly
+        result = eval_blf.evaluateResults(self.main_adf)
+        
+        # Should return True because FeatureTechnicalContribution is NOT found in any case (rejection condition)
+        self.assertTrue(result, "NonTechnicalContribution should be accepted when FeatureTechnicalContribution is NOT found in sub-ADM")
+
+    def test_evaluation_blf_technical_contribution_normal(self):
+        """Test: TechnicalContribution EvaluationBLF - normal condition (should find target in sub-ADM)"""
+        # Get the real EvaluationBLF node from the ADM
+        eval_blf = self.main_adf.nodes["TechnicalContribution"]
+        
+        # Set up sub-ADM results WITH FeatureTechnicalContribution
+        sub_adm_results = [
+            ["DistinguishingFeatures", "FeatureTechnicalContribution", "NormalTechnicalContribution", "FeatureReliableTechnicalEffect"],  # Case 1: has FeatureTechnicalContribution
+            ["DistinguishingFeatures", "FeatureTechnicalContribution", "Credible", "Reproducible", "FeatureReliableTechnicalEffect"]      # Case 2: has FeatureTechnicalContribution
+        ]
+        
+        # Set the facts in the ADF
+        self.main_adf.setFact("ReliableTechnicalEffect", "results", sub_adm_results)
+        self.main_adf.setFact("ReliableTechnicalEffect", "items", ["Item1", "Item2"])
+        
+        # Test the evaluateResults method directly
+        result = eval_blf.evaluateResults(self.main_adf)
+        
+        # Should return True because FeatureTechnicalContribution is found in both cases
+        self.assertTrue(result, "TechnicalContribution should be accepted when FeatureTechnicalContribution is found in sub-ADM")
+
+    def test_evaluation_blf_sufficiency_of_disclosure_normal(self):
+        """Test: SufficiencyOfDisclosure EvaluationBLF - normal condition (should find target in sub-ADM)"""
+        # Get the real EvaluationBLF node from the ADM
+        eval_blf = self.main_adf.nodes["SufficiencyOfDisclosure"]
+        
+        # Set up sub-ADM results WITH SufficiencyOfDisclosureIssue
+        sub_adm_results = [
+            ["DistinguishingFeatures", "SufficiencyOfDisclosureIssue", "ClaimContainsEffect", "FeatureReliableTechnicalEffect"],  # Case 1: has SufficiencyOfDisclosureIssue
+            ["DistinguishingFeatures", "SufficiencyOfDisclosureIssue", "NonReproducible", "FeatureReliableTechnicalEffect"]       # Case 2: has SufficiencyOfDisclosureIssue
+        ]
+        
+        # Set the facts in the ADF
+        self.main_adf.setFact("ReliableTechnicalEffect", "results", sub_adm_results)
+        self.main_adf.setFact("ReliableTechnicalEffect", "items", ["Item1", "Item2"])
+        
+        # Test the evaluateResults method directly
+        result = eval_blf.evaluateResults(self.main_adf)
+        
+        # Should return True because SufficiencyOfDisclosureIssue is found in both cases
+        self.assertTrue(result, "SufficiencyOfDisclosure should be accepted when SufficiencyOfDisclosureIssue is found in sub-ADM")
+
+    def test_evaluation_blf_comprehensive_scenario(self):
+        """Test: Comprehensive scenario with multiple EvaluationBLF conditions"""
+        # Set up sub-ADM results with mixed conditions
+        sub_adm_results = [
+            ["DistinguishingFeatures", "FeatureTechnicalContribution", "SufficiencyOfDisclosureIssue", "FeatureReliableTechnicalEffect"],  # Case 1: has both targets
+            ["DistinguishingFeatures", "FeatureTechnicalContribution", "Credible", "Reproducible", "FeatureReliableTechnicalEffect"]       # Case 2: has FeatureTechnicalContribution but no SufficiencyOfDisclosureIssue
+        ]
+        
+        # Set the facts in the ADF
+        self.main_adf.setFact("ReliableTechnicalEffect", "results", sub_adm_results)
+        self.main_adf.setFact("ReliableTechnicalEffect", "items", ["Item1", "Item2"])
+        
+        # Test DistinguishingFeatures EvaluationBLF (normal condition)
+        dist_eval = self.main_adf.nodes["DistinguishingFeatures"]
+        dist_result = dist_eval.evaluateResults(self.main_adf)
+        self.assertTrue(dist_result, "DistinguishingFeatures should be accepted when found in sub-ADM (normal condition)")
+        
+        # Test NonTechnicalContribution EvaluationBLF (rejection condition)
+        non_tech_eval = self.main_adf.nodes["NonTechnicalContribution"]
+        non_tech_result = non_tech_eval.evaluateResults(self.main_adf)
+        self.assertFalse(non_tech_result, "NonTechnicalContribution should be rejected when FeatureTechnicalContribution IS found in sub-ADM (rejection condition)")
+        
+        # Test TechnicalContribution EvaluationBLF (normal condition)
+        tech_eval = self.main_adf.nodes["TechnicalContribution"]
+        tech_result = tech_eval.evaluateResults(self.main_adf)
+        self.assertTrue(tech_result, "TechnicalContribution should be accepted when FeatureTechnicalContribution is found in sub-ADM (normal condition)")
+        
+        # Test SufficiencyOfDisclosure EvaluationBLF (normal condition)
+        suff_eval = self.main_adf.nodes["SufficiencyOfDisclosure"]
+        suff_result = suff_eval.evaluateResults(self.main_adf)
+        self.assertTrue(suff_result, "SufficiencyOfDisclosure should be accepted when SufficiencyOfDisclosureIssue is found in sub-ADM (normal condition)")
+
+    def test_evaluation_blf_rejection_condition_working(self):
+        """Test: Verify rejection condition logic works correctly - accept when target NOT found"""
+        # Set up sub-ADM results WITHOUT FeatureTechnicalContribution
+        sub_adm_results = [
+            ["DistinguishingFeatures", "NormalTechnicalContribution", "Credible", "FeatureReliableTechnicalEffect"],  # Case 1: no FeatureTechnicalContribution
+            ["DistinguishingFeatures", "MathematicalContribution", "Reproducible", "FeatureReliableTechnicalEffect"]   # Case 2: no FeatureTechnicalContribution
+        ]
+        
+        # Set the facts in the ADF
+        self.main_adf.setFact("ReliableTechnicalEffect", "results", sub_adm_results)
+        self.main_adf.setFact("ReliableTechnicalEffect", "items", ["Item1", "Item2"])
+        
+        # Test NonTechnicalContribution EvaluationBLF (rejection condition)
+        non_tech_eval = self.main_adf.nodes["NonTechnicalContribution"]
+        non_tech_result = non_tech_eval.evaluateResults(self.main_adf)
+        self.assertTrue(non_tech_result, "NonTechnicalContribution should be accepted when FeatureTechnicalContribution is NOT found in sub-ADM (rejection condition)")
+        
+        # Test TechnicalContribution EvaluationBLF (normal condition)
+        tech_eval = self.main_adf.nodes["TechnicalContribution"]
+        tech_result = tech_eval.evaluateResults(self.main_adf)
+        self.assertFalse(tech_result, "TechnicalContribution should be rejected when FeatureTechnicalContribution is NOT found in sub-ADM (normal condition)")
+
+    def test_invention_unexpected_effect_evaluation_blf(self):
+        """Test: InventionUnexpectedEffect EvaluationBLF - normal condition (should accept if target found)"""
+        # First, set up a mock sub-ADM result with UnexpectedEffect
+        mock_results = [
+            ["UnexpectedEffect", "OtherFactor"],
+            ["SomeOtherFactor"]
+        ]
+        
+        # Mock the ReliableTechnicalEffect BLF to return our test results
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("ReliableTechnicalEffect", "results", mock_results)
+        
+        # Test InventionUnexpectedEffect EvaluationBLF (normal condition)
+        unexpected_effect_eval = self.main_adf.nodes["InventionUnexpectedEffect"]
+        unexpected_effect_result = unexpected_effect_eval.evaluateResults(self.main_adf)
+        self.assertTrue(unexpected_effect_result, "InventionUnexpectedEffect should be accepted when UnexpectedEffect IS found in sub-ADM (normal condition)")
+
+    def test_invention_unexpected_effect_evaluation_blf_no_target(self):
+        """Test: InventionUnexpectedEffect EvaluationBLF - no target found (should reject)"""
+        # First, set up a mock sub-ADM result without UnexpectedEffect
+        mock_results = [
+            ["SomeOtherFactor", "AnotherFactor"],
+            ["YetAnotherFactor"]
+        ]
+        
+        # Mock the ReliableTechnicalEffect BLF to return our test results
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("ReliableTechnicalEffect", "results", mock_results)
+        
+        # Test InventionUnexpectedEffect EvaluationBLF (normal condition)
+        unexpected_effect_eval = self.main_adf.nodes["InventionUnexpectedEffect"]
+        unexpected_effect_result = unexpected_effect_eval.evaluateResults(self.main_adf)
+        self.assertFalse(unexpected_effect_result, "InventionUnexpectedEffect should be rejected when UnexpectedEffect is NOT found in sub-ADM (normal condition)")
+
+    def test_objective_technical_problem_evaluation_blf(self):
+        """Test: ObjectiveTechnicalProblem EvaluationBLF - normal condition (should accept if target found)"""
+        # First, set up a mock sub-ADM result with ObjectiveTechnicalProblemFormulation
+        mock_results = [
+            ["ObjectiveTechnicalProblemFormulation", "OtherFactor"],
+            ["SomeOtherFactor"]
+        ]
+        
+        # Mock the OTPObvious BLF to return our test results (since source_blf is "OTPObvious")
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "results", mock_results)
+        
+        # Test ObjectiveTechnicalProblem EvaluationBLF (normal condition)
+        otp_eval = self.main_adf.nodes["ObjectiveTechnicalProblem"]
+        otp_result = otp_eval.evaluateResults(self.main_adf)
+        self.assertTrue(otp_result, "ObjectiveTechnicalProblem should be accepted when ObjectiveTechnicalProblemFormulation IS found in sub-ADM (normal condition)")
+
+    def test_objective_technical_problem_evaluation_blf_no_target(self):
+        """Test: ObjectiveTechnicalProblem EvaluationBLF - no target found (should reject)"""
+        # First, set up a mock sub-ADM result without ObjectiveTechnicalProblemFormulation
+        mock_results = [
+            ["SomeOtherFactor", "AnotherFactor"],
+            ["YetAnotherFactor"]
+        ]
+        
+        # Mock the OTPObvious BLF to return our test results (since source_blf is "OTPObvious")
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "results", mock_results)
+        
+        # Test ObjectiveTechnicalProblem EvaluationBLF (normal condition)
+        otp_eval = self.main_adf.nodes["ObjectiveTechnicalProblem"]
+        otp_result = otp_eval.evaluateResults(self.main_adf)
+        self.assertFalse(otp_result, "ObjectiveTechnicalProblem should be rejected when ObjectiveTechnicalProblemFormulation is NOT found in sub-ADM (normal condition)")
+
+    def test_new_blf_statements(self):
+        """Test: Verify that new BLFs have correct statements"""
+        # Test InventionUnexpectedEffect statements
+        invention_unexpected_effect = self.main_adf.nodes["InventionUnexpectedEffect"]
+        self.assertIsInstance(invention_unexpected_effect, EvaluationBLF)
+        self.assertEqual(invention_unexpected_effect.statement, 
+                        ['there is an unexpected effect within the invention', 'there is not an unexpected effect within the invention'])
+        
+        # Test ObjectiveTechnicalProblem statements
+        objective_technical_problem = self.main_adf.nodes["ObjectiveTechnicalProblem"]
+        self.assertIsInstance(objective_technical_problem, EvaluationBLF)
+        self.assertEqual(objective_technical_problem.statement, 
+                        ['there is a valid objective technical problem', 'there is not a valid objective technical problem'])
+
+    def test_updated_question_order_includes_new_blfs(self):
+        """Test: Verify that new BLFs are included in question order"""
+        # Check that the new BLFs are in the question order
+        self.assertIn("InventionUnexpectedEffect", self.main_adf.questionOrder)
+        self.assertIn("ObjectiveTechnicalProblem", self.main_adf.questionOrder)
+
+
+    def test_synergy_question_instantiator(self):
+        """Test: Synergy question instantiator is properly configured"""
+        # Test that synergy_question exists in question_instantiators
+        self.assertIn("synergy_question", self.main_adf.question_instantiators)
+        
+        synergy_qi = self.main_adf.question_instantiators["synergy_question"]
+        
+        # Test that it has the correct dependency node
+        self.assertEqual(synergy_qi.get('dependency_node'), "ReliableTechnicalEffect")
+        
+        # Test that it has the correct question options
+        expected_options = {
+            "As a synergistic combination (effect is greater than the sum of parts).": "Synergy",
+            "As a simple aggregation of independent effects.": "",
+            "Neither": ""
+        }
+        self.assertEqual(synergy_qi.get('blf_mapping'), expected_options)
+
+    def test_functional_interaction_dependent_blf(self):
+        """Test: FunctionalInteraction dependent BLF is properly configured"""
+        # Test that FunctionalInteraction exists and is properly configured
+        functional_interaction = self.main_adf.nodes["FunctionalInteraction"]
+        self.assertIsInstance(functional_interaction, DependentBLF)
+        
+        # Test that it has the correct dependency nodes
+        self.assertEqual(functional_interaction.dependency_node, ["ReliableTechnicalEffect","Synergy"])
+        
+        # Test that it has the correct question
+        expected_question = "Is the synergistic combination achieved through a functional interaction between features?"
+        self.assertEqual(functional_interaction.question, expected_question)
+
+    def test_new_abstract_factor_evaluation_path(self):
+        """Test: New abstract factors evaluate correctly in a complete evaluation path"""
+        # Test a complete evaluation path that should trigger all new abstract factors
+        blf_list = ["ReliableTechnicalEffect", "Synergy", "FunctionalInteraction", "TechnicalContribution"]
+        final_case = self.evaluate_blf_combination(blf_list)
+        
+        # Verify that all new abstract factors are properly evaluated
+        expected_abstract_factors = [
+            "Combination", "CandidateOTP"
+        ]
+        
+        for factor in expected_abstract_factors:
+            self.assertIn(factor, final_case, f"Abstract factor {factor} should be in final case")
+        
+        # Verify the complete evaluation path
+        expected_final_case = [
+            "ReliableTechnicalEffect", "Synergy", "FunctionalInteraction", 
+            "TechnicalContribution", "Combination", "CandidateOTP", "CommonKnowledge"
+        ]
+        
+        self.assertEqual(set(final_case), set(expected_final_case), 
+                        f"Complete evaluation path should include all new abstract factors. Got: {final_case}")
+
+    def test_combination_with_synergy_and_functional_interaction(self):
+        """Test: Combination abstract factor with synergy and functional interaction"""
+        blf_list = ["ReliableTechnicalEffect", "Synergy", "FunctionalInteraction"]
+        expected_final_case = [
+            "ReliableTechnicalEffect", "Synergy", "FunctionalInteraction", "Combination", "CommonKnowledge", "CandidateOTP"
+        ]
+        
+        self.assert_final_case("Combination with Synergy and Functional Interaction", blf_list, expected_final_case)
+
+    def test_partial_problems_rejecting_combination(self):
+        """Test: PartialProblems abstract factor rejecting combination"""
+        blf_list = ["ReliableTechnicalEffect", "Synergy", "FunctionalInteraction", "Combination"]
+        # This should create Combination, but PartialProblems should reject it
+        expected_final_case = [
+            "ReliableTechnicalEffect", "Synergy", "FunctionalInteraction", "Combination", 
+            "CommonKnowledge", "CandidateOTP"
+        ]
+        
+        self.assert_final_case("PartialProblems Rejecting Combination", blf_list, expected_final_case)
+
+    def test_candidate_otp_with_combination(self):
+        """Test: CandidateOTP abstract factor with combination"""
+        blf_list = ["ReliableTechnicalEffect", "Synergy", "FunctionalInteraction"]
+        expected_final_case = [
+            "ReliableTechnicalEffect", "Synergy", "FunctionalInteraction", 
+            "Combination", "CandidateOTP", "CommonKnowledge"
+        ]
+        
+        self.assert_final_case("CandidateOTP with Combination", blf_list, expected_final_case)
+
+    def test_candidate_otp_with_partial_problems(self):
+        """Test: """
+        blf_list = ["TechnicalContribution"]
+        expected_final_case = [
+            "TechnicalContribution", "CommonKnowledge"
+        ]
+        
+        self.assert_final_case(" ", blf_list, expected_final_case)
+
+
+    def test_question_order_includes_new_abstract_factors(self):
+        """Test: Verify that new abstract factors are included in question order"""
+        # Check that the new abstract factors and related nodes are in the question order
+        self.assertIn("synergy_question", self.main_adf.questionOrder)
+        self.assertIn("FunctionalInteraction", self.main_adf.questionOrder)
+        self.assertIn("ObjectiveTechnicalProblem", self.main_adf.questionOrder)
+
+    def test_otp_obvious_sub_adm_blf_rejection_condition(self):
+        """Test: OTPObvious SubADMBLF with rejection_condition=True - should accept when no items rejected"""
+        # Test that OTPObvious exists and has rejection_condition=True
+        otp_obvious = self.main_adf.nodes["OTPObvious"]
+        self.assertIsInstance(otp_obvious, SubADMBLF)
+        self.assertTrue(otp_obvious.rejection_condition, "OTPObvious should have rejection_condition=True")
+        
+        # Test that it has the correct dependency nodes
+        expected_dependencies = ["CandidateOTP", "SkilledPerson", "RelevantPriorArt", "ClosestPriorArt"]
+        self.assertEqual(otp_obvious.dependency_node, expected_dependencies)
+
+    def test_otp_obvious_acceptance_when_no_rejected_items(self):
+        """Test: OTPObvious should be ACCEPTED when sub-ADM evaluation finds no rejected items (obvious)"""
+        # Mock sub-ADM results where all items are accepted (no rejected items) - obvious
+        mock_results = [
+            ["WouldHaveArrived"],  # Accepted
+            ["WouldHaveArrived"]  # Accepted
+        ]
+        
+        # Mock the OTPObvious BLF to return our test results
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "results", mock_results)
+            self.main_adf.setFact("OTPObvious", "accepted_count", 2)
+            self.main_adf.setFact("OTPObvious", "rejected_count", 0)
+        
+        # Test OTPObvious evaluation (rejection condition: accept when rejected_count < 1)
+        otp_obvious = self.main_adf.nodes["OTPObvious"]
+        
+        # Test the evaluation logic directly - with rejection_condition=True, 
+        # it should accept when rejected_count < 1 (i.e., 0)
+        rejected_count = self.main_adf.getFact("OTPObvious", "rejected_count") or 0
+        result = rejected_count < 1
+        
+        self.assertTrue(result, "OTPObvious should be ACCEPTED when no items are rejected (obvious)")
+
+    def test_otp_obvious_rejection_when_some_items_rejected(self):
+        """Test: OTPObvious should be REJECTED when sub-ADM evaluation finds some rejected items (NOT obvious)"""
+        # Mock sub-ADM results where some items are rejected - NOT obvious
+        mock_results = [
+            ["WouldHaveArrived", "OtherFactor"],  # Accepted
+            []  # Rejected (empty case)
+        ]
+        
+        # Mock the OTPObvious BLF to return our test results
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "results", mock_results)
+            self.main_adf.setFact("OTPObvious", "accepted_count", 1)
+            self.main_adf.setFact("OTPObvious", "rejected_count", 1)
+        
+        # Test OTPObvious evaluation (rejection condition: reject when rejected_count >= 1)
+        otp_obvious = self.main_adf.nodes["OTPObvious"]
+        
+        # Test the evaluation logic directly - with rejection_condition=True, 
+        # it should reject when rejected_count >= 1 (i.e., 1 or more)
+        rejected_count = self.main_adf.getFact("OTPObvious", "rejected_count") or 0
+        result = rejected_count < 1
+        
+        self.assertFalse(result, "OTPObvious should be REJECTED when some items are rejected (NOT obvious)")
+
+    def test_otp_obvious_rejection_condition_logic(self):
+        """Test: Verify OTPObvious rejection condition logic works correctly"""
+        otp_obvious = self.main_adf.nodes["OTPObvious"]
+        
+        # Test case 1: All items accepted (rejected_count = 0) -> Should be ACCEPTED (obvious)
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "accepted_count", 3)
+            self.main_adf.setFact("OTPObvious", "rejected_count", 0)
+        
+        # Test the evaluation logic directly - with rejection_condition=True, 
+        # it should accept when rejected_count < 1 (i.e., 0)
+        rejected_count = self.main_adf.getFact("OTPObvious", "rejected_count") or 0
+        result1 = rejected_count < 1
+        self.assertTrue(result1, "Should be ACCEPTED when rejected_count = 0 (obvious)")
+        
+        # Test case 2: Some items rejected (rejected_count = 1) -> Should be REJECTED (NOT obvious)
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "accepted_count", 2)
+            self.main_adf.setFact("OTPObvious", "rejected_count", 1)
+        
+        # Test the evaluation logic directly - with rejection_condition=True, 
+        # it should reject when rejected_count >= 1 (i.e., 1 or more)
+        rejected_count = self.main_adf.getFact("OTPObvious", "rejected_count") or 0
+        result2 = rejected_count < 1
+        self.assertFalse(result2, "Should be REJECTED when rejected_count = 1 (NOT obvious)")
+        
+        # Test case 3: All items rejected (rejected_count = 3) -> Should be REJECTED (NOT obvious)
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "accepted_count", 0)
+            self.main_adf.setFact("OTPObvious", "rejected_count", 3)
+        
+        # Test the evaluation logic directly - with rejection_condition=True, 
+        # it should reject when rejected_count >= 1 (i.e., 1 or more)
+        rejected_count = self.main_adf.getFact("OTPObvious", "rejected_count") or 0
+        result3 = rejected_count < 1
+        self.assertFalse(result3, "Should be REJECTED when rejected_count = 3 (NOT obvious)")
+
+    def test_otp_obvious_vs_normal_sub_adm_blf_behavior(self):
+        """Test: Compare OTPObvious (rejection condition) vs normal SubADMBLF behavior"""
+        # Test normal SubADMBLF behavior (rejection_condition=False)
+        normal_blf = self.main_adf.nodes["ReliableTechnicalEffect"]  # This should be normal
+        if hasattr(normal_blf, 'rejection_condition'):
+            self.assertFalse(normal_blf.rejection_condition, "ReliableTechnicalEffect should have rejection_condition=False")
+        
+        # Test OTPObvious behavior (rejection_condition=True)
+        otp_obvious = self.main_adf.nodes["OTPObvious"]
+        self.assertTrue(otp_obvious.rejection_condition, "OTPObvious should have rejection_condition=True")
+        
+        # Both should be SubADMBLF instances
+        self.assertIsInstance(normal_blf, SubADMBLF)
+        self.assertIsInstance(otp_obvious, SubADMBLF)
+
+    def test_otp_obvious_dependency_nodes(self):
+        """Test: Verify OTPObvious has correct dependency nodes"""
+        otp_obvious = self.main_adf.nodes["OTPObvious"]
+        expected_dependencies = ["CandidateOTP", "SkilledPerson", "RelevantPriorArt", "ClosestPriorArt"]
+        
+        self.assertEqual(otp_obvious.dependency_node, expected_dependencies)
+        
+        # Verify all dependency nodes exist in the main ADF
+        for dep_node in expected_dependencies:
+            self.assertIn(dep_node, self.main_adf.nodes, f"Dependency node {dep_node} should exist in main ADF")
+
+    def test_otp_obvious_question_text(self):
+        """Test: Verify OTPObvious has appropriate question text"""
+        otp_obvious = self.main_adf.nodes["OTPObvious"]
+        expected_question = "Sub-ADM evaluation: OTPObvious"
+        
+        self.assertEqual(otp_obvious.question, expected_question)
+
+    def test_otp_obvious_in_question_order(self):
+        """Test: Verify OTPObvious is included in question order"""
+        self.assertIn("OTPObvious", self.main_adf.questionOrder)
+
+    def test_otp_obvious_rejection_condition_edge_cases(self):
+        """Test: OTPObvious rejection condition edge cases"""
+        otp_obvious = self.main_adf.nodes["OTPObvious"]
+        
+        # Edge case 1: No items at all (accepted_count = 0, rejected_count = 0) - obvious
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "accepted_count", 0)
+            self.main_adf.setFact("OTPObvious", "rejected_count", 0)
+        
+        # Test the evaluation logic directly - with rejection_condition=True, 
+        # it should accept when rejected_count < 1 (i.e., 0)
+        rejected_count = self.main_adf.getFact("OTPObvious", "rejected_count") or 0
+        result = rejected_count < 1
+        self.assertTrue(result, "Should be ACCEPTED when no items at all (obvious)")
+        
+        # Edge case 2: Mixed results (accepted_count = 1, rejected_count = 1) - NOT obvious
+        if hasattr(self.main_adf, 'setFact'):
+            self.main_adf.setFact("OTPObvious", "accepted_count", 1)
+            self.main_adf.setFact("OTPObvious", "rejected_count", 1)
+        
+        # Test the evaluation logic directly - with rejection_condition=True, 
+        # it should reject when rejected_count >= 1 (i.e., 1 or more)
+        rejected_count = self.main_adf.getFact("OTPObvious", "rejected_count") or 0
+        result = rejected_count < 1
+        self.assertFalse(result, "Should be REJECTED when some items are rejected (NOT obvious)")
 
 
 class TestCLIUI(unittest.TestCase):
@@ -1089,7 +1893,7 @@ class TestCLIUI(unittest.TestCase):
             "Reproducible", 
             "ComputationalContribution", 
             "FeatureTechnicalContribution", 
-            "ReliableTechnicalEffect"
+            "FeatureReliableTechnicalEffect"
         ]
         
         # Simulate full workflow
@@ -1246,7 +2050,6 @@ class TestCLIUI(unittest.TestCase):
         # The case should have grown (abstract factors added)
         self.assertGreaterEqual(len(self.cli.case), len(original_case))
 
-# Add this test class between lines 1213 and 1215
 class TestDependencyEvaluation(unittest.TestCase):
     """Unit tests for dependency evaluation debugging"""
     

@@ -145,7 +145,7 @@ class ADF:
         if question_order_name not in self.questionOrder:
             self.questionOrder.append(question_order_name)
 
-    def addSubADMBLF(self, name, sub_adf_creator, function, dependency_node=None):
+    def addSubADMBLF(self, name, sub_adf_creator, function, dependency_node=None, rejection_condition=False):
         """
         Adds a BLF that depends on evaluating a sub-ADM for each item
         
@@ -162,14 +162,14 @@ class ADF:
         """
         
         # Create a special node that handles sub-ADM evaluation
-        node = SubADMBLF(name, sub_adf_creator, function, dependency_node)
+        node = SubADMBLF(name, sub_adf_creator, function, dependency_node, rejection_condition)
         self.nodes[name] = node
         
         # Add to question order
         if name not in self.questionOrder:
             self.questionOrder.append(name)
     
-    def addEvaluationBLF(self, name, source_blf, target_node, statements=None):
+    def addEvaluationBLF(self, name, source_blf, target_node, statements=None, rejection_condition=False):
         """
         Adds a BLF that automatically evaluates based on sub-ADM results from another BLF
         
@@ -186,7 +186,7 @@ class ADF:
         """
         
         # Create a special node that handles result evaluation
-        node = EvaluationBLF(name, source_blf, target_node, statements)
+        node = EvaluationBLF(name, source_blf, target_node, statements, rejection_condition)
         self.nodes[name] = node
         
         # Add to question order
@@ -1230,7 +1230,7 @@ class SubADMBLF(Node):
         the names of the nodes this BLF depends on
     """
     
-    def __init__(self, name, sub_adf_creator, function, dependency_node=None):
+    def __init__(self, name, sub_adf_creator, function, dependency_node=None, rejection_condition=False):
         """
         Parameters
         ----------
@@ -1261,6 +1261,7 @@ class SubADMBLF(Node):
         
         # Override the question to indicate this is a sub-ADM question
         self.question = f"Sub-ADM evaluation: {name}"
+        self.rejection_condition = rejection_condition
     
     def checkDependency(self, adf, case):
         """
@@ -1331,6 +1332,10 @@ class SubADMBLF(Node):
                     dep_facts = ui_instance.adf.getInheritedFacts(dep_node, ui_instance.case)
                     if isinstance(dep_facts, dict):
                         key_facts.update(dep_facts)
+        
+        # Add main case information to key facts
+        if hasattr(ui_instance.adf, 'case'):
+            key_facts['main_case'] = ui_instance.adf.case
         
         return key_facts
 
@@ -1423,12 +1428,22 @@ class SubADMBLF(Node):
                 ui_instance.adf.setFact(self.name, 'sub_adf_instances', sub_adf_instances)  # Store sub-ADM instances for statements
             
             # Determine final acceptance based on results
-            if accepted_count >= 1:
-                print(f"\n✓ {self.name} is ACCEPTED (found {accepted_count} accepted item(s))")
-                return True
+
+            if self.rejection_condition:
+                if rejected_count < 1:
+                    print(f"\n✓ {self.name} is ACCEPTED (found {accepted_count} accepted item(s))")
+                    return True 
+                else:
+                    print(f"\n✗ {self.name} is REJECTED (no accepted items found)")
+                    return False
+
             else:
-                print(f"\n✗ {self.name} is REJECTED (no accepted items found)")
-                return False
+                if accepted_count >= 1:
+                    print(f"\n✓ {self.name} is ACCEPTED (found {accepted_count} accepted item(s))")
+                    return True
+                else:
+                    print(f"\n✗ {self.name} is REJECTED (no accepted items found)")
+                    return False
                 
         except Exception as e:
             print(f"\n✗ Error evaluating {self.name}: {e}")
@@ -1681,7 +1696,7 @@ class EvaluationBLF(Node):
     If found in any list -> ACCEPTED, if not found in any list -> REJECTED
     """
     
-    def __init__(self, name, source_blf, target_node, statements=None):
+    def __init__(self, name, source_blf, target_node, statements=None, rejection_condition=False):
         """
         Parameters
         ----------
@@ -1707,6 +1722,7 @@ class EvaluationBLF(Node):
         
         self.source_blf = source_blf
         self.target_node = target_node
+        self.rejection_condition = rejection_condition
         
         # Override the question to indicate this is an evaluation BLF
         self.question = f"Evaluation: {name} based on {source_blf} results"
@@ -1741,7 +1757,10 @@ class EvaluationBLF(Node):
             
             print(f"\n{'='*50}")
             print(f"EVALUATION: {self.name}")
-            print(f"Looking for '{self.target_node}' in {self.source_blf} results")
+            if self.rejection_condition:
+                print(f"Looking for '{self.target_node}' to not be in {self.source_blf} results")
+            else:
+                print(f"Looking for '{self.target_node}' in {self.source_blf} results")
             print(f"{'='*50}")
             
             # Check each sub-ADM case list for the target node
@@ -1750,12 +1769,19 @@ class EvaluationBLF(Node):
             for i, item_case in enumerate(detailed_results):
                 if isinstance(item_case, list):
                     item_name = source_items[i] if i < len(source_items) else f"Item {i+1}"
-                    
-                    if self.target_node in item_case:
-                        found_in_items.append(item_name)
-                        print(f"✓ {item_name}: {self.target_node} found in case {item_case}")
+
+                    if self.rejection_condition:
+                        if self.target_node not in item_case:
+                            found_in_items.append(item_name)
+                            print(f"✓ {item_name}: {self.target_node} NOT found in case {item_case}")   
+                        else:
+                            print(f"✗ {item_name}: {self.target_node} found in case {item_case}")
                     else:
-                        print(f"✗ {item_name}: {self.target_node} NOT found in case {item_case}")
+                        if self.target_node in item_case:
+                            found_in_items.append(item_name)
+                            print(f"✓ {item_name}: {self.target_node} found in case {item_case}")
+                        else:
+                            print(f"✗ {item_name}: {self.target_node} NOT found in case {item_case}")
                 else:
                     print(f"Item {i+1}: Invalid case format - {item_case}")
             
@@ -1763,7 +1789,10 @@ class EvaluationBLF(Node):
             
             if found_in_items:
                 print(f"✓ {self.name} is ACCEPTED")
-                print(f"  Found '{self.target_node}' in: {', '.join(found_in_items)}")
+                if self.rejection_condition:
+                    print(f"  Found '{self.target_node}' NOT in: {', '.join(found_in_items)}")
+                else:
+                    print(f"  Found '{self.target_node}' in: {', '.join(found_in_items)}")
                 return True
             else:
                 print(f"✗ {self.name} is REJECTED")
