@@ -487,16 +487,50 @@ def adf():
     adf.addNodes("CombinationDocuments", ['CombinationAttempt and SameFieldCPA and CombinationMotive and BasisToAssociate','CombinationAttempt and SimilarFieldCPA and CombinationMotive and BasisToAssociate'], ['the combination of documents relevant to the closest prior art come from the same field','the combination of documents relevant to the closest prior art come from a similar field','no combination of documents relevant to the closest prior art'])
     #AF8
     adf.addNodes("ClosestPriorArtDocuments", ['CombinationDocuments','ClosestPriorArt',''], ['the closest prior art consists of a combination of documents','the closest prior art consists of a document of a single reference','no set of closest prior documents could be determined'])
-    
     #AF9
     adf.addNodes("Combination",['ReliableTechnicalEffect and FunctionalInteraction and Synergy'],['There is a synergy between all the technical effects', 'There is no synergy between all the technical effects'])
-
     #AF10    
     adf.addNodes("PartialProblems",['reject Combination','ReliableTechnicalEffect'],['There are not an aggregate of technical effects', 'There are an aggregate of technical effects', ""])
-
     #AF11
     adf.addNodes("CandidateOTP",['Combination','PartialProblems'],['There is a single objective technical problem','There are multiple partial problems which form the objective technical problem'])    
     
+    #AF12
+    adf.addNodes('SecondaryIndicator',['PredictableDisadvantage','BioTechObvious','AntibodyObvious','KnownMeasures','ObviousCombination','ObviousSelection'],['there is a secondary indicator - the invention contains a predictable disadvantage','there is a secondary indicator - the invention concerns an obvious use of biotechnology','there is a secondary indicator - the invention concerns an obvious use of antibodies','there is a secondary indicator - the invention contains known measures and consequently is obvious','there is a secondary indicator - the invention contains an obvious combination and consequently is obvious','there is a secondary indicator - the invention contains an obvious selection and consequently is obvious','there is no secondary indicator'])
+
+    #AF13
+
+    adf.addNodes('PredictableDisadvantage',['reject UnexpectedAdvantage','DisadvantageousMod and Foreseeable'],['there is an unexpected advantage','there is a disadvantageous modification of the prior art and it is foreseeable to the skilled person','there is no predictable disadvantage'])
+
+    #AF14
+    adf.addNodes('BioTechObvious',['reject InventionUnexpectedEffect','BioTech and PredictableResults','BioTech and ReasonableSuccess'],['there is not an obvious biotech invention','there is an obvious biotech invention and the results are predictable','there is an obvious biotech invention and there is a reasonable expectation of success','there is not an obvious biotech invention'])
+
+    #AF15
+    adf.addNodes('AntibodyObvious',['reject OvercomeTechDifficulty','SubjectMatterAntibody and KnownTechnique'],['there is not an obvious antibody invention','there is an obvious antibody invention and the antibodies are arrived at exclusively by applying techniques known in the art','there is not an obvious antibody invention'])
+
+    #AF16
+    adf.addNodes('SubjectMatterAntibody',['BioTech and Antibody'],['the subject matter concerns antibodies','the subject matter does not concern antibodies'])
+
+    #AF17
+    adf.addNodes('KnownMeasures',['GapFilled','WellKnownEquivalent','KnownUsage'],['there is a known measure - completing missing but obvious details in prior art','there is a known measure - use of a well-known equivalent','there is a known measure involving known properties, an analogous use or analogous substitution ','there is not a known measure'])
+
+    #AF18
+    adf.addNodes('KnownUsage',['KnownProperties','AnalogousUse','KnownDevice and AnalogousSubstitution'],['there is a known usage - use of known properties','there is a known usage - use of an analogous use','there is a known usage - use of a known device and an analogous substitution','there is not a known usage'])
+
+    #AF19
+    adf.addNodes('ObviousSelection',['ChooseEqualAlternatives','NormalDesignProcedure','SimpleExtrapolation','ChemicalSelection'],['there is an obvious selection - the invention results from a choice between equally likely alternatives','there is an obvious selection - the invention consists in choosing parameters from a limited range of possibilities arrived at through routine design procedures','there is an obvious selection - the invention is a result of a simple, straightforward extrapolation from the known art','there is an obvious selection - the invention just consists in selecting a specific chemical compound or composition from a broad field','there is not an obvious selection'])
+
+    #ISSUES
+ 
+    #I3
+    adf.addNodes('Novelty',['DistinguishingFeatures'],['The invention has novelty','The invention has no novelty'])
+
+    #I2
+    adf.addNodes('Obvious',['OTPObvious','SecondaryIndicator'],['the invention is obvious','the invention is obvious due to a secondary indicator','the invention is not obvious'])
+
+    #I1 - ROOT NODE 
+    adf.addNodes('InvStep',['reject SufficiencyOfDisclosure','reject Obvious','TechnicalContribution and ReliableTechnicalEffect and Novelty'],['there is no inventive step due to sufficiency of disclosure','there is no inventive step due to obviousness','there is an inventive step present','there is no inventive step present'])
+
+
     #F28
     adf.addSubADMBLF("ReliableTechnicalEffect", create_sub_adm_1, collect_features, dependency_node=['SkilledPerson','ClosestPriorArt'])
 
@@ -531,58 +565,107 @@ def adf():
     adf.addDependentBLF("FunctionalInteraction",["ReliableTechnicalEffect","Synergy"],
                         "Is the synergistic combination achieved through a functional interaction between features?",
                         None)
-
     
-    #F47 - DO OTHER DEPENDENCY NODES
+    #F47 
     adf.addSubADMBLF("OTPObvious", create_sub_adm_2, collect_obj, dependency_node=["CandidateOTP",'SkilledPerson','RelevantPriorArt','ClosestPriorArt'], rejection_condition=True)
 
     adf.addEvaluationBLF("ObjectiveTechnicalProblem", "OTPObvious", "ObjectiveTechnicalProblemFormulation", ['there is a valid objective technical problem','there is not a valid objective technical problem'])
 
+
+    #F59
+    adf.addDependentBLF("DisadvantageousMod",'ClosestPriorArt',
+                        "Does the invention involve a disadvantageous modification of the prior art?",
+                        None)
+
+    #F60
+    adf.addDependentBLF("Foreseeable",['SkilledPerson','DisadvantageousMod'],
+                        "Was this disadvantageous modification of the prior art foreseeable to the skilled person?",
+                        None)
+
+    #F61
+    adf.addDependentBLF("UnexpectedAdvantage",['SkilledPerson','DisadvantageousMod'],
+                        "Did the disadvantageous modification result in an unexpected technical advantage?",
+                        None)
+
+    #F63
+    adf.addNodes("BioTech",question="Is the subject matter of the invention biotech?")
+
+    #F64
+    adf.addDependentBLF("Antibody",'BioTech',
+                        "Does the subject matter concern antibodies?",
+                        None)
+
+    #F67
+    adf.addDependentBLF("PredictableResults",'BioTech',
+                        "Were the results obtained clearly predictable?",
+                        None)
+
+    #F68
+    adf.addDependentBLF("ReasonableSuccess",'BioTech',
+                        "Was there a ‘reasonable’ expectation of success in obtaining the results?",
+                        None)
+
+    #F65
+    adf.addDependentBLF("KnownTechnique",['RelevantPriorArt','Antibody'],
+                        "Were the antibodies arrived at exclusively by applying techniques known in the art?",
+                        None)
+
+    #F66
+    adf.addDependentBLF("OvercomeTechDifficulty",'Antibody',
+                        "Does the application of the antibodies overcome technical difficulties in generating or manufacturing them?",
+                        None)
+
+    #F69
+    adf.addDependentBLF("GapFilled",['RelevantPriorArt','SkilledPerson'],
+                        "Does the invention merely fill an obvious gap in an incomplete prior art document which would naturally occur to the skilled person?",
+                        None)
+
+    #F70
+    adf.addDependentBLF("WellKnownEquivalent",'RelevantPriorArt',
+                        "Does the invention differ from the prior art in regard to substituting one well-known equivalent for another (e.g., a hydraulic for an electric motor)?",
+                        None)
+
+    #F71
+    adf.addNodes("KnownProperties",question="Is the invention merely the new use of known properties of a well-known material i.e. A washing composition containing as detergent, a known compound having the known property of lowering the surface tension of water.")
+
+    #F72
+    adf.addNodes("AnalogousUse",question="Does the invention just apply a known technique in a closely analogous situation?")
+
+    #F73
+    adf.addNodes("KnownDevice",question="Does the invention rely on known devices?")
+
+    
+    #F75
+    adf.addDependentBLF("ObviousCombination",'KnownDevice',
+                        "Is the invention a simple juxtaposition of the known devices, with each performing their normal, expected function?",
+                        None)
+
+    #F74
+    adf.addDependentBLF("AnalogousSubstitution",'KnownDevice',
+                        "Does the invention rely within a known device, simply substituting in a recently developed material suitable for that use?",
+                        None)
+    
+    #F76
+    adf.addNodes("ChooseEqualAlternatives",question="Does the invention result from a choice between equally likely alternatives?")
+    
+    #F77
+    adf.addNodes("NormalDesignProcedure",question="Does the invention consist in choosing parameters from a limited range of possibilities arrived at through routine design procedures?")
+
+    #F78
+    adf.addDependentBLF("SimpleExtrapolation",'RelevantPriorArt',
+                        "Is the invention a result of a simple, straightforward extrapolation from the known art?",
+                        None)
+
+    #F79
+    adf.addNodes("ChemicalSelection",question="Does the invention just consist in selecting a specific chemical compound or composition from a broad field?")
+
+    
     # Set question order to ask information questions first
     adf.questionOrder = ["INVENTION_TITLE", "INVENTION_DESCRIPTION", "INVENTION_TECHNICAL_FIELD", "REL_PRIOR_ART", "field_questions",
     "field_questions_2","field_questions_3",'CGK',"Contested",'field_questions_4','SkilledIn','Average','Aware','Access','skilled_person',
     'SingleReference','cpa_min_mod',"CombinationAttempt",'combined_docs','CombinationMotive','BasisToAssociate','ReliableTechnicalEffect','DistinguishingFeatures','NonTechnicalContribution','TechnicalContribution','SufficiencyOfDisclosure',"InventionUnexpectedEffect",
-    "synergy_question","FunctionalInteraction","OTPObvious","ObjectiveTechnicalProblem"
-    
+    "synergy_question","FunctionalInteraction","OTPObvious","ObjectiveTechnicalProblem", "DisadvantageousMod","Foreseeable","UnexpectedAdvantage","BioTech","Antibody","PredictableResults","ReasonableSuccess","KnownTechnique","OvercomeTechDifficulty","GapFilled","WellKnownEquivalent","KnownProperties","AnalogousUse","KnownDevice","ObviousCombination","AnalogousSubstitution","ChooseEqualAlternatives","NormalDesignProcedure","SimpleExtrapolation","ChemicalSelection"
     ]
-
-
-
-
-
-  
-    # 
-    
-    # # Add EvaluationBLF for valid prior art
-    # adf.addEvaluationBLF("VALID_PRIOR_ART_PRESENT", 
-    #                      "PRIOR_ART_ITEMS", 
-    #                      "VALID_PRIOR_ART", 
-    #                      ["VALID_PRIOR_ART_PRESENT is accepted - valid prior art found", 
-    #                       "VALID_PRIOR_ART_PRESENT is rejected - no valid prior art found"])
-    
-    # # Add DependentBLF for obviousness assessment
-    # adf.addDependentBLF("OBVIOUSNESS_ASSESSMENT", 
-    #                     "PRIOR_ART_EVALUATION", 
-    #                     "Is the invention obvious to a person skilled in the art given {obviousness_method}?",
-    #                     ["OBVIOUSNESS_ASSESSMENT is accepted - invention is obvious", 
-    #                      "OBVIOUSNESS_ASSESSMENT is rejected - invention is not obvious"])
-    
-    # # Add DependentBLF for non-obviousness assessment
-    # adf.addDependentBLF("NON_OBVIOUSNESS_ASSESSMENT", 
-    #                     "PRIOR_ART_EVALUATION", 
-    #                     "Is the invention non-obvious to a person skilled in the art given {non_obviousness_method}?",
-    #                     ["NON_OBVIOUSNESS_ASSESSMENT is accepted - invention is non-obvious", 
-    #                      "NON_OBVIOUSNESS_ASSESSMENT is rejected - invention is obvious"])
-    
-    # # Add final inventive step conclusion
-    # adf.addNodes("INVENTIVE_STEP_CONCLUSION", 
-    #              ["OBVIOUSNESS_ASSESSMENT or NON_OBVIOUSNESS_ASSESSMENT"], 
-    #              ["INVENTIVE_STEP_CONCLUSION is accepted - inventive step assessment completed", 
-    #               "INVENTIVE_STEP_CONCLUSION is rejected - assessment incomplete"])
-    
-    # Set question order
-
-    
     return adf
 
 
