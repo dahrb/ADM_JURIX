@@ -115,34 +115,6 @@ def create_sub_adm_1(item_name, key_facts=None):
 
     # Add Sub-ADM 2 algorithm
 
-#Sub-ADM 1 algorithm
-def collect_features(ui_instance, key_facts=None):
-        """Function to collect prior art items from user input"""
-        # Use key facts to populate placeholders in questions
-        cpa_info = ""
-        invention_info = ""
-        
-        if key_facts:
-            # Get CPA information from key facts
-            if 'CPA' in key_facts:
-                cpa_info = f"\n\nClosest Prior Art: {key_facts['CPA']}"
-            elif 'INFORMATION' in key_facts and 'CPA' in key_facts['INFORMATION']:
-                cpa_info = f"\n\nClosest Prior Art: {key_facts['INFORMATION']['CPA']}"
-            
-            # Get invention information from key facts
-            if 'INVENTION_TITLE' in key_facts:
-                invention_info = f"\n\nInvention: {key_facts['INVENTION_TITLE']}"
-            elif 'INFORMATION' in key_facts and 'INVENTION_TITLE' in key_facts['INFORMATION']:
-                invention_info = f"\n\nInvention: {key_facts['INFORMATION']['INVENTION_TITLE']}"
-        
-        available_items = input(f"What features does the closest prior art have?{cpa_info}\n\n(comma-separated list): ").strip()
-        needed_items = input(f"What features does the invention have?{invention_info}\n\n(comma-separated list): ").strip()
-        available_list = [item.strip() for item in available_items.split(',') if item.strip()]
-        needed_list = [item.strip() for item in needed_items.split(',') if item.strip()]
-        
-        missing_items = [item for item in needed_list if item not in available_list]
-        return missing_items
-
 #Sub-ADM 2
 def create_sub_adm_2(item_name, key_facts=None):
     """Create sub-ADM for evaluating objective technical problems"""
@@ -159,7 +131,7 @@ def create_sub_adm_2(item_name, key_facts=None):
     
     #AF31
     sub_adf.addNodes("WellFormed", ['reject Hindsight','WrittenFormulation and BasicFormulation'], 
-                    ['There is a written objective technical problem which has been formed without hindsight', 'There is no written objective technical problem which has been formed without hindsight'])
+                    ['The written formulation has been formed with hindsight', "The written formulation has been formed without hindsight", 'There is no written objective technical problem which has been formed without hindsight'])
 
     #AF30
     sub_adf.addNodes("ConstrainedProblem", ['WellFormed and NonTechnicalContribution',], 
@@ -171,7 +143,7 @@ def create_sub_adm_2(item_name, key_facts=None):
     
     #ROOT ISSUE 
     sub_adf.addNodes("WouldHaveArrived", ['WouldModify and  ObjectiveTechnicalProblemFormulation', 'WouldAdapt and ObjectiveTechnicalProblemFormulation'],
-                    ['The skilled person would have arrived at the proposed invention by modifying the closest prior art', 'The skilled person would have arrived at the proposed invention by adapting the closest prior art'])
+                    ['The skilled person would have arrived at the proposed invention by modifying the closest prior art', 'The skilled person would have arrived at the proposed invention by adapting the closest prior art','no reason to believe the skilled person'])
 
     #BLFs
     #F48
@@ -207,6 +179,9 @@ def create_sub_adm_2(item_name, key_facts=None):
 
     #The fact the sub-adm is running means there are distinguishing features so to more easily resolve this we just auto add it to eval later
     # Check if NonTechnicalContribution is in the main ad case, if so add it to sub_adf case
+
+
+    #SUSPICIOUS CHECK
     if key_facts and 'main_case' in key_facts:
         main_case = key_facts['main_case']
         if 'NonTechnicalContribution' in main_case:
@@ -218,108 +193,6 @@ def create_sub_adm_2(item_name, key_facts=None):
     
     sub_adf.questionOrder = ["Encompassed","Embodied","ScopeOfClaim","WrittenFormulation","Hindsight","modify_adapt"]
     return sub_adf
-
-# Add Sub-ADM 2 algorithm
-def collect_obj(ui_instance, key_facts=None):
-    """Function to collect objective technical problems from user input based on sub-ADM results"""
-    # Get the ADF instance
-    adf = ui_instance.adf
-    print('DEBUG: HERE')
-    # Get sub-ADM results from ReliableTechnicalEffect
-    sub_adm_results = adf.getFact("ReliableTechnicalEffect", "results")
-    if not sub_adm_results:
-        print("No sub-ADM results found. Cannot determine technical contributions.")
-        return []
-    
-    # Get the current main ADM case to check for Combination/PartialProblems
-    current_case = adf.case if hasattr(adf, 'case') else []
-    
-    # Get the distinguished features list using _get_source_items
-    distinguished_features_list = []
-    try:
-        distinguished_features_list = adf.getFact("ReliableTechnicalEffect", "items") or []
-
-    except Exception as e:
-        print(f"Warning: Could not retrieve distinguished features list: {e}")
-        distinguished_features_list = []
-    
-    # Extract technical and non-technical contributions from sub-ADM results
-    technical_contributions = []
-    non_technical_contributions = []
-    
-    for i, case in enumerate(sub_adm_results):
-        if isinstance(case, list):
-            # Check if FeatureTechnicalContribution is in this case (technical contribution)
-            if "FeatureTechnicalContribution" in case:
-                # Get the corresponding distinguished feature from the list
-                if i < len(distinguished_features_list):
-                    feature_name = distinguished_features_list[i]
-                    technical_contributions.append(f"Case {i+1}: {feature_name}")
-                else:
-                    technical_contributions.append(f"Case {i+1}: DistinguishingFeatures")
-            
-            # Check if FeatureTechnicalContribution is not in this case (non-technical contribution)
-            if "FeatureTechnicalContribution" not in case:
-                # Get the corresponding distinguished feature from the list
-                if i < len(distinguished_features_list):
-                    feature_name = distinguished_features_list[i]
-                    non_technical_contributions.append(f"Case {i+1}: {feature_name}")
-                else:
-                    non_technical_contributions.append(f"Case {i+1}: NormalTechnicalContribution")
-    
-    # Present the features to the user
-    print("\n" + "="*60)
-    print("OBJECTIVE TECHNICAL PROBLEM COLLECTION")
-    print("="*60)
-    
-    if technical_contributions:
-        print(f"\nTechnical Contributions:")
-        for contrib in technical_contributions:
-            print(f"  • {contrib}")
-    else:
-        print(f"\nTechnical Contributions: None found")
-        
-    if non_technical_contributions:
-        print(f"\nNon-Technical Contributions:")
-        for contrib in non_technical_contributions:
-            print(f"  • {contrib}")
-    else:
-        print(f"\nNon-Technical Contributions: None found")
-    
-    print("\n" + "="*60)
-    
-    # Check conditions and collect problems
-    objective_problems = []
-    
-    if "Combination" in current_case:
-        print("\nCombination detected in case - creating 1 objective technical problem:")
-        problem_desc = input("Please provide a short description of the objective technical problem: ").strip()
-        if problem_desc:
-            objective_problems.append(problem_desc)
-            print(f"✓ Added problem: {problem_desc}")
-    
-    if "PartialProblems" in current_case:
-        print("\nPartialProblems detected in case - creating multiple problems:")
-        print("Enter problems one by one. Type 'done' when finished.")
-        
-        problem_count = 0
-        while True:
-            problem_desc = input(f"Problem {problem_count + 1} description (or 'done' to finish): ").strip()
-            if problem_desc.lower() == 'done':
-                break
-            if problem_desc:
-                objective_problems.append(problem_desc)
-                problem_count += 1
-                print(f"✓ Added problem {problem_count}: {problem_desc}")
-    
-    # Store the problems as facts in the ADF
-    if objective_problems:
-        adf.setFact("ObjectiveTechnicalProblem", "objective_technical_problems", objective_problems)
-        print(f"\n✓ Stored {len(objective_problems)} objective technical problem(s)")
-    else:
-        print("\nNo objective technical problems created")
-    
-    return objective_problems
 
 #ADM definition
 def adf():
@@ -530,6 +403,33 @@ def adf():
     #I1 - ROOT NODE 
     adf.addNodes('InvStep',['reject SufficiencyOfDisclosure','reject Obvious','TechnicalContribution and ReliableTechnicalEffect and Novelty'],['there is no inventive step due to sufficiency of disclosure','there is no inventive step due to obviousness','there is an inventive step present','there is no inventive step present'])
 
+    #Sub-ADM 1 algorithm
+    def collect_features(ui_instance, key_facts=None):
+        """Function to collect prior art items from user input"""
+        # Use key facts to populate placeholders in questions
+        cpa_info = ""
+        invention_info = ""
+        
+        if key_facts:
+            # Get CPA information from key facts
+            if 'CPA' in key_facts:
+                cpa_info = f"\n\nClosest Prior Art: {key_facts['CPA']}"
+            elif 'INFORMATION' in key_facts and 'CPA' in key_facts['INFORMATION']:
+                cpa_info = f"\n\nClosest Prior Art: {key_facts['INFORMATION']['CPA']}"
+            
+            # Get invention information from key facts
+            if 'INVENTION_TITLE' in key_facts:
+                invention_info = f"\n\nInvention: {key_facts['INVENTION_TITLE']}"
+            elif 'INFORMATION' in key_facts and 'INVENTION_TITLE' in key_facts['INFORMATION']:
+                invention_info = f"\n\nInvention: {key_facts['INFORMATION']['INVENTION_TITLE']}"
+        
+        available_items = input(f"What features does the closest prior art have?{cpa_info}\n\n(comma-separated list): ").strip()
+        needed_items = input(f"What features does the invention have?{invention_info}\n\n(comma-separated list): ").strip()
+        available_list = [item.strip() for item in available_items.split(',') if item.strip()]
+        needed_list = [item.strip() for item in needed_items.split(',') if item.strip()]
+        
+        missing_items = [item for item in needed_list if item not in available_list]
+        return missing_items
 
     #F28
     adf.addSubADMBLF("ReliableTechnicalEffect", create_sub_adm_1, collect_features, dependency_node=['SkilledPerson','ClosestPriorArt'])
@@ -565,7 +465,106 @@ def adf():
     adf.addDependentBLF("FunctionalInteraction",["ReliableTechnicalEffect","Synergy"],
                         "Is the synergistic combination achieved through a functional interaction between features?",
                         None)
+
+    # Add Sub-ADM 2 algorithm
+    def collect_obj(ui_instance, key_facts=None):
+        """Function to collect objective technical problems from user input based on sub-ADM results"""
+        # Get the ADF instance
+        current_case = ui_instance.case if hasattr(ui_instance, 'case') else []
+
+        # Get sub-ADM results from ReliableTechnicalEffect
+        sub_adm_results = ui_instance.adf.getFact("ReliableTechnicalEffect", "results")
+        if not sub_adm_results:
+            print("No sub-ADM results found. Cannot determine technical contributions.")
+            return []
     
+        # Get the distinguished features list using _get_source_items
+        distinguished_features_list = []
+        try:
+            distinguished_features_list = ui_instance.adf.getFact("ReliableTechnicalEffect", "items") or []
+
+        except Exception as e:
+            print(f"Warning: Could not retrieve distinguished features list: {e}")
+            distinguished_features_list = []
+        
+        # Extract technical and non-technical contributions from sub-ADM results
+        technical_contributions = []
+        non_technical_contributions = []
+        
+        for i, case in enumerate(sub_adm_results):
+            if isinstance(case, list):
+                # Check if FeatureTechnicalContribution is in this case (technical contribution)
+                if "FeatureTechnicalContribution" in case:
+                    # Get the corresponding distinguished feature from the list
+                    if i < len(distinguished_features_list):
+                        feature_name = distinguished_features_list[i]
+                        technical_contributions.append(f"Case {i+1}: {feature_name}")
+                    else:
+                        technical_contributions.append(f"Case {i+1}: DistinguishingFeatures")
+                
+                # Check if FeatureTechnicalContribution is not in this case (non-technical contribution)
+                if "FeatureTechnicalContribution" not in case:
+                    # Get the corresponding distinguished feature from the list
+                    if i < len(distinguished_features_list):
+                        feature_name = distinguished_features_list[i]
+                        non_technical_contributions.append(f"Case {i+1}: {feature_name}")
+                    else:
+                        non_technical_contributions.append(f"Case {i+1}: NormalTechnicalContribution")
+        
+        # Present the features to the user
+        print("\n" + "="*60)
+        print("OBJECTIVE TECHNICAL PROBLEM COLLECTION")
+        print("="*60)
+        
+        if technical_contributions:
+            print(f"\nTechnical Contributions:")
+            for contrib in technical_contributions:
+                print(f"  • {contrib}")
+        else:
+            print(f"\nTechnical Contributions: None found")
+            
+        if non_technical_contributions:
+            print(f"\nNon-Technical Contributions:")
+            for contrib in non_technical_contributions:
+                print(f"  • {contrib}")
+        else:
+            print(f"\nNon-Technical Contributions: None found")
+        
+        print("\n" + "="*60)
+        
+        # Check conditions and collect problems
+        objective_problems = []
+        
+        if "Combination" in current_case:
+            print("\nCombination detected in case - creating 1 objective technical problem:")
+            problem_desc = input("Please provide a short description of the objective technical problem: ").strip()
+            if problem_desc:
+                objective_problems.append(problem_desc)
+                print(f"✓ Added problem: {problem_desc}")
+        
+        if "PartialProblems" in current_case:
+            print("\nPartialProblems detected in case - creating multiple problems:")
+            print("Enter problems one by one. Type 'done' when finished.")
+            
+            problem_count = 0
+            while True:
+                problem_desc = input(f"Problem {problem_count + 1} description (or 'done' to finish): ").strip()
+                if problem_desc.lower() == 'done':
+                    break
+                if problem_desc:
+                    objective_problems.append(problem_desc)
+                    problem_count += 1
+                    print(f"✓ Added problem {problem_count}: {problem_desc}")
+        
+        # Store the problems as facts in the ADF
+        if objective_problems:
+            ui_instance.adf.setFact("ObjectiveTechnicalProblem", "objective_technical_problems", objective_problems)
+            print(f"\n✓ Stored {len(objective_problems)} objective technical problem(s)")
+        else:
+            print("\nNo objective technical problems created")
+        
+        return objective_problems
+
     #F47 
     adf.addSubADMBLF("OTPObvious", create_sub_adm_2, collect_obj, dependency_node=["CandidateOTP",'SkilledPerson','RelevantPriorArt','ClosestPriorArt'], rejection_condition=True)
 
