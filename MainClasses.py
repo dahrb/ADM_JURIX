@@ -208,6 +208,9 @@ class ADF:
             #adds node to dict of nodes with children
             if node.children != None and node.children != []:
                 self.nonLeaf[name] = node
+            # Also include EvaluationBLF nodes even if they don't have children
+            elif hasattr(node, 'evaluateResults'):
+                self.nonLeaf[name] = node
             else:
                 pass
                    
@@ -236,13 +239,38 @@ class ADF:
         #while there are nonLeaf nodes which have not been evaluated, evaluate a node in this list in ascending order  
         while self.nonLeaf != {}:
 
-            for name,node in zip(self.nonLeaf,self.nonLeaf.values()):
+            # Create a copy to avoid "dictionary changed size during iteration" error
+            for name,node in zip(list(self.nonLeaf.keys()), list(self.nonLeaf.values())):
                 #checks if the node's children are non-leaf nodes
                 if name == 'Decide' and len(self.nonLeaf) != 1:
                     pass     
+                elif hasattr(node, 'evaluateResults'):
+                    # Special handling for EvaluationBLF nodes - handle them first
+                    #adds to list of evaluated nodes
+                    self.nodeDone.append(name) 
+                    
+                    # This is an EvaluationBLF - evaluate it and add appropriate statement
+                    result = node.evaluateResults(self)
+                    if result:
+                        # EvaluationBLF was accepted
+                        if name not in self.case:
+                            self.case.append(name)
+                        if hasattr(node, 'statement') and node.statement and len(node.statement) > 0:
+                            self.statements.append(node.statement[0])
+                    else:
+                        # EvaluationBLF was rejected
+                        if hasattr(node, 'statement') and node.statement and len(node.statement) > 1:
+                            self.statements.append(node.statement[1])
+                        elif hasattr(node, 'statement') and node.statement and len(node.statement) > 0:
+                            self.statements.append(node.statement[0])
+                    
+                    # Remove from nonLeaf and continue
+                    self.nonLeaf.pop(name)
+                    continue
                 elif self.checkNonLeaf(node):
                     #adds to list of evaluated nodes
                     self.nodeDone.append(name) 
+                    
                     #checks candidate node's acceptance conditions
                     if self.evaluateNode(node):
 
