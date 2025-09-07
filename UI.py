@@ -93,11 +93,12 @@ class CLI:
             print("="*50)
             print("1. Query domain")
             print("2. Visualize domain")
-            print("3. Back to main menu")
+            print("3. Minimal structure view")
+            print("4. Back to main menu")
             print("-"*50)
             
             #HARDCODED FOR NOW
-            choice = input("Enter your choice (1-3): ").strip()
+            choice = input("Enter your choice (1-4): ").strip()
             
             if choice == "1":
                 self.query_domain()
@@ -105,6 +106,8 @@ class CLI:
             elif choice == "2":
                 self.visualize_domain()
             elif choice == "3":
+                self.visualize_domain_minimal()
+            elif choice == "4":
                 return
             else:
                 print("Invalid choice. Please try again.")
@@ -694,6 +697,54 @@ class CLI:
                 
         except Exception as e:
             print(f"Error creating visualization: {e}")
+    
+    def visualize_domain_minimal(self):
+        """Visualize the domain as a minimalist structure graph"""
+        print("\n" + "="*50)
+        print("Minimal Structure View")
+        print("="*50)
+        
+        try:
+            # Determine filename based on whether we have a case
+            if self.caseName and self.case:
+                filename = f"{self.caseName}_minimal.png"
+                print(f"Generating minimal structure view with case data...")
+                try:
+                    # Use the minimalist visualization with case data
+                    G = self.adf.visualiseNetworkMinimal(self.case)
+                    
+                    # Save the visualization
+                    G.write_png(filename)
+                    print(f"Minimal structure view saved as {filename}")
+                    
+                except Exception as e:
+                    print(f"Error generating minimal visualization: {e}")
+                    return
+            else:
+                filename = f"{self.adf.name}_minimal.png"
+                print(f"Generating minimal structure view for domain: {self.adf.name}")
+                try:
+                    # Use the minimalist visualization without case data
+                    graph = self.adf.visualiseNetworkMinimal()
+                    graph.write_png(filename)
+                    print(f"Minimal structure view saved as: {filename}")
+                except Exception as e:
+                    print(f"Error with minimal visualization: {e}")
+                    return
+            
+            # Try to open the image if possible
+            try:
+                if sys.platform.startswith('linux'):
+                    os.system(f"xdg-open {shlex.quote(filename)}")
+                elif sys.platform.startswith('darwin'):
+                    os.system(f"open {shlex.quote(filename)}")
+                elif sys.platform.startswith('win'):
+                    os.system(f"start {shlex.quote(filename)}")
+            except:
+                print(f"Image saved as {filename}. Please open it manually.")
+                
+        except Exception as e:
+            print(f"Error creating minimal visualization: {e}")
 
 def main():
     """Main function"""

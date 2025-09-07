@@ -1363,7 +1363,7 @@ class TestMainADMEvaluation(unittest.TestCase):
         self.assertTrue(otp_obvious.rejection_condition, "OTPObvious should have rejection_condition=True")
         
         # Test that it has the correct dependency nodes
-        expected_dependencies = ["CandidateOTP", "SkilledPerson", "RelevantPriorArt", "ClosestPriorArt"]
+        expected_dependencies = ["CandidateOTP", "SkilledPerson", "RelevantPriorArt", "ClosestPriorArtDocuments"]
         self.assertEqual(otp_obvious.dependency_node, expected_dependencies)
 
     def test_otp_obvious_acceptance_when_no_rejected_items(self):
@@ -1599,7 +1599,7 @@ class TestMainADMEvaluation(unittest.TestCase):
     def test_otp_obvious_dependency_nodes(self):
         """Test: Verify OTPObvious has correct dependency nodes"""
         otp_obvious = self.main_adf.nodes["OTPObvious"]
-        expected_dependencies = ["CandidateOTP", "SkilledPerson", "RelevantPriorArt", "ClosestPriorArt"]
+        expected_dependencies = ["CandidateOTP", "SkilledPerson", "RelevantPriorArt", "ClosestPriorArtDocuments"]
         
         self.assertEqual(otp_obvious.dependency_node, expected_dependencies)
         

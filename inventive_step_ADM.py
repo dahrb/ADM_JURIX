@@ -359,7 +359,7 @@ def adf():
     #AF7
     adf.addNodes("CombinationDocuments", ['CombinationAttempt and SameFieldCPA and CombinationMotive and BasisToAssociate','CombinationAttempt and SimilarFieldCPA and CombinationMotive and BasisToAssociate'], ['the combination of documents relevant to the closest prior art come from the same field','the combination of documents relevant to the closest prior art come from a similar field','no combination of documents relevant to the closest prior art'])
     #AF8
-    adf.addNodes("ClosestPriorArtDocuments", ['CombinationDocuments','ClosestPriorArt',''], ['the closest prior art consists of a combination of documents','the closest prior art consists of a document of a single reference','no set of closest prior documents could be determined'])
+    adf.addNodes("ClosestPriorArtDocuments", ['CombinationDocuments','ClosestPriorArt'], ['the closest prior art consists of a combination of documents','the closest prior art consists of a document of a single reference','no set of closest prior documents could be determined'])
     #AF9
     adf.addNodes("Combination",['ReliableTechnicalEffect and FunctionalInteraction and Synergy'],['There is a synergy between all the technical effects', 'There is no synergy between all the technical effects'])
     #AF10    
@@ -401,7 +401,7 @@ def adf():
     adf.addNodes('Obvious',['OTPObvious','SecondaryIndicator'],['the invention is obvious','the invention is obvious due to a secondary indicator','the invention is not obvious'])
 
     #I1 - ROOT NODE 
-    adf.addNodes('InvStep',['reject SufficiencyOfDisclosure','reject Obvious','TechnicalContribution and ReliableTechnicalEffect and Novelty'],['there is no inventive step due to sufficiency of disclosure','there is no inventive step due to obviousness','there is an inventive step present','there is no inventive step present'])
+    adf.addNodes('InvStep',['reject SufficiencyOfDisclosure','reject Obvious','TechnicalContribution and ReliableTechnicalEffect and Novelty and ObjectiveTechnicalProblem'],['there is no inventive step due to sufficiency of disclosure','there is no inventive step due to obviousness','there is an inventive step present','there is no inventive step present'])
 
     #Sub-ADM 1 algorithm
     def collect_features(ui_instance, key_facts=None):
@@ -432,7 +432,7 @@ def adf():
         return missing_items
 
     #F28
-    adf.addSubADMBLF("ReliableTechnicalEffect", create_sub_adm_1, collect_features, dependency_node=['SkilledPerson','ClosestPriorArt'])
+    adf.addSubADMBLF("ReliableTechnicalEffect", create_sub_adm_1, collect_features, dependency_node=['SkilledPerson','ClosestPriorArtDocuments'])
 
     #F25
     adf.addEvaluationBLF("DistinguishingFeatures", "ReliableTechnicalEffect", "DistinguishingFeatures", ['there are distinguishing features','there are no distinguishing features'])
@@ -565,14 +565,15 @@ def adf():
         
         return objective_problems
 
-    #F47 
-    adf.addSubADMBLF("OTPObvious", create_sub_adm_2, collect_obj, dependency_node=["CandidateOTP",'SkilledPerson','RelevantPriorArt','ClosestPriorArt'], rejection_condition=True)
+    
+    adf.addSubADMBLF("OTPObvious", create_sub_adm_2, collect_obj, dependency_node=["CandidateOTP",'SkilledPerson','RelevantPriorArt','ClosestPriorArtDocuments'], rejection_condition=True)
 
+    #F47 
     adf.addEvaluationBLF("ObjectiveTechnicalProblem", "OTPObvious", "ObjectiveTechnicalProblemFormulation", ['there is a valid objective technical problem','there is not a valid objective technical problem'])
 
 
     #F59
-    adf.addDependentBLF("DisadvantageousMod",'ClosestPriorArt',
+    adf.addDependentBLF("DisadvantageousMod",'ClosestPriorArtDocuments',
                         "Does the invention involve a disadvantageous modification of the prior art?",
                         None)
 

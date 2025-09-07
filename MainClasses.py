@@ -226,6 +226,9 @@ class ADF:
         #list of non-leaf nodes which have been evaluated
         self.nodeDone = []
         self.case = case
+        
+        # Initialize vis list for tracking attacking nodes
+        self.vis = []
 
         
         #generates the non-leaf nodes
@@ -312,7 +315,11 @@ class ADF:
         """
         
         #for visualisation purposes - this tracks the attacking nodes
-        self.vis = []
+        if not hasattr(self, 'vis'):
+            self.vis = []
+        
+        # Store the current vis list before evaluation
+        current_vis = getattr(self, 'vis', []).copy()
         
         #counter to index the statements to be shown to the user
         self.counter = -1
@@ -325,17 +332,23 @@ class ADF:
             
             # If this is a reject condition and it's true, return False immediately
             if self.reject and x == True:
+                # Merge current vis with the stored vis
+                self.vis = list(set(current_vis + self.vis))
                 self.reject = True
                 return False
             
             # If this is an accept condition and it's true, return True immediately
             if not self.reject and x == True:
+                # Merge current vis with the stored vis
+                self.vis = list(set(current_vis + self.vis))
                 return True
 
             if x == 'accept':
                 return True
                 
         # If we get here, no conditions were satisfied
+        # Merge current vis with the stored vis
+        self.vis = list(set(current_vis + self.vis))
         return False
     
     def postfixEvaluation(self,acceptance):
@@ -361,6 +374,8 @@ class ADF:
             elif token == 'reject':
                 # Pop the operand (which should be a node name)
                 operand = operandStack.pop()
+                # Always add the operand to vis as it's a rejection condition
+                self.vis.append(operand)
                 # Check if the node name is in the case
                 if operand in self.case:
                     # Node is in case, so we should reject the parent node
@@ -604,6 +619,10 @@ class ADF:
             original_case = getattr(self, 'case', None)
             self.case = case
             
+            # First, evaluate all nodes to build up self.vis (attacking nodes list)
+            self.evaluateTree(case)
+            print(f"DEBUG: vis list after evaluation: {self.vis}")
+            
             #checks each node
             for i in self.nodes.values():
                 
@@ -620,8 +639,6 @@ class ADF:
                 
                 #creates edges between a node and its children
                 if i.children != None and i.children != []:
-                    
-                    self.evaluateNode(i)
 
                     for j in i.children:
                         
@@ -637,11 +654,13 @@ class ADF:
                         
                         #self.vis is a list which tracks whether a node is an attacking or defending node
                         if j in self.vis:
+                            print(f"DEBUG: {j} is in vis list - using minus")
                             if j in case:
                                 my_edge = pydot.Edge(i.name, j, color='green',label='-')
                             else:
                                 my_edge = pydot.Edge(i.name, j, color='red',label='-')
                         else:
+                            print(f"DEBUG: {j} is NOT in vis list - using plus")
                             if j in case:
                                 my_edge = pydot.Edge(i.name, j, color='green',label='+')
                             else:
@@ -655,13 +674,21 @@ class ADF:
             else:
                 delattr(self, 'case')
             
-            # Add dependency relationships for DependentBLF nodes
+            # Add dependency relationships for DependentBLF and SubADMBLF nodes
             for node_name, node in self.nodes.items():
                 if hasattr(node, 'dependency_node') and node.dependency_node:
-                    # Create a dotted black line from dependent node to dependency node
-                    dependency_edge = pydot.Edge(node_name, node.dependency_node, 
+                    # Handle both single string and list of dependencies
+                    if isinstance(node.dependency_node, str):
+                        dependency_nodes = [node.dependency_node]
+                    else:
+                        dependency_nodes = node.dependency_node
+                    
+                    # Create a dotted black line from dependent node to each dependency node
+                    for dep_node in dependency_nodes:
+                        dependency_edge = pydot.Edge(node_name, dep_node, 
                                                color='black', style='dotted')
-                    G.add_edge(dependency_edge)
+                        G.add_edge(dependency_edge)
+            
             
             # Assign ranks to ensure proper hierarchical layout
             self._assign_node_ranks(G)
@@ -683,8 +710,6 @@ class ADF:
                 
                 #creates edges between a node and its children
                 if i.children != None and i.children != []:
-                    
-                    self.evaluateNode(i)
 
                     for j in i.children:
                         
@@ -697,163 +722,34 @@ class ADF:
                         #self.vis is a list which tracks whether a node is an attacking or defending node
                         if j in self.vis:
                             my_edge = pydot.Edge(i.name, j, color='black',label='-')
-
                         else:
                             my_edge = pydot.Edge(i.name, j, color='black',label='+')
 
                         G.add_edge(my_edge)
             
-            # Add dependency relationships for DependentBLF nodes (without case)
+            # Add dependency relationships for DependentBLF and SubADMBLF nodes (without case)
             for node_name, node in self.nodes.items():
                 if hasattr(node, 'dependency_node') and node.dependency_node:
-                    # Create a dotted black line from dependent node to dependency node
-                    dependency_edge = pydot.Edge(node_name, node.dependency_node, 
+                    # Handle both single string and list of dependencies
+                    if isinstance(node.dependency_node, str):
+                        dependency_nodes = [node.dependency_node]
+                    else:
+                        dependency_nodes = node.dependency_node
+                    
+                    # Create a dotted black line from dependent node to each dependency node
+                    for dep_node in dependency_nodes:
+                        dependency_edge = pydot.Edge(node_name, dep_node, 
                                                color='black', style='dotted')
-                    G.add_edge(dependency_edge)
+                        G.add_edge(dependency_edge)
+            
             
             # Assign ranks to ensure proper hierarchical layout
             self._assign_node_ranks(G)
+        
+        # Legend removed - was causing too many issues
         
         return G
  
-    def visualiseNetwork(self,case=None):    
-        """
-        allows the ADF to be visualised as a graph
-        
-        can be for the domain with or without a case
-        
-        if there is a case it will highlight the nodes green which have been
-        accepted and red the ones which have been rejected        
-        
-        Parameters
-        ----------
-        case : list, optional
-            the list of factors constituting the case
-        """
-        
-        #initialises the graph
-        G = pydot.Dot('{}'.format(self.name), graph_type='graph')
-        
-        # Set graph direction to top-to-bottom for better hierarchical layout
-        G.set_rankdir('TB')
-
-        if case != None:
-            # Temporarily set the case for evaluation
-            original_case = getattr(self, 'case', None)
-            self.case = case
-            
-            #checks each node
-            for i in self.nodes.values():
-                
-                #checks if node is already in the graph
-                if i not in G.get_node_list():
-                    
-                    #checks if the node was accepted in the case
-                    if i.name in case:
-                        a = pydot.Node(i.name,label=i.name,color='green')
-                    else:
-                        a = pydot.Node(i.name,label=i.name,color='red')
-                                        
-                    G.add_node(a)
-                
-                #creates edges between a node and its children
-                if i.children != None and i.children != []:
-                    
-                    self.evaluateNode(i)
-
-                    for j in i.children:
-                        
-                                                
-                        if j not in G.get_node_list():
-                            
-                            if j in case:
-                                a = pydot.Node(j,label=j,color='green')
-                            else:
-                                a = pydot.Node(j,label=j,color='red')
-                            
-                            G.add_node(a)
-                        
-                        #self.vis is a list which tracks whether a node is an attacking or defending node
-                        if j in self.vis:
-                            if j in case:
-                                my_edge = pydot.Edge(i.name, j, color='green',label='-')
-                            else:
-                                my_edge = pydot.Edge(i.name, j, color='red',label='-')
-                        else:
-                            if j in case:
-                                my_edge = pydot.Edge(i.name, j, color='green',label='+')
-                            else:
-                                my_edge = pydot.Edge(i.name, j, color='red',label='+')
-
-                        G.add_edge(my_edge)
-            
-            # Restore original case if it existed
-            if original_case is not None:
-                self.case = original_case
-            else:
-                delattr(self, 'case')
-            
-            # Add dependency relationships for DependentBLF nodes
-            for node_name, node in self.nodes.items():
-                if hasattr(node, 'dependency_node') and node.dependency_node:
-                    # Create a dotted black line from dependent node to dependency node
-                    dependency_edge = pydot.Edge(node_name, node.dependency_node, 
-                                               color='black', style='dotted')
-                    G.add_edge(dependency_edge)
-            
-            # Assign ranks to ensure proper hierarchical layout
-            self._assign_node_ranks(G)
-        
-        else:
-            
-            #creates self.vis if not already created
-            self.evaluateTree([])
-            
-            #checks each node
-            for i in self.nodes.values():
-                
-                #checks if node is already in the graph
-                if i not in G.get_node_list():
-                    
-                    a = pydot.Node(i.name,label=i.name,color='black')
-
-                    G.add_node(a)
-                
-                #creates edges between a node and its children
-                if i.children != None and i.children != []:
-                    
-                    self.evaluateNode(i)
-
-                    for j in i.children:
-                        
-                        if j not in G.get_node_list():
-                            
-                            a = pydot.Node(j,label=j,color='black')
-                           
-                            G.add_node(a)
-                        
-                        #self.vis is a list which tracks whether a node is an attacking or defending node
-                        if j in self.vis:
-                            my_edge = pydot.Edge(i.name, j, color='black',label='-')
-
-                        else:
-                            my_edge = pydot.Edge(i.name, j, color='black',label='+')
-
-                        G.add_edge(my_edge)
-            
-            # Add dependency relationships for DependentBLF nodes (without case)
-            for node_name, node in self.nodes.items():
-                if hasattr(node, 'dependency_node') and node.dependency_node:
-                    # Create a dotted black line from dependent node to dependency node
-                    dependency_edge = pydot.Edge(node_name, node.dependency_node, 
-                                               color='black', style='dotted')
-                    G.add_edge(dependency_edge)
-            
-            # Assign ranks to ensure proper hierarchical layout
-            self._assign_node_ranks(G)
-        
-        return G
-    
     def visualiseNetworkWithSubADMs(self, case=None):
         """
         Creates a comprehensive visualization including main ADM and sub-ADMs side by side
@@ -949,6 +845,273 @@ class ADF:
                         traceback.print_exc()
         
         # Second pass: identify EvaluationBLF nodes that should link to the same sub-models
+            for node_name, node in self.nodes.items():
+                if hasattr(node, 'source_blf') and node.source_blf in node_to_sub_model:
+                    # This is an EvaluationBLF that should link to the same sub-model as its source
+                    source_sub_model = node_to_sub_model[node.source_blf]
+                    node_to_sub_model[node_name] = source_sub_model
+        
+        # Third pass: create all connection edges
+        for node_name, sub_model_num in node_to_sub_model.items():
+            # Add connection edge from main BLF to the label node
+            connection_edge = pydot.Edge(
+                node_name,
+                f"sub_model_label_{sub_model_num}",
+                style='dashed',
+                color='red',
+                penwidth='0.5',
+            )
+            combined_graph.add_edge(connection_edge)
+        
+        
+        if len(sub_adm_mapping) == 0:
+            print("No sub-ADMs found in this ADM")
+            # Don't return early - continue to add legend
+        
+        # Legend removed - was causing too many issues
+        
+        return combined_graph
+    
+    def visualiseNetworkMinimal(self, case=None):
+        """
+        Creates a comprehensive minimalist visualization including main ADM and sub-ADMs side by side
+        with no node labels
+        
+        Parameters
+        ----------
+        case : list, optional
+            the list of factors constituting the case
+            
+        Returns:
+            pydot.Dot: combined graph with main ADM and sub-ADMs (no labels)
+        """
+        # Create main graph
+        main_graph = self.visualiseNetwork(case)
+        
+        # Create a new combined graph
+        combined_graph = pydot.Dot(f'{self.name}_minimal', graph_type='graph')
+        combined_graph.set_rankdir('TB')  # Top to bottom for vertical layout
+        
+        # Force sub-models to stack vertically
+        combined_graph.set('ranksep', '1.0')  # Add more space between ranks
+        
+        # Add main ADM as a subgraph at the top
+        main_subgraph = pydot.Subgraph('cluster_main')
+        main_subgraph.set_label(f'Main ADM: {self.name}')
+        
+        # Copy all nodes and edges from main graph to main subgraph
+        for node in main_graph.get_node_list():
+            # Remove labels and make nodes small and opaque
+            node.set_label('')
+            node.set_width('0.2')
+            node.set_height('0.2')
+            node.set_fontsize('0')
+            
+            # Color code by node type and hierarchy
+            node_name = node.get_name()
+            if node_name in self.nodes:
+                node_obj = self.nodes[node_name]
+                
+                # Find root node (node with no parents and no dependencies)
+                all_children = set()
+                for n in self.nodes.values():
+                    if hasattr(n, 'children') and n.children:
+                        for child in n.children:
+                            all_children.add(child)
+                
+                # Check if this node has any dependencies (DependentBLF nodes that depend on it)
+                has_dependencies = False
+                for other_node in self.nodes.values():
+                    if hasattr(other_node, 'dependency_node') and other_node.dependency_node:
+                        if isinstance(other_node.dependency_node, str):
+                            if other_node.dependency_node == node_name:
+                                has_dependencies = True
+                                break
+                        elif isinstance(other_node.dependency_node, list):
+                            if node_name in other_node.dependency_node:
+                                has_dependencies = True
+                                break
+                
+                is_root = node_name not in all_children and not has_dependencies
+                
+                # Check if this is an immediate child of root (not a BLF)
+                is_immediate_child_of_root = False
+                if not is_root:
+                    for n in self.nodes.values():
+                        if hasattr(n, 'children') and n.children and node_name in n.children:
+                            # Check if parent is root
+                            parent_name = n.name
+                            if parent_name not in all_children:  # Parent is root
+                                is_immediate_child_of_root = True
+                                break
+                
+                if is_root:
+                    # Root node - red
+                    node.set_color('red')
+                    node.set_fillcolor('red')
+                elif is_immediate_child_of_root and hasattr(node_obj, 'children') and node_obj.children:
+                    # Immediate child of root that is NOT a BLF (abstract factor) - blue
+                    node.set_color('blue')
+                    node.set_fillcolor('blue')
+                elif hasattr(node_obj, 'children') and node_obj.children:
+                    # Other abstract factors - blue
+                    node.set_color('blue')
+                    node.set_fillcolor('blue')
+                else:
+                    # Base-level factors - green
+                    node.set_color('green')
+                    node.set_fillcolor('green')
+            else:
+                # Default - gray
+                node.set_color('gray')
+                node.set_fillcolor('gray')
+            
+            main_subgraph.add_node(node)
+        
+        # Make edges thinner
+        for edge in main_graph.get_edge_list():
+            edge.set_penwidth('0.5')
+            main_subgraph.add_edge(edge)
+        
+        combined_graph.add_subgraph(main_subgraph)
+        
+        # Find and create sub-ADMs
+        sub_adm_count = 0
+        
+        # Track which nodes use the same sub-ADM
+        sub_adm_mapping = {}
+        # Track which nodes should link to which sub-models
+        node_to_sub_model = {}
+        
+        # First pass: identify all sub-ADM creators and create sub-models
+        for node_name, node in self.nodes.items():
+            if hasattr(node, 'sub_adf_creator'):
+                # Check if this sub-ADM creator is already mapped
+                sub_adm_key = str(node.sub_adf_creator)
+                if sub_adm_key not in sub_adm_mapping:
+                    sub_adm_count += 1
+                    sub_adm_mapping[sub_adm_key] = sub_adm_count
+                
+                # Map this node to its sub-model
+                current_sub_adm_num = sub_adm_mapping[sub_adm_key]
+                node_to_sub_model[node_name] = current_sub_adm_num
+                
+                # Create sub-ADM instance (only if we haven't created it yet)
+                if current_sub_adm_num == sub_adm_count:  # Only create once
+                    try:
+                        # For visualization, we need to provide a dummy item name
+                        # since we don't have actual items to evaluate
+                        dummy_item = "visualization_item"
+                        sub_adf = node.sub_adf_creator(dummy_item)
+                        
+                        # Create sub-ADM graph
+                        sub_graph = sub_adf.visualiseNetwork()
+                        
+                        # Create a subgraph to position the sub-model to the right
+                        sub_subgraph = pydot.Subgraph(f'cluster_sub_{current_sub_adm_num}')
+                        sub_subgraph.set_label(f'Sub-Model {current_sub_adm_num}')
+                        
+                        # Create a small label node that the red lines will point to
+                        # Position it closer to the main ADM
+                        label_node = pydot.Node(f"sub_model_label_{current_sub_adm_num}", 
+                                               label=f"SUB-MODEL {current_sub_adm_num}",
+                                               shape="box",
+                                               style="filled",
+                                               fillcolor="lightgreen",
+                                               width="1.5",
+                                               height="0.5")
+                        
+                        # Add the label node to the main subgraph (not the combined graph)
+                        # This positions it within the main ADM area, closer to the nodes
+                        main_subgraph.add_node(label_node)
+                        
+                        # Add all nodes and edges from the sub-ADM to the subgraph
+                        for sub_node in sub_graph.get_node_list():
+                            # Remove labels and make sub-ADM nodes small and opaque
+                            sub_node.set_label('')
+                            sub_node.set_width('0.2')
+                            sub_node.set_height('0.2')
+                            sub_node.set_fontsize('0')
+                            
+                            # Color code sub-ADM nodes by type and hierarchy
+                            sub_node_name = sub_node.get_name()
+                            if hasattr(sub_adf, 'nodes') and sub_node_name in sub_adf.nodes:
+                                sub_node_obj = sub_adf.nodes[sub_node_name]
+                                
+                                # Find root node in sub-ADM (node with no parents and no dependencies)
+                                all_children = set()
+                                for n in sub_adf.nodes.values():
+                                    if hasattr(n, 'children') and n.children:
+                                        for child in n.children:
+                                            all_children.add(child)
+                                
+                                # Check if this node has any dependencies (DependentBLF nodes that depend on it)
+                                has_dependencies = False
+                                for other_node in sub_adf.nodes.values():
+                                    if hasattr(other_node, 'dependency_node') and other_node.dependency_node:
+                                        if isinstance(other_node.dependency_node, str):
+                                            if other_node.dependency_node == sub_node_name:
+                                                has_dependencies = True
+                                                break
+                                        elif isinstance(other_node.dependency_node, list):
+                                            if sub_node_name in other_node.dependency_node:
+                                                has_dependencies = True
+                                                break
+                                
+                                is_root = sub_node_name not in all_children and not has_dependencies
+                                
+                                # Check if this is an immediate child of root (not a BLF)
+                                is_immediate_child_of_root = False
+                                if not is_root:
+                                    for n in sub_adf.nodes.values():
+                                        if hasattr(n, 'children') and n.children and sub_node_name in n.children:
+                                            # Check if parent is root
+                                            parent_name = n.name
+                                            if parent_name not in all_children:  # Parent is root
+                                                is_immediate_child_of_root = True
+                                                break
+                                
+                                if is_root:
+                                    # Root node - red
+                                    sub_node.set_color('red')
+                                    sub_node.set_fillcolor('red')
+                                elif is_immediate_child_of_root and hasattr(sub_node_obj, 'children') and sub_node_obj.children:
+                                    # Immediate child of root that is NOT a BLF (abstract factor) - blue
+                                    sub_node.set_color('blue')
+                                    sub_node.set_fillcolor('blue')
+                                elif hasattr(sub_node_obj, 'children') and sub_node_obj.children:
+                                    # Other abstract factors - blue
+                                    sub_node.set_color('blue')
+                                    sub_node.set_fillcolor('blue')
+                                else:
+                                    # Base-level factors - green
+                                    sub_node.set_color('green')
+                                    sub_node.set_fillcolor('green')
+                            else:
+                                # Default - gray
+                                sub_node.set_color('gray')
+                                sub_node.set_fillcolor('gray')
+                            
+                            sub_subgraph.add_node(sub_node)
+                        
+                        # Make sub-ADM edges thinner
+                        for sub_edge in sub_graph.get_edge_list():
+                            sub_edge.set_penwidth('0.5')
+                            sub_subgraph.add_edge(sub_edge)
+                        
+                        combined_graph.add_subgraph(sub_subgraph)
+                        
+                        # Add invisible edge to force vertical stacking
+                        if current_sub_adm_num == 2:
+                            # Connect Sub-Model 2 to Sub-Model 1 to force it below
+                            combined_graph.add_edge(pydot.Edge(f"sub_model_label_1", f"sub_model_label_2", style='invis'))
+                        
+                    except Exception as e:
+                        print(f"ERROR: Could not create sub-ADM for {node_name}: {e}")
+                        import traceback
+                        traceback.print_exc()
+        
+        # Second pass: identify EvaluationBLF nodes that should link to the same sub-models
         for node_name, node in self.nodes.items():
             if hasattr(node, 'source_blf') and node.source_blf in node_to_sub_model:
                 # This is an EvaluationBLF that should link to the same sub-model as its source
@@ -963,15 +1126,19 @@ class ADF:
                 f"sub_model_label_{sub_model_num}",
                 style='dashed',
                 color='red',
-                label=f'→ sub-model'
+                penwidth='0.5',
             )
             combined_graph.add_edge(connection_edge)
         
+        
         if len(sub_adm_mapping) == 0:
             print("No sub-ADMs found in this ADM")
-            return main_graph
+            # Don't return early - continue to add legend
+        
+        # Legend removed - was causing too many issues
         
         return combined_graph
+    
     
     def _assign_node_ranks(self, G):
         """
@@ -1444,7 +1611,7 @@ class SubADMBLF(Node):
                 else:
                     print(f"\n✗ {self.name} is REJECTED (no accepted items found)")
                     return False
-                
+                    
         except Exception as e:
             print(f"\n✗ Error evaluating {self.name}: {e}")
             return False
