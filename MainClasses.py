@@ -1529,8 +1529,8 @@ class SubADMBLF(Node):
                         key_facts.update(dep_facts)
         
         # Add main case information to key facts
-        if hasattr(ui_instance.adf, 'case'):
-            key_facts['main_case'] = ui_instance.adf.case
+        if hasattr(ui_instance, 'case'):
+            key_facts['main_case'] = ui_instance.case
         
         return key_facts
 
