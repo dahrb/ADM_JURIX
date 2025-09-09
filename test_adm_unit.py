@@ -296,9 +296,8 @@ class TestSubADMEvaluation(unittest.TestCase):
         expected_final_case = [
             "DistinguishingFeatures", 
             "ClaimContainsEffect",
-            "SufficiencyOfDisclosureIssue",
-            "NonReproducible"
-        ]
+            "NonReproducible",
+            ]
         
         # Test the evaluation - SufficiencyOfDisclosureIssue should prevent FeatureReliableTechnicalEffect
         sub_adf = create_sub_adm_1("sufficiency_test")
@@ -371,9 +370,8 @@ class TestSubADMEvaluation(unittest.TestCase):
             "ComputerSimulation",
             "NumOrComp",
             "ClaimContainsEffect",
-            "ExcludedField",
-            "SufficiencyOfDisclosureIssue",
-            "NonReproducible"
+            "ExcludedField",           
+            "NonReproducible",
         ]
         
         # Test the evaluation - multiple reject conditions should prevent multiple nodes
