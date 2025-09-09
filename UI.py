@@ -165,19 +165,16 @@ class CLI:
             
             # Check if this question instantiator  has a dependency
             if instantiator.get('dependency_node'):
-                print('DEBUG: confirmed dependency')
                 # Check if dependency is satisfied
                 # Handle both single string and list
                 dependency_node = instantiator['dependency_node']
 
                 if isinstance(dependency_node, str):
-                    print('DEBUG SINGLE STRING')
                     dependency_node = [dependency_node]
                 
                 # Check if ALL dependencies are satisfied
                 all_dependencies_satisfied = True
                 for dependency_node_name in dependency_node:
-                    print(f'DEBUG: {dependency_node_name}')
                     if dependency_node_name not in self.case:
                         # Try to evaluate the dependency
                         print(f" Trying to evaluate dependency {dependency_node_name} for {current_question}")

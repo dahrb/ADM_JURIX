@@ -28,7 +28,7 @@ def create_sub_adm_1(item_name, key_facts=None):
         "A computer simulation.": "ComputerSimulation",
         "The processing of numerical data.": "NumericalData",
         "A mathematical method or algorithm.": "MathematicalMethod",
-        "Other excluded field":"OtherExlusions",
+        "Other excluded field":"OtherExclusions",
         "None of the above":""
     },
     None,
@@ -41,7 +41,7 @@ def create_sub_adm_1(item_name, key_facts=None):
     sub_adf.addNodes("TechnicalAdaptation",question='Is the feature a specific technical adaptation which is specific for that implementation in that its design is motivated by technical considerations relating to the internal functioning of the computer system or network.')
 
     #bridge node to make things easier
-    sub_adf.addNodes("NumOrComp",["NumericalData","ComputerSimulation"],["The feature involves numercial data","The feature involves a computer simulation","The feature does involve a computer simulation or numerical data"])
+    sub_adf.addNodes("NumOrComp",["NumericalData","ComputerSimulation"],["The feature involves numercial data","The feature involves a computer simulation","The feature does not involve a computer simulation or numerical data"])
 
     #F37 - Q23
     sub_adf.addDependentBLF("IntendedTechnicalUse","NumOrComp",
@@ -89,10 +89,14 @@ def create_sub_adm_1(item_name, key_facts=None):
     None,
     "cred_repro_questions")
 
-    sub_adf.addNodes("NonReproducible",["reject Reproducible","accept"],["the technical effect is not reproducible","the technical effect is reproducible",""])
+    sub_adf.addNodes("NonReproducible",["reject Reproducible","accept"],["the technical effect is reproducible","the technical effect is not reproducible",""])
     #F44 - Q32
     sub_adf.addDependentBLF("ClaimContainsEffect","NonReproducible",
                             'Does the claim contain the non-reproducible effect i.e. if the claim says the invention achieve effect E, but this is not reproducible.',
+                            None)
+
+    sub_adf.addDependentBLF("SufficiencyOfDisclosureRaised","ClaimContainsEffect",
+                            'Is there an issue with sufficiency of disclosure regarding this feature?',
                             None)
 
     #abstract factors
@@ -103,14 +107,14 @@ def create_sub_adm_1(item_name, key_facts=None):
     sub_adf.addNodes("NormalTechnicalContribution",["reject CircumventTechProblem","reject ExcludedField","IndependentContribution","CombinationContribution"],["The feature is not a technical contribution as it circumvents a technical problem","The feature is not a normal technical contribution as it is part of an excluded field","The feature is an independent technical contribution","The feature is a technical contribution in combination with other features","the feature is not a technical contribution"])
     sub_adf.addNodes("FeatureTechnicalContribution",["NormalTechnicalContribution","ComputationalContribution","MathematicalContribution"],["there is a technical contribution","there is a technical computational or numerical contribution","there is a technical mathematical contribution","there is no technical contribution"])
     sub_adf.addNodes("BonusEffect",["FeatureTechnicalContribution and UnexpectedEffect and OneWayStreet"],["there is a bonus effect","there is no bonus effect"])
-    sub_adf.addNodes("SufficiencyOfDisclosureIssue",["reject Reproducible","ClaimContainsEffect"],["there is no issue with sufficiency of disclosure regarding this feature","there is an issue of sufficiency of disclosure as the claim states an effect which is not reproducible","there is no issue with sufficiency of disclosure regarding this feature"])
+    sub_adf.addNodes("SufficiencyOfDisclosureIssue",["reject Reproducible","ClaimContainsEffect and SufficiencyOfDisclosureRaised"],["there is no issue with sufficiency of disclosure regarding this feature","there is an issue of sufficiency of disclosure as the claim states an effect which is not reproducible","no sufficiency of disclosure issue raised"])
     sub_adf.addNodes("ImpreciseUnexpectedEffect",["reject PreciseTerms","UnexpectedEffect"],["the unexpected effect is clearly and precisely described","the unexpected effect is not clearly and precisely described","there is no unexpected effect"])
     sub_adf.addNodes("FeatureReliableTechnicalEffect",["reject SufficiencyOfDisclosureIssue","reject BonusEffect","reject ImpreciseUnexpectedEffect", "FeatureTechnicalContribution and Credible and Reproducible"],["An issue with sufficiency of disclosure precludes us relying on this feature","The feature is a bonus effect which precludes us relying on this feature","The feature is a unexpected effect which is not clearly described precluding us relying on this feature","The feature is a credible, reproducible and reliable technical contribution","The feature is not a reliable technical contribution due to a lack of credibility or reproducibility"])
     
     #The fact the sub-adm is running means there are distinguishing features so to more easily resolve this we just auto add it to eval later
     sub_adf.case = ["DistinguishingFeatures"]
     
-    sub_adf.questionOrder = ["IndependentContribution","CombinationContribution","nature_feat","CircumventTechProblem","TechnicalAdaptation","IntendedTechnicalUse","TechUseSpecified","SpecificPurpose","FunctionallyLimited","UnexpectedEffect","PreciseTerms","OneWayStreet","cred_repro_questions","ClaimContainsEffect"]
+    sub_adf.questionOrder = ["IndependentContribution","CombinationContribution","nature_feat","CircumventTechProblem","TechnicalAdaptation","IntendedTechnicalUse","TechUseSpecified","SpecificPurpose","FunctionallyLimited","UnexpectedEffect","PreciseTerms","OneWayStreet","cred_repro_questions","ClaimContainsEffect","SufficiencyOfDisclosureRaised"]
     return sub_adf
 
     # Add Sub-ADM 2 algorithm
@@ -143,7 +147,7 @@ def create_sub_adm_2(item_name, key_facts=None):
     
     #ROOT ISSUE 
     sub_adf.addNodes("WouldHaveArrived", ['WouldModify and  ObjectiveTechnicalProblemFormulation', 'WouldAdapt and ObjectiveTechnicalProblemFormulation'],
-                    ['The skilled person would have arrived at the proposed invention by modifying the closest prior art', 'The skilled person would have arrived at the proposed invention by adapting the closest prior art','no reason to believe the skilled person'])
+                    ['The skilled person would have arrived at the proposed invention by modifying the closest prior art', 'The skilled person would have arrived at the proposed invention by adapting the closest prior art','no reason to believe the skilled person would have arrived at the proposed invention'])
 
     #BLFs
     #F48

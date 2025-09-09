@@ -649,7 +649,6 @@ class ADF:
             
             # First, evaluate all nodes to build up self.vis (attacking nodes list)
             self.evaluateTree(case)
-            print(f"DEBUG: vis list after evaluation: {self.vis}")
             
             #checks each node
             for i in self.nodes.values():
@@ -682,13 +681,11 @@ class ADF:
                         
                         #self.vis is a list which tracks whether a node is an attacking or defending node
                         if j in self.vis:
-                            print(f"DEBUG: {j} is in vis list - using minus")
                             if j in case:
                                 my_edge = pydot.Edge(i.name, j, color='green',label='-')
                             else:
                                 my_edge = pydot.Edge(i.name, j, color='red',label='-')
                         else:
-                            print(f"DEBUG: {j} is NOT in vis list - using plus")
                             if j in case:
                                 my_edge = pydot.Edge(i.name, j, color='green',label='+')
                             else:
