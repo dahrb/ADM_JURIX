@@ -7,7 +7,6 @@ Provides descriptive statistics for ADM structures including main ADM and sub-AD
 import sys
 import os
 from MainClasses import *
-import academic_research_ADM
 import inventive_step_ADM
 
 def analyze_adm_structure(adf, adm_name="Main ADM"):
@@ -193,28 +192,11 @@ def print_statistics(stats_list):
         print(f"  Non-Leaf Nodes: {total_all_non_leaf} ({total_all_non_leaf/total_all_nodes*100:.1f}%)")
 
 def main():
-    """Main function to analyze all available ADMs"""
-    print("Loading and analyzing ADM structures...")
+    """Main function to analyze Inventive Step ADM only"""
+    print("Loading and analyzing Inventive Step ADM structure...")
     print()
     
     stats_list = []
-    
-    # Analyze Academic Research ADM
-    try:
-        print("Analyzing Academic Research ADM...")
-        academic_adf = academic_research_ADM.adf()
-        academic_stats = analyze_adm_structure(academic_adf, "Academic Research ADM")
-        stats_list.append(academic_stats)
-        
-        # Analyze its sub-ADM
-        sub_adm_1_stats = analyze_sub_adm_structure(
-            academic_research_ADM.create_sub_adm_1, 
-            "Sub-ADM 1 (Academic Research)"
-        )
-        stats_list.append(sub_adm_1_stats)
-        
-    except Exception as e:
-        print(f"Error analyzing Academic Research ADM: {e}")
     
     # Analyze Inventive Step ADM
     try:
