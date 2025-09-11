@@ -2,3 +2,4 @@
 test_results.txt
 *.png
 *.svg
+split*.py
